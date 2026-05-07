@@ -22,42 +22,9 @@
                 <!-- Logo -->
                 <a class="topbar__logo" href="/">
                     <img [src]="infoWeb?.imageLogo || 'favicon.ico'" alt="Logo">
-                </a>
+                </a>           
 
                 <div class="topbar__divider"></div>
-
-                <!-- Page Switcher -->
-                <button class="topbar__page-btn" [matMenuTriggerFor]="menuOption" matTooltip="Switch Module">
-                    <i class="bi bi-arrow-down-up"></i>
-                    <span>Page</span>
-                    <i class="bi bi-chevron-down topbar__page-btn-arrow"></i>
-                </button>
-                <mat-menu [xPosition]="'before'" #menuOption="matMenu">
-                    <a mat-menu-item
-                        href="hotel?country={{user && user.nation ? user.nation : ''}}&user={{user && user.username ? user.username : ''}}">
-                        <i class="bi bi-building"></i>
-                        <span>Open Hotel</span>
-                    </a>
-                    <a mat-menu-item
-                        href="tours?country={{user && user.nation ? user.nation : ''}}&user={{user && user.username ? user.username : ''}}">
-                        <i class="bi bi-map"></i>
-                        <span>Open Tour</span>
-                    </a>
-                </mat-menu>
-
-                <div class="topbar__divider"></div>
-
-                <!-- Country Selector -->
-                @if(!hiddenSelectSource) {
-                <div *ngIf="countriesSelect && countriesSelect.length" class="topbar__country">
-                    <select class="topbar__country-dropdown" [(ngModel)]="countriesSelectValue" (ngModelChange)="changeNation($event)">
-                        <option *ngFor="let country of countriesSelect" [value]="country.nation">
-                            {{ country.name }}
-                        </option>
-                    </select>
-                </div>
-                }
-
                 <!-- Purge Cache -->
                 <button class="topbar__cache-btn" matTooltip="Purge Cache"
                     (click)="reloadData(countriesSelectValue)">

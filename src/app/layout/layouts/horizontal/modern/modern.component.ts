@@ -14,7 +14,6 @@ import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 // data indexedDB
 import { AppFactory } from 'app/shared/lib/common.service';
-import * as signalR from '@microsoft/signalr';
 import { LocalStorageService } from 'angular-web-storage';
 import { MatSnackBar } from '@angular/material/snack-bar';
 @Component({
@@ -215,23 +214,7 @@ export class ModernLayoutComponent implements OnInit, OnDestroy {
   SystemNotification: boolean = false;
   SystemNotificationMessage: any;
   InitSignalR(): void {
-    let connection = new signalR.HubConnectionBuilder()
-      .withUrl(env.RealtimeSignalR + '/messageHub', {
-        skipNegotiation: true,
-        transport: signalR.HttpTransportType.WebSockets,
-      })
-      .build();
-    connection.on('checkuserlogin', async (rs) => {
-      if (!rs?.notify) {
-        if (rs?.userId && rs?.userId === this.user._id) {
-          // User login check removed
-        }
-      } else {
-        this.SystemNotificationMessage = this.afac.safeHtml(rs.message || '');
-        this.SystemNotification = true;
-      }
-    });
-    connection.start().catch((err) => console.log(err));
+    return;
   }
   getClientInfo(callback: (clientInfo: string) => void) {
     const headers = new HttpHeaders({

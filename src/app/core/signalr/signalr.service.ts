@@ -26,6 +26,7 @@ export interface OnlineUser {
 })
 export class SignalRService implements OnDestroy {
   private hubConnection: signalR.HubConnection | undefined;
+  private readonly websocketEnabled = (env as any).EnableWebSockets === true;
   private heartbeatInterval: any;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5; // Reduced from 10 to 5 to prevent connection storms
@@ -71,6 +72,12 @@ export class SignalRService implements OnDestroy {
 
   // Initialize connection with user info
   async connect(user: any): Promise<void> {
+    if (!this.websocketEnabled) {
+      this.currentUser = user;
+      this.connectionStatus$.next({ status: 'disconnected', message: 'Realtime disabled' });
+      return;
+    }
+
     if (this.hubConnection || !user) {
       return;
     }
@@ -162,6 +169,10 @@ export class SignalRService implements OnDestroy {
 
   // Send global message
   async sendGlobalMessage(message: string, type: string = 'info', notify: boolean = true): Promise<void> {
+    if (!this.websocketEnabled) {
+      return;
+    }
+
     if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
       try {
         await this.hubConnection.invoke('SendGlobalMessage', message, type, notify);
@@ -176,11 +187,17 @@ export class SignalRService implements OnDestroy {
 
   // Get connection state
   getConnectionState(): signalR.HubConnectionState | undefined {
+    if (!this.websocketEnabled) {
+      return undefined;
+    }
     return this.hubConnection?.state;
   }
 
   // Check if connected
   isConnected(): boolean {
+    if (!this.websocketEnabled) {
+      return false;
+    }
     return this.hubConnection?.state === signalR.HubConnectionState.Connected;
   }
 
@@ -315,6 +332,10 @@ export class SignalRService implements OnDestroy {
   }
 
   private handleConnectionError(): void {
+    if (!this.websocketEnabled) {
+      return;
+    }
+
     // CONNECTION STORM FIX: Don't retry if rejected by server
     if (this.isRejected) {
       console.warn('[SignalR Service] Connection was rejected. Waiting for cooldown before retry.');
@@ -371,6 +392,10 @@ export class SignalRService implements OnDestroy {
    * Start tracking user activity (mouse, keyboard, scroll, page changes)
    */
   startActivityTracking(): void {
+    if (!this.websocketEnabled) {
+      return;
+    }
+
     // Reset activity tracking
     this.lastInteractionTime = new Date();
     this.currentActivityStatus = 'active';

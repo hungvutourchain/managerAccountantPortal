@@ -162,7 +162,6 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
     this.signIn();
   }
   user: any = {};
-  PopupSwitchRoles: boolean = false;
   getClientInfo(callback: (clientInfo: string) => void) {
     const headers = new HttpHeaders().delete('Authorization');
     this.http.get('https://www.cloudflare.com/cdn-cgi/trace', { responseType: 'text', headers }).subscribe(
@@ -317,15 +316,6 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
         });
       }
     }
-  }
-  ChangeRoles(vl, event: boolean = false) {
-    vl.active = event;
-    this.user.role
-      .filter((x) => x._id != vl._id)
-      .forEach((vl) => {
-        vl.active = false;
-      });
-    this._userService.Checkrole(this.user.role, this.user.role);
   }
   disableduserVerify: boolean = true;
   onOtpChange(event) {

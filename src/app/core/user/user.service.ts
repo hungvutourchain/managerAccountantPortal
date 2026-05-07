@@ -85,17 +85,6 @@ export class UserService implements OnDestroy {
           this.logout(reason);
           return;
         }
-        user.isviewAdmin = true;
-        user.IsReservation = false;
-        user.IsReservationLeader = false;
-        user.IsLeader = false;
-        user.IsProduct = false;
-        user.IsView = false;
-        user.IsUser = false;
-        user.IsOperation = false;
-        user.IsAdmin = false;
-        user.IsReport = false;
-        this.Checkrole(user.role, user);
         this._user.next(user);
       }),
       catchError(() => {
@@ -151,82 +140,6 @@ export class UserService implements OnDestroy {
   }
   sendMessageGlobal(object): Observable<any> {
     return this._httpClient.post(`${env.urlOperationApi}/ManagerUser/sendMessageGlobal`, object);
-  }
-
-  Checkrole(roles, user) {
-    let lsRoles = roles.filter((x) => x.code !== 'Leader');
-    if (lsRoles.length > 1) {
-      let temp = lsRoles.find((x) => x.active);
-      if (temp) {
-        temp.active = true;
-        this.switchRole(temp, user);
-      } else {
-        let temprode = roles.filter((x) => x.code !== 'Leader')[0];
-        temprode.active = true;
-        roles.forEach((vl) => {
-          this.switchRole(vl, user);
-        });
-      }
-    } else {
-      roles.forEach((vl) => {
-        vl.active = true;
-        this.switchRole(vl, user);
-      });
-    }
-  }
-  switchRole(vl, user) {
-    switch (vl.code) {
-      case 'Admin':
-        user.IsAdmin = vl.active;
-        break;
-      case 'AdminSystem':
-        user.IsAdminSystem = true;
-        break;
-      case 'Reservation':
-        user.IsReservation = vl.active;
-        break;
-      case 'Leader':
-        user.IsReservationLeader = vl.active;
-        user.IsLeader = vl.active;
-        break;
-      case 'ReservationManager':
-        user.IsReservationLeader = vl.active;
-        user.IsLeader = vl.active;
-        break;
-      case 'OM':
-        user.IsOm = vl.active;
-        break;
-      case 'Product':
-        user.IsProduct = vl.active;
-        break;
-      case 'View':
-        user.IsView = vl.active;
-        break;
-      case 'User':
-        user.IsUser = vl.active;
-        break;
-      case 'Report':
-        user.IsReport = vl.active;
-        break;
-      case 'Operation':
-        user.IsOperation = vl.active;
-        break;
-      case 'Accounting':
-        user.IsAccounting = vl.active;
-        break;
-      case 'AccountingManager':
-        user.IsAccountingManager = true;
-        break;
-      case 'FinanceManager':
-        user.IsFinanceManager = true;
-        break;
-      case 'AccountsReceivable':
-        user.IsAccountsReceivable = true;
-        break;
-      case 'AccountsPayable':
-        user.IsAccountsPayable = true;
-        break;
-    }
   }
   update(user: any): Observable<any> {
     return this._httpClient.patch<User>('api/common/user', { user }).pipe(

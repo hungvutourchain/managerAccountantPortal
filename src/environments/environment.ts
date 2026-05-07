@@ -20,6 +20,7 @@ export const environment = {
 
   syncFileManagerGoogle: "http://localhost:62871", // image server using syscfusion Google
   syncFileManagerAmazon: "http://localhost:62872", // image server using syscfusion Amazon
+  EnableWebSockets: false,
   RealtimeSignalR: 'http://localhost:61626',
   // urlApi: "https://ac.tourchain.net", // node server_api_nodejs api
   urlApi: "http://localhost:4040", // node server_api_nodejs api

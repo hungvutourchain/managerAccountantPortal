@@ -25,16 +25,6 @@ import { EditerSyncfusionOrginComponent } from './components/editerSyncfusion/ed
 import { EditerSyncfusionCrooperComponent } from './components/editerSyncfusionCrooper/editerSyncfusion.component';
 import { CrooperImageComponent } from './components/crooperImage/crooperImage.component';
 import { ProfileComponent } from './components/profile/profile.component';
-import { UsersManagerComponent } from './components/UserManager/users.component';
-import { StudentGroupComponent } from './components/UserManager/StudentGroup/studentgroup.component';
-import { ClassViewComponent } from './components/UserManager/Class/class.component';
-import { CompanyComponent } from './components/UserManager/company/file.component';
-import { CourseComponent } from './components/UserManager/Course/file.component';
-import { DepartmentComponent } from './components/UserManager/Department/file.component';
-import { TemplateEmailStudentComponent } from './components/UserManager/TemplateEmailStudent/file.component';
-import { LicenseManagementComponent } from './components/UserManager/LicenseManagement/LicenseManagement.component';
-import { ConfirmDialogComponent } from './components/UserManager/LicenseManagement/confirm-dialog.component';
-import { LicenseService } from './components/UserManager/LicenseManagement/license.service';
 
 import { SpeechComponent } from './components/speech/speech.component';
 import { AIAssistViewModule } from '@syncfusion/ej2-angular-interactive-chat';
@@ -78,16 +68,7 @@ import { UploadFileComponent } from './components/UploadFile/UploadFile.componen
     CrooperImageComponent,
     UploadFileComponent,
     ProfileComponent,
-    UsersManagerComponent,
-    StudentGroupComponent,
-    CompanyComponent,
-    DepartmentComponent,
-    ClassViewComponent,
-    CourseComponent,
-    TemplateEmailStudentComponent,
-    LicenseManagementComponent,
     SpeechComponent,
-    ConfirmDialogComponent,
   ],
   imports: [
     DatePickerAllModule,
@@ -165,7 +146,6 @@ import { UploadFileComponent } from './components/UploadFile/UploadFile.componen
     CrooperImageComponent,
     UploadFileComponent,
     ProfileComponent,
-    UsersManagerComponent,
     DatePickerModule,
     DateTimePickerModule,
     TimePickerModule,
@@ -178,20 +158,11 @@ import { UploadFileComponent } from './components/UploadFile/UploadFile.componen
     SpeedDialModule,
     TreeViewModule,
     SpeechComponent,
-    StudentGroupComponent,
-    CompanyComponent,
-    DepartmentComponent,
-    ClassViewComponent,
-    CourseComponent,
-    TemplateEmailStudentComponent,
-    LicenseManagementComponent,
-    ConfirmDialogComponent,
   ],
   providers: [
     DbService,
     LibService,
     AppFactory,
-    LicenseService,
     CurrencyPipe, // for AppFactory
     DatePipe,
   ],

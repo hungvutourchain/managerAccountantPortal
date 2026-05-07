@@ -1,37 +1,54 @@
-<!-- Button -->
-<!-- REMOVED: app-quote-validity component not found -->
-<!-- <app-quote-validity *ngIf="user.IsAdmin || user.IsReservation || user.supperAdmin" [user]="user"></app-quote-validity> -->
-<!-- REMOVED: app-amend-service component not found -->
-<!-- <app-amend-service style="display: inline-block;"></app-amend-service> -->
-<!-- <wsa-chat></wsa-chat> -->
 
-<!-- <a style="position: relative;" href="javascript:;" [matTooltip]="'Education'" id="nav_Setting" class="ml-3">
-    <i class="bi bi-mortarboard" style="font-size: 21px;"></i>
-    <theme-education-widget class="badge badge-pill badge-warning" style="position: absolute;
-    top: -13px;
-    right: -6px;
-    font-size: 10px;" *ngIf="user" [user]="user">
-    </theme-education-widget>
-</a> -->
+<button class="ml-2" (click)="openSettingDialog = true" [matTooltip]="'Setting'">
+    <i class="bi bi-gear" style="font-size: 21px;"></i>
+</button>
 
-<!-- <ng-container *ngIf="user && (user.IsAdmin || user.IsReservation)">
-    <app-messaging [user]="user" [dateTimeFormat]="dateTimeFormat">
-    </app-messaging>
-</ng-container> -->
-<!-- <ng-container *ngIf="user && (user.IsAdmin || user.IsReservation)">
-    <app-request-widget [user]="user" [dateTimeFormat]="dateTimeFormat">
-    </app-request-widget>
-</ng-container> -->
-<!-- <ng-container *ngIf="user && (user.IsAdmin || user.IsReservation)">
-    <theme-messages-widget [user]="user" [dateTimeFormat]="dateTimeFormat">
-    </theme-messages-widget>
-</ng-container> -->
+<ejs-dialog *ngIf="openSettingDialog" [isModal]="true" [visible]="true"
+    [showCloseIcon]="true" (close)="openSettingDialog = false"
+    [width]="'700px'" cssClass="setting-dlg" [header]="'Settings'" [animationSettings]="{effect: 'Zoom'}">
+    <ng-template #content>
+        <!-- Search box -->
+        <div class="sdlg-search">
+            <i class="bi bi-search"></i>
+            <input type="text" [(ngModel)]="menuSearch" (ngModelChange)="onMenuSearch($event)"
+                placeholder="Search settings..." class="sdlg-search__input" />
+            <button *ngIf="menuSearch" class="sdlg-search__clear" (click)="onMenuSearch('')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <!-- Grouped sections -->
+        <div class="sdlg-body">
+            <ng-container *ngFor="let group of filteredGroupedMenu">
+                <div class="sdlg-section">
+                    <div class="sdlg-section__header">
+                        <i class="{{group.icon}}"></i>
+                        <span>{{group.label}}</span>
+                        <span class="sdlg-section__badge">{{group.items.length}}</span>
+                    </div>
+                    <div class="sdlg-section__grid">
+                        <a *ngFor="let x of group.items" [href]="x.url" [target]="x.target" class="sdlg-item">
+                            <i class="{{x.icon}}"></i>
+                            <span>{{x.name}}</span>
+                        </a>
+                    </div>
+                </div>
+            </ng-container>
+            <!-- Empty state -->
+            <div *ngIf="filteredGroupedMenu.length === 0 && menuSearch" class="sdlg-empty">
+                <i class="bi bi-search"></i>
+                <span>No results for "{{menuSearch}}"</span>
+            </div>
+        </div>
+    </ng-template>
+</ejs-dialog>
 
-<!-- <a href="question/create?country={{user.nation}}&user={{user.username}}" [matTooltip]="'Question Create'" class="ml-2"
-    target="_blank">
-    <i class="bi bi-ui-radios" style="font-size: 21px;"></i>
-</a>
-<a href="question/question-box?country={{user.nation}}&user={{user.username}}" [matTooltip]="'Question Box'"
-    class="ml-2" target="_blank">
-    <i class="bi bi-chat-right-text-fill" style="font-size: 21px;"></i>
-</a> -->
+<button class="ml-2" [matMenuTriggerFor]="menuUser" [matTooltip]="'Users'">
+    <i class="bi bi-people-fill" style="font-size: 21px;"></i>
+</button>
+<mat-menu [xPosition]="'before'" #menuUser="matMenu">
+    <ul class="lst-menu">
+        <li *ngFor="let x of menuUsers">
+            <i class="{{x.icon}}"></i> <a [href]="x.url" [target]="x.target"> {{x.name}}</a>
+        </li>
+    </ul>
+</mat-menu>
