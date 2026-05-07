@@ -1,6 +1,7 @@
 import { Component } from "@angular/core";
 
 @Component({
+  standalone: false,
   selector: "app-main-page-dashboard",
   templateUrl: "./main-page-dashboard.component.html",
   styleUrls: ["./main-page-dashboard.component.scss"],

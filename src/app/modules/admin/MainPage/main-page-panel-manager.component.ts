@@ -1,6 +1,7 @@
 import { Component } from "@angular/core";
 
 @Component({
+  standalone: false,
   selector: "app-main-page-panel-manager",
   templateUrl: "./main-page-panel-manager.component.html",
   styleUrls: ["./main-page-panel-manager.component.scss"],

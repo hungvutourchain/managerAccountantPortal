@@ -17,6 +17,40 @@
   padding: 18px;
 }
 
+.bilingual {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bilingual .en-text {
+  font-weight: 600;
+}
+
+.bilingual .vi-text {
+  font-size: max(10px, calc(1em - 3px));
+  font-weight: 500;
+  color: #6d7fa5;
+}
+
+.heading-bilingual .en-text {
+  font-weight: 700;
+}
+
+.desc-bilingual {
+  display: block;
+}
+
+.desc-bilingual .en-text,
+.desc-bilingual .vi-text {
+  display: block;
+}
+
+.desc-bilingual .vi-text {
+  margin-top: 2px;
+}
+
 .menu-header h2 {
   margin: 0;
   font-size: 24px;

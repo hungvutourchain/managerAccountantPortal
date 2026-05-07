@@ -2,6 +2,8 @@ import { Route } from '@angular/router';
 import { MainPageComponent } from './main-page.component';
 import { MainPageDashboardComponent } from './main-page-dashboard.component';
 import { MainPagePanelManagerComponent } from './main-page-panel-manager.component';
+import { CustomerManagementComponent } from './customer-management.component';
+import { DebtManagementComponent } from './debt-management.component';
 
 export const MainPageRoutes: Route[] = [
 	{
@@ -11,7 +13,15 @@ export const MainPageRoutes: Route[] = [
 			{
 				path: '',
 				pathMatch: 'full',
-				redirectTo: 'dashboard',
+				redirectTo: 'customer-management',
+			},
+			{
+				path: 'customer-management',
+				component: CustomerManagementComponent,
+			},
+			{
+				path: 'debt-management',
+				component: DebtManagementComponent,
 			},
 			{
 				path: 'dashboard',

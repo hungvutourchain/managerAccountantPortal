@@ -15,12 +15,17 @@ import { RichTextEditorAllModule } from "@syncfusion/ej2-angular-richtexteditor"
 import { MainPageComponent } from './main-page.component';
 import { MainPageDashboardComponent } from './main-page-dashboard.component';
 import { MainPagePanelManagerComponent } from './main-page-panel-manager.component';
+import { CustomerManagementComponent } from './customer-management.component';
+import { DebtManagementComponent } from './debt-management.component';
+import { CustomerManagementService } from './customer-management.service';
 
 @NgModule({
   declarations: [
     MainPageComponent,
     MainPageDashboardComponent,
     MainPagePanelManagerComponent,
+    CustomerManagementComponent,
+    DebtManagementComponent,
   ],
   imports: [
     CommonModule,
@@ -37,7 +42,8 @@ import { MainPagePanelManagerComponent } from './main-page-panel-manager.compone
     
   ],
   providers: [
-    AppFactory
+    AppFactory,
+    CustomerManagementService,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,

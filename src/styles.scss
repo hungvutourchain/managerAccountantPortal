@@ -2589,15 +2589,6 @@ ejs-richtexteditor {
   border: 1px solid rgb(151 151 151 / 0%) !important;
 }
 
-.e-input-group:not(.e-success):not(.e-warning):not(.e-error):not(.e-float-icon-left),
-.e-input-group.e-float-icon-left:not(.e-success):not(.e-warning):not(.e-error) .e-input-in-wrap,
-.e-input-group.e-control-wrapper:not(.e-success):not(.e-warning):not(.e-error):not(.e-float-icon-left),
-.e-input-group.e-control-wrapper.e-float-icon-left:not(.e-success):not(.e-warning):not(.e-error) .e-input-in-wrap,
-.e-float-input.e-float-icon-left:not(.e-success):not(.e-warning):not(.e-error) .e-input-in-wrap,
-.e-float-input.e-control-wrapper.e-float-icon-left:not(.e-success):not(.e-warning):not(.e-error) .e-input-in-wrap {
-  border-color: #807a7a63;
-}
-
 .editer-syncfusion {
   border-radius: 4px;
 }
@@ -2660,16 +2651,6 @@ ejs-richtexteditor {
 b,
 strong {
   font-weight: 500;
-}
-
-.e-calendar .e-content td.e-today span.e-day,
-.e-calendar .e-content td.e-focused-date.e-today span.e-day,
-.e-bigger.e-small .e-calendar .e-content td.e-today span.e-day,
-.e-bigger.e-small .e-calendar .e-content td.e-focused-date.e-today span.e-day {
-  background: none;
-  border: 1px solid #bfbfbf;
-  border-radius: 50%;
-  color: #9f9f9f;
 }
 
 .e-dialog.e-popup {
@@ -2844,16 +2825,6 @@ input.k-textbox {
   padding: 1px 1px;
   font-size: 14px;
   line-height: 1.2857142857;
-}
-
-.e-input-group input.e-input,
-.e-float-input.e-input-group input,
-.e-input-group.e-control-wrapper input.e-input,
-.e-float-input.e-input-group.e-control-wrapper input,
-.e-float-input input,
-.e-float-input.e-control-wrapper input {
-  min-height: 22px;
-  height: 25px;
 }
 
 .k-input-spinner {

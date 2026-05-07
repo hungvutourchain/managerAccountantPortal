@@ -1,8 +1,8 @@
 <section class="main-page-layout">
   <aside class="left-menu">
     <div class="menu-header">
-      <h2>Main Page</h2>
-      <p>Trung tam dieu huong cac page con</p>
+      <h2 class="bilingual heading-bilingual"><span class="en-text">Main Page</span><span class="vi-text">Trang chính</span></h2>
+      <p class="bilingual desc-bilingual"><span class="en-text">Sub-page navigation center</span><span class="vi-text">Trung tâm điều hướng các trang con</span></p>
     </div>
 
     <nav class="menu-list">
@@ -12,8 +12,8 @@
         routerLinkActive="active"
         class="menu-item"
       >
-        <span class="menu-title">{{ item.label }}</span>
-        <span class="menu-description">{{ item.description }}</span>
+        <span class="menu-title bilingual"><span class="en-text">{{ item.enLabel }}</span><span class="vi-text">{{ item.viLabel }}</span></span>
+        <span class="menu-description bilingual"><span class="en-text">{{ item.enDescription }}</span><span class="vi-text">{{ item.viDescription }}</span></span>
       </a>
     </nav>
   </aside>

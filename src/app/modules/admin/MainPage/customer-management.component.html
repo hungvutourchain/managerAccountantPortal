@@ -1,0 +1,419 @@
+<section class="customer-management-page">
+  <header class="page-header">
+    <div>
+      <h2 class="bilingual heading-bilingual"><span class="en-text">Customer Management</span><span class="vi-text">Quản lý khách hàng</span></h2>
+      <p class="bilingual desc-bilingual"><span class="en-text">Real-time monitoring for customer debt, status, and risk.</span><span class="vi-text">Trung tâm theo dõi công nợ, trạng thái và rủi ro khách hàng theo thời gian thực.</span></p>
+    </div>
+    <button class="btn-primary" (click)="openCreateForm()"><span class="bilingual"><span class="en-text">Add Customer</span><span class="vi-text">Thêm khách hàng</span></span></button>
+  </header>
+
+  <div class="kpi-grid">
+    <article class="kpi-card">
+      <h4 class="bilingual"><span class="en-text">Total Customers</span><span class="vi-text">Tổng khách hàng</span></h4>
+      <strong>{{ summary.totalCustomers }}</strong>
+    </article>
+    <article class="kpi-card">
+      <h4 class="bilingual"><span class="en-text">Active</span><span class="vi-text">Đang hoạt động</span></h4>
+      <strong>{{ summary.activeCustomers }}</strong>
+    </article>
+    <article class="kpi-card warning">
+      <h4 class="bilingual"><span class="en-text">Risk Alerts</span><span class="vi-text">Cảnh báo rủi ro</span></h4>
+      <strong>{{ summary.warningCustomers }}</strong>
+    </article>
+    <article class="kpi-card danger">
+      <h4 class="bilingual"><span class="en-text">Blocked</span><span class="vi-text">Tạm khóa</span></h4>
+      <strong>{{ summary.blockedCustomers }}</strong>
+    </article>
+    <article class="kpi-card finance">
+      <h4 class="bilingual"><span class="en-text">Total Debt</span><span class="vi-text">Tổng dư nợ</span></h4>
+      <strong>{{ formatCurrency(summary.totalDebt) }}</strong>
+    </article>
+    <article class="kpi-card finance">
+      <h4 class="bilingual"><span class="en-text">Total Credit</span><span class="vi-text">Tổng dư có</span></h4>
+      <strong>{{ formatCurrency(summary.totalCredit) }}</strong>
+    </article>
+  </div>
+
+  <section class="filter-panel">
+    <div class="filter-row">
+      <ejs-textbox
+        [placeholder]="'Search by code, name, tax ID, phone... / Tìm theo mã, tên, MST, số điện thoại...'"
+        [(ngModel)]="query.search"
+        (keyup.enter)="applyFilters()"
+      ></ejs-textbox>
+
+      <ejs-dropdownlist
+        [dataSource]="statusOptions"
+        [fields]="optionFields"
+        [allowFiltering]="true"
+        [width]="'100%'"
+        [(ngModel)]="query.status"
+      ></ejs-dropdownlist>
+
+      <ejs-dropdownlist
+        [dataSource]="riskOptions"
+        [fields]="optionFields"
+        [allowFiltering]="true"
+        [width]="'100%'"
+        [(ngModel)]="query.riskLevel"
+      ></ejs-dropdownlist>
+
+      <button class="btn-primary" (click)="applyFilters()"><span class="bilingual"><span class="en-text">Apply</span><span class="vi-text">Áp dụng</span></span></button>
+      <button class="btn-secondary" (click)="clearFilters()"><span class="bilingual"><span class="en-text">Reset</span><span class="vi-text">Làm mới</span></span></button>
+    </div>
+  </section>
+
+  <section class="table-panel" [class.loading]="loading">
+    <table>
+      <thead>
+        <tr>
+          <th (click)="sortBy('code')"><span class="bilingual"><span class="en-text">Customer ID</span><span class="vi-text">Mã KH</span></span> {{ getSortIcon('code') }}</th>
+          <th (click)="sortBy('name')"><span class="bilingual"><span class="en-text">Customer Name</span><span class="vi-text">Tên khách hàng</span></span> {{ getSortIcon('name') }}</th>
+          <th><span class="bilingual"><span class="en-text">Type</span><span class="vi-text">Loại</span></span></th>
+          <th>MST</th>
+          <th><span class="bilingual"><span class="en-text">Phone</span><span class="vi-text">Số điện thoại</span></span></th>
+          <th><span class="bilingual"><span class="en-text">Bank</span><span class="vi-text">Ngân hàng</span></span></th>
+          <th (click)="sortBy('debtAmount')"><span class="bilingual"><span class="en-text">Debt</span><span class="vi-text">Dư nợ</span></span> {{ getSortIcon('debtAmount') }}</th>
+          <th (click)="sortBy('creditAmount')"><span class="bilingual"><span class="en-text">Credit</span><span class="vi-text">Dư có</span></span> {{ getSortIcon('creditAmount') }}</th>
+          <th><span class="bilingual"><span class="en-text">Status</span><span class="vi-text">Trạng thái</span></span></th>
+          <th><span class="bilingual"><span class="en-text">Risk</span><span class="vi-text">Rủi ro</span></span></th>
+          <th><span class="bilingual"><span class="en-text">Balance</span><span class="vi-text">Cân đối</span></span></th>
+          <th><span class="bilingual"><span class="en-text">Actions</span><span class="vi-text">Thao tác</span></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of customers">
+          <td>{{ item.code }}</td>
+          <td>
+            <div class="cell-title">{{ item.name }}</div>
+            <div class="cell-sub">{{ item.address }}</div>
+          </td>
+          <td>{{ item.category }}</td>
+          <td>{{ item.taxCode }}</td>
+          <td>{{ item.phone }}</td>
+          <td>
+            <div class="cell-title">{{ item.bankName }}</div>
+            <div class="cell-sub">{{ item.bankAccount }}</div>
+          </td>
+          <td class="amount debt">{{ formatCurrency(item.debtAmount) }}</td>
+          <td class="amount credit">{{ formatCurrency(item.creditAmount) }}</td>
+          <td>
+            <span class="chip" [class.blocked]="item.status === 'blocked'">{{ item.status }}</span>
+          </td>
+          <td>
+            <span class="chip risk" [class.warning]="item.riskLevel === 'warning'" [class.critical]="item.riskLevel === 'critical'">
+              {{ item.riskLevel }}
+            </span>
+          </td>
+          <td class="amount" [class.net-debt]="getNetBalance(item) > 0" [class.net-credit]="getNetBalance(item) <= 0">
+            {{ formatCurrency(getNetBalance(item)) }}
+          </td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="icon-action-button neutral" title="View Excel Ledger / Xem sổ Excel" aria-label="View Excel Ledger / Xem sổ Excel" data-tooltip="View Excel Ledger / Xem sổ Excel" (click)="openExcelView(item)">
+                <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="icon-action-button neutral" title="View History / Xem lịch sử" aria-label="View History / Xem lịch sử" data-tooltip="View History / Xem lịch sử" (click)="openAuditLogs(item)">
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="icon-action-button" title="Edit Customer / Sửa khách hàng" aria-label="Edit Customer / Sửa khách hàng" data-tooltip="Edit Customer / Sửa khách hàng" (click)="openEditForm(item)">
+                <i class="bi bi-pencil-square" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="icon-action-button danger" title="Delete Customer / Xóa khách hàng" aria-label="Delete Customer / Xóa khách hàng" data-tooltip="Delete Customer / Xóa khách hàng" (click)="deleteCustomer(item)">
+                <i class="bi bi-trash3" aria-hidden="true"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="!loading && customers.length === 0">
+          <td colspan="12" class="empty-row"><span class="bilingual"><span class="en-text">No data matches the current filters.</span><span class="vi-text">Không có dữ liệu phù hợp với bộ lọc.</span></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="pagination-panel">
+    <span>
+      <span class="bilingual"><span class="en-text">Total: {{ pager.totalItems }} | Page {{ query.page }} / {{ pager.totalPages || 1 }}</span><span class="vi-text">Tổng: {{ pager.totalItems }} | Trang {{ query.page }} / {{ pager.totalPages || 1 }}</span></span>
+    </span>
+    <div class="pager-actions">
+      <button (click)="changePage(query.page - 1)"><span class="bilingual"><span class="en-text">Previous</span><span class="vi-text">Trước</span></span></button>
+      <button (click)="changePage(query.page + 1)"><span class="bilingual"><span class="en-text">Next</span><span class="vi-text">Sau</span></span></button>
+    </div>
+  </footer>
+
+  <ejs-dialog
+    cssClass="customer-editor-dialog"
+    [isModal]="true"
+    [showCloseIcon]="true"
+    [visible]="showEditor"
+    [closeOnEscape]="true"
+    [header]="editingId ? 'Update Customer / Cập nhật khách hàng' : 'Add New Customer / Thêm khách hàng mới'"
+    [width]="'920px'"
+    (overlayClick)="cancelEdit()"
+    (close)="cancelEdit()"
+  >
+    <ng-template #content>
+      <section class="editor-panel">
+        <div class="editor-grid">
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Customer Code</span><span class="vi-text">Mã khách hàng</span></label>
+            <ejs-textbox [(ngModel)]="formModel.code"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Customer Name</span><span class="vi-text">Tên khách hàng</span></label>
+            <ejs-textbox [(ngModel)]="formModel.name"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Type (131/331)</span><span class="vi-text">Loại (131/331)</span></label>
+            <ejs-textbox [(ngModel)]="formModel.category"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Tax Code</span><span class="vi-text">Mã số thuế</span></label>
+            <ejs-textbox [(ngModel)]="formModel.taxCode"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Phone</span><span class="vi-text">Số điện thoại</span></label>
+            <ejs-textbox [(ngModel)]="formModel.phone"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Email</span><span class="vi-text">Thư điện tử</span></label>
+            <ejs-textbox [(ngModel)]="formModel.email"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Bank</span><span class="vi-text">Ngân hàng</span></label>
+            <ejs-textbox [(ngModel)]="formModel.bankName"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Bank Account</span><span class="vi-text">Số tài khoản</span></label>
+            <ejs-textbox [(ngModel)]="formModel.bankAccount"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Debt</span><span class="vi-text">Dư nợ</span></label>
+            <ejs-numerictextbox [min]="0" [format]="'n0'" [(ngModel)]="formModel.debtAmount"></ejs-numerictextbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Credit</span><span class="vi-text">Dư có</span></label>
+            <ejs-numerictextbox [min]="0" [format]="'n0'" [(ngModel)]="formModel.creditAmount"></ejs-numerictextbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Status</span><span class="vi-text">Trạng thái</span></label>
+            <ejs-dropdownlist
+              [dataSource]="editorStatusOptions"
+              [fields]="optionFields"
+              [allowFiltering]="true"
+              [width]="'100%'"
+              [(ngModel)]="formModel.status"
+            ></ejs-dropdownlist>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Risk Level</span><span class="vi-text">Mức rủi ro</span></label>
+            <ejs-dropdownlist
+              [dataSource]="editorRiskOptions"
+              [fields]="optionFields"
+              [allowFiltering]="true"
+              [width]="'100%'"
+              [(ngModel)]="formModel.riskLevel"
+            ></ejs-dropdownlist>
+          </div>
+          <div class="editor-field editor-full">
+            <label class="editor-label bilingual"><span class="en-text">Address</span><span class="vi-text">Địa chỉ</span></label>
+            <ejs-textbox [(ngModel)]="formModel.address"></ejs-textbox>
+          </div>
+        </div>
+        <div class="editor-actions">
+          <button class="btn-primary" [disabled]="saving" (click)="saveCustomer()">{{ saving ? "Saving... / Đang lưu..." : "Save / Lưu" }}</button>
+          <button class="btn-secondary" (click)="cancelEdit()"><span class="bilingual"><span class="en-text">Cancel</span><span class="vi-text">Hủy</span></span></button>
+        </div>
+      </section>
+    </ng-template>
+  </ejs-dialog>
+
+  <ejs-dialog
+    *ngIf="showAuditDialog"
+    cssClass="customer-audit-dialog"
+    [isModal]="true"
+    [showCloseIcon]="true"
+    [visible]="showAuditDialog"
+    [closeOnEscape]="true"
+    [header]="'Audit Logs / Lịch sử thay đổi'"
+    [width]="'1040px'"
+    (overlayClick)="closeAuditLogs()"
+    (close)="closeAuditLogs()"
+  >
+    <ng-template #content>
+      <section class="audit-panel" *ngIf="selectedAuditCustomer as customer">
+        <div class="audit-meta-grid">
+          <article class="audit-meta-card">
+            <h4 class="bilingual"><span class="en-text">Customer</span><span class="vi-text">Khách hàng</span></h4>
+            <strong>{{ customer.code }} - {{ customer.name }}</strong>
+          </article>
+          <article class="audit-meta-card">
+            <h4 class="bilingual"><span class="en-text">Created</span><span class="vi-text">Khởi tạo</span></h4>
+            <strong>{{ formatDateTime(customer.createdAt) }}</strong>
+            <span>{{ customer.createdBy || 'system' }}</span>
+          </article>
+          <article class="audit-meta-card">
+            <h4 class="bilingual"><span class="en-text">Last Updated</span><span class="vi-text">Cập nhật cuối</span></h4>
+            <strong>{{ formatDateTime(customer.updatedAt) }}</strong>
+            <span>{{ customer.updatedBy || 'system' }}</span>
+          </article>
+        </div>
+
+        <div class="audit-error-banner" *ngIf="auditErrorMessage">
+          {{ auditErrorMessage }}
+        </div>
+
+        <div class="audit-table-panel" [class.loading]="auditLoading">
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th><span class="bilingual"><span class="en-text">When</span><span class="vi-text">Thời điểm</span></span></th>
+                <th><span class="bilingual"><span class="en-text">By</span><span class="vi-text">Người đổi</span></span></th>
+                <th><span class="bilingual"><span class="en-text">Action</span><span class="vi-text">Hành động</span></span></th>
+                <th><span class="bilingual"><span class="en-text">Field</span><span class="vi-text">Trường</span></span></th>
+                <th><span class="bilingual"><span class="en-text">From</span><span class="vi-text">Từ giá trị</span></span></th>
+                <th><span class="bilingual"><span class="en-text">To</span><span class="vi-text">Sang giá trị</span></span></th>
+                <th><span class="bilingual"><span class="en-text">Note</span><span class="vi-text">Ghi chú</span></span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let log of auditLogs">
+                <td>{{ formatAuditDate(log.changedAt) }}</td>
+                <td>{{ log.changedBy || 'system' }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ getAuditFieldLabel(log.field) }}</td>
+                <td class="audit-value old">{{ formatAuditValue(log.oldValue) }}</td>
+                <td class="audit-value new">{{ formatAuditValue(log.newValue) }}</td>
+                <td>{{ log.note || '-' }}</td>
+              </tr>
+              <tr *ngIf="!auditLoading && auditLogs.length === 0">
+                <td colspan="7" class="empty-row">
+                  <div class="audit-empty-state">
+                    <strong class="bilingual"><span class="en-text">No audit log found for this customer.</span><span class="vi-text">Không có lịch sử thay đổi cho khách hàng này.</span></strong>
+                    <span class="bilingual"><span class="en-text">Older customer records created before audit tracking was enabled may not have historical entries yet.</span><span class="vi-text">Các bản ghi khách hàng cũ được tạo trước khi bật audit tracking có thể chưa có lịch sử thay đổi.</span></span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ng-template>
+  </ejs-dialog>
+
+  <ejs-dialog
+    *ngIf="showExcelDialog"
+    cssClass="customer-excel-dialog"
+    [isModal]="true"
+    [showCloseIcon]="true"
+    [visible]="showExcelDialog"
+    [closeOnEscape]="true"
+    [header]="'Excel Detail View / Xem sổ Excel chi tiết'"
+    [width]="'1120px'"
+    (overlayClick)="closeExcelView()"
+    (close)="closeExcelView()"
+  >
+    <ng-template #content>
+      <section class="excel-preview" *ngIf="selectedExcelCustomer as customer">
+        <div class="excel-preview-actions">
+          <button class="btn-primary" (click)="exportCustomerExcel()"><span class="bilingual"><span class="en-text">Export Excel</span><span class="vi-text">Xuất Excel</span></span></button>
+          <button class="btn-secondary" (click)="closeExcelView()"><span class="bilingual"><span class="en-text">Close</span><span class="vi-text">Đóng</span></span></button>
+        </div>
+
+        <div class="audit-error-banner" *ngIf="excelErrorMessage">
+          {{ excelErrorMessage }}
+        </div>
+
+        <div class="excel-sheet-wrap" [class.loading]="excelLoading">
+          <div class="excel-sheet ledger-sheet">
+            <div class="ledger-meta">
+              <p><strong>Tên đơn vị:</strong> {{ customer.name || '-' }}</p>
+              <p><strong>Địa chỉ:</strong> {{ customer.address || '-' }}</p>
+              <p><strong>MST:</strong> {{ customer.taxCode || '-' }}</p>
+            </div>
+
+            <h3 class="ledger-title">{{ getExcelLedgerTitle() }}</h3>
+            <p class="period-text ledger-period">{{ getExcelPeriodRange() }}</p>
+            <div class="ledger-company-box">
+              <div class="company-name">CÔNG TY TNHH TM XNK VUI PHAT</div>
+              <div class="ledger-company-code">{{ customer.code || '-' }}</div>
+            </div>
+
+            <table class="excel-table ledger-table">
+              <thead>
+                <tr>
+                  <th colspan="2">Chứng từ</th>
+                  <th rowspan="2">DIỄN GIẢI</th>
+                  <th rowspan="2">Số hiệu TK</th>
+                  <th colspan="2">Số tiền</th>
+                  <th rowspan="2">Ghi chú</th>
+                </tr>
+                <tr>
+                  <th>Số hiệu</th>
+                  <th>Ngày tháng</th>
+                  <th>Nợ</th>
+                  <th>Có</th>
+                </tr>
+                <tr class="ledger-index-row">
+                  <th>B</th>
+                  <th>C</th>
+                  <th>D</th>
+                  <th>H</th>
+                  <th>1</th>
+                  <th>2</th>
+                  <th>3</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="ledger-opening-row">
+                  <td colspan="4">Số dư đầu tháng</td>
+                  <td class="amount debt">-</td>
+                  <td class="amount credit">-</td>
+                  <td></td>
+                </tr>
+                <tr *ngFor="let row of getExcelPreviewRows()" [class.placeholder-row]="row.isPlaceholder">
+                  <td>{{ row.voucher }}</td>
+                  <td>{{ row.date }}</td>
+                  <td class="ledger-desc">{{ row.description }}</td>
+                  <td>{{ row.account }}</td>
+                  <td class="amount debt">{{ formatSheetAmount(row.debit) }}</td>
+                  <td class="amount credit">{{ formatSheetAmount(row.credit) }}</td>
+                  <td class="ledger-note-cell">{{ row.note }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="ledger-summary-row">
+                  <td colspan="4"><strong>Tổng số phát sinh</strong></td>
+                  <td class="amount debt"><strong>{{ formatCurrency(getExcelTotalDebit()) }}</strong></td>
+                  <td class="amount credit"><strong>{{ formatCurrency(getExcelTotalCredit()) }}</strong></td>
+                  <td></td>
+                </tr>
+                <tr class="ledger-summary-row closing-row">
+                  <td colspan="4"><strong>Số dư cuối tháng</strong></td>
+                  <td class="amount debt"><strong>{{ formatCurrency(getExcelClosingDebit()) }}</strong></td>
+                  <td class="amount credit"><strong>{{ formatCurrency(getExcelClosingCredit()) }}</strong></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div class="ledger-footer-date">{{ getExcelSignatureDate() }}</div>
+            <div class="ledger-signatures">
+              <div class="ledger-sign-block">
+                <strong>Kế toán trưởng</strong>
+                <span>(Ký, họ tên)</span>
+              </div>
+              <div class="ledger-sign-block">
+                <strong>Giám Đốc</strong>
+                <span>(Ký, họ tên)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </ng-template>
+  </ejs-dialog>
+
+</section>
