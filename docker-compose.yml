@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+
+  b2badmin-portal-classic:
+    image: registry.gitlab.com/tour_chain/root/b2b-admin-ui-classic:aurorabuild
+    networks:
+      - general
+
+networks:
+  general:
+    external:
+      name: infrastructure_default

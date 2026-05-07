@@ -1,0 +1,465 @@
+<div class="ai-prompt-config-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBackToManager()" title="Back to AI Management">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div>
+        <h2>{{ pageTitle }}</h2>
+        <p class="subtitle">{{ pageSubtitle }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button class="tab-btn" [class.active]="activeTab === 'prompts'" (click)="activeTab = 'prompts'">
+      <i class="fa fa-file-text-o"></i> Prompt Configuration
+    </button>
+    <button class="tab-btn" *ngIf="showKnowledgeTab" [class.active]="activeTab === 'knowledge'" (click)="switchToKnowledgeTab()">
+      <i class="fa fa-brain"></i> Knowledge Base
+      <span class="kb-count" *ngIf="knowledgeEntries.length > 0">{{ knowledgeEntries.length }}</span>
+    </button>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- TAB 1: Prompt Configuration (existing)       -->
+  <!-- ============================================ -->
+  <div class="tab-content" *ngIf="activeTab === 'prompts'">
+    <div class="tab-actions">
+      <button class="btn-primary" (click)="onCreateNew()" [disabled]="isLoading">
+        <i class="fa fa-plus"></i> New Prompt
+      </button>
+      <button class="btn-outline" (click)="loadPrompts()" [disabled]="isLoading">
+        <i class="fa fa-refresh"></i> Refresh
+      </button>
+    </div>
+
+    <!-- Prompt List -->
+    <div class="prompt-list" *ngIf="!showForm">
+      <div *ngIf="isLoading" class="loading-overlay">
+        <i class="fa fa-spinner fa-spin fa-2x"></i>
+        <span>Loading prompts...</span>
+      </div>
+
+      <div *ngIf="!isLoading && filteredPromptConfigs.length === 0" class="no-data">
+        <i class="fa fa-file-text-o fa-3x"></i>
+        <p>No prompt configurations found. Click "New Prompt" to create one.</p>
+      </div>
+
+      <div class="prompt-cards">
+        <div class="prompt-card" *ngFor="let config of filteredPromptConfigs" [class.inactive]="!config.isActive">
+          <div class="card-header">
+            <div class="card-title-row">
+              <span class="prompt-key-badge">{{ config.promptKey }}</span>
+              <span class="status-badge" [class.active]="config.isActive" [class.inactive]="!config.isActive">
+                {{ config.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <h3 class="card-title">{{ config.name }}</h3>
+            <p class="card-description" *ngIf="config.description">{{ config.description }}</p>
+          </div>
+
+          <div class="card-body">
+            <div class="prompt-preview">
+              <label>System Prompt Preview:</label>
+              <pre class="prompt-text">{{ getPromptPreview(config.systemPrompt) }}</pre>
+            </div>
+            <div class="card-meta">
+              <span class="meta-item" *ngIf="config.version">
+                <i class="fa fa-code-fork"></i> v{{ config.version }}
+              </span>
+              <span class="meta-item" *ngIf="config.systemPrompt">
+                <i class="fa fa-align-left"></i> {{ getLineCount(config.systemPrompt) }} lines
+              </span>
+              <span class="meta-item" *ngIf="config.userUpdate">
+                <i class="fa fa-user"></i> {{ config.userUpdate }}
+              </span>
+              <span class="meta-item" *ngIf="config.dateUpdate">
+                <i class="fa fa-clock-o"></i> {{ config.dateUpdate | date:'short' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-action" (click)="onEdit(config)">
+              <i class="fa fa-pencil"></i> Edit
+            </button>
+            <button class="btn-action" (click)="onDuplicate(config)">
+              <i class="fa fa-copy"></i> Duplicate
+            </button>
+            <button class="btn-action" (click)="onToggleActive(config)">
+              <i class="fa" [ngClass]="config.isActive ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+              {{ config.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+            <button class="btn-action btn-danger" (click)="onDelete(config)">
+              <i class="fa fa-trash"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit / Create Prompt Form -->
+    <div class="prompt-form" *ngIf="showForm">
+      <div class="form-header">
+        <h3>{{ editMode === 'create' ? 'Create New Prompt' : 'Edit Prompt' }}</h3>
+        <button class="btn-outline" (click)="onCancel()">
+          <i class="fa fa-times"></i> Cancel
+        </button>
+      </div>
+
+      <form (ngSubmit)="onSave()" class="prompt-edit-form">
+        <div class="form-row">
+          <div class="form-field half">
+            <label>Prompt Key <span class="required">*</span></label>
+            <ejs-dropdownlist
+              [(ngModel)]="formModel.promptKey"
+              name="promptKey"
+              [dataSource]="availablePromptKeys"
+              [fields]="{ text: 'text', value: 'value' }"
+              placeholder="Select prompt key"
+              [enabled]="editMode === 'create'"
+              [allowFiltering]="true">
+            </ejs-dropdownlist>
+            <div class="hint">Unique identifier used to load this prompt at runtime</div>
+          </div>
+
+          <div class="form-field half">
+            <label>Name <span class="required">*</span></label>
+            <ejs-textbox
+              [(ngModel)]="formModel.name"
+              name="name"
+              placeholder="e.g. Contract Upload - Orchid Cruises format"
+              floatLabelType="Never">
+            </ejs-textbox>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Description</label>
+          <ejs-textbox
+            [(ngModel)]="formModel.description"
+            name="description"
+            placeholder="Brief description of what this prompt does..."
+            floatLabelType="Never">
+          </ejs-textbox>
+        </div>
+
+        <div class="form-field">
+          <label>System Prompt <span class="required">*</span></label>
+          <textarea
+            class="prompt-textarea"
+            [(ngModel)]="formModel.systemPrompt"
+            name="systemPrompt"
+            placeholder="Enter the system prompt content here...&#10;&#10;You can use template variables like &#123;langInstruction&#125; that will be replaced at runtime."
+            rows="20">
+          </textarea>
+          <div class="textarea-footer">
+            <span class="hint">Supports template variables: <code>{{ '{' }}langInstruction{{ '}' }}</code>, <code>{{ '{' }}hotelName{{ '}' }}</code>, 
+              <code>{{ '{' }}sampleContract{{ '}' }}</code>, 
+              <code>{{ '{' }}userPrompt{{ '}' }}</code> (if included, userPrompt content will be appended to system prompt at runtime, otherwise it can be included in the template and will be replaced)
+            </span>
+            <span class="char-count">{{ formModel.systemPrompt?.length || 0 }} characters | {{ getLineCount(formModel.systemPrompt) }} lines</span>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="formModel.isActive" name="isActive">
+            <span>Active</span>
+            <span class="hint inline">(Only one active prompt per key. Activating this will deactivate others with the same key)</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-outline" type="button" (click)="onCancel()" [disabled]="isSaving">
+            Cancel
+          </button>
+          <button class="btn-primary" type="button" (click)="onSave()" [disabled]="isSaving">
+            <span *ngIf="isSaving"><i class="fa fa-spinner fa-spin"></i> Saving...</span>
+            <span *ngIf="!isSaving">
+              <i class="fa fa-save"></i> {{ editMode === 'create' ? 'Create Prompt' : 'Update Prompt' }}
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- TAB 2: Knowledge Base                        -->
+  <!-- ============================================ -->
+  <div class="tab-content" *ngIf="activeTab === 'knowledge'">
+    <div class="tab-actions">
+      <button class="btn-primary" (click)="onCreateKnowledge()" [disabled]="isKbLoading">
+        <i class="fa fa-plus"></i> New Knowledge Entry
+      </button>
+      <button class="btn-outline" (click)="loadKnowledge()" [disabled]="isKbLoading">
+        <i class="fa fa-refresh"></i> Refresh
+      </button>
+    </div>
+
+    <!-- Knowledge Base Info Banner -->
+    <div class="kb-info-banner">
+      <i class="fa fa-info-circle"></i>
+      <span>Knowledge entries act as <strong>long-term memory</strong> for the AI. Active entries matching the scope and hotel will be automatically injected into AI prompts at runtime — allowing the AI to learn and remember rules, patterns, and corrections across sessions.</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="kb-filters" *ngIf="!showKbForm">
+      <div class="filter-group">
+        <label>Category:</label>
+        <select [(ngModel)]="kbFilterCategory" (change)="applyKbFilters()">
+          <option value="">All Categories</option>
+          <option value="contract_rule">Contract Rule</option>
+          <option value="pricing_pattern">Pricing Pattern</option>
+          <option value="correction">Correction</option>
+          <option value="best_practice">Best Practice</option>
+          <option value="hotel_specific">Hotel Specific</option>
+          <option value="general">General</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Scope:</label>
+        <select [(ngModel)]="kbFilterScope" (change)="applyKbFilters()">
+          <option value="">All Scopes</option>
+          <option value="all">Global (All)</option>
+          <option value="contract_upload">Contract Upload</option>
+          <option value="contract_analysis">Contract Analysis</option>
+          <option value="chat">Chat</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="kbFilterStatus" (change)="applyKbFilters()">
+          <option value="">All</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive Only</option>
+        </select>
+      </div>
+      <div class="filter-group search-group">
+        <label>Search:</label>
+        <input type="text" [(ngModel)]="kbSearchText" (input)="applyKbFilters()" placeholder="Search title, content, hotel...">
+      </div>
+    </div>
+
+    <!-- Knowledge List -->
+    <div class="kb-list" *ngIf="!showKbForm">
+      <div *ngIf="isKbLoading" class="loading-overlay">
+        <i class="fa fa-spinner fa-spin fa-2x"></i>
+        <span>Loading knowledge base...</span>
+      </div>
+
+      <div *ngIf="!isKbLoading && filteredKnowledgeEntries.length === 0" class="no-data">
+        <i class="fa fa-lightbulb-o fa-3x"></i>
+        <p *ngIf="knowledgeEntries.length === 0">No knowledge entries yet. Click "New Knowledge Entry" to teach the AI something new.</p>
+        <p *ngIf="knowledgeEntries.length > 0">No entries match your current filters.</p>
+      </div>
+
+      <!-- Stats summary -->
+      <div class="kb-stats" *ngIf="!isKbLoading && knowledgeEntries.length > 0">
+        <span class="stat-item">
+          <strong>{{ knowledgeEntries.length }}</strong> total entries
+        </span>
+        <span class="stat-item">
+          <strong>{{ getActiveKbCount() }}</strong> active
+        </span>
+        <span class="stat-item">
+          <strong>{{ getTotalKbUsage() }}</strong> total usage
+        </span>
+        <span class="stat-item" *ngIf="filteredKnowledgeEntries.length !== knowledgeEntries.length">
+          Showing <strong>{{ filteredKnowledgeEntries.length }}</strong> filtered
+        </span>
+      </div>
+
+      <!-- Knowledge Cards -->
+      <div class="kb-cards">
+        <div class="kb-card" *ngFor="let entry of filteredKnowledgeEntries" [class.inactive]="!entry.isActive">
+          <div class="kb-card-header">
+            <div class="kb-card-badges">
+              <span class="kb-category-badge" [attr.data-category]="entry.category">
+                <i class="fa" [ngClass]="getCategoryIcon(entry.category)"></i>
+                {{ getCategoryLabel(entry.category) }}
+              </span>
+              <span class="kb-scope-badge">{{ getScopeLabel(entry.scope) }}</span>
+              <span class="status-badge" [class.active]="entry.isActive" [class.inactive]="!entry.isActive">
+                {{ entry.isActive ? 'Active' : 'Inactive' }}
+              </span>
+              <span class="kb-priority-badge" *ngIf="entry.priority > 0">
+                <i class="fa fa-arrow-up"></i> Priority {{ entry.priority }}
+              </span>
+            </div>
+            <h4 class="kb-card-title">{{ entry.title }}</h4>
+            <div class="kb-card-subtitle" *ngIf="entry.hotelName">
+              <i class="fa fa-building"></i> {{ entry.hotelName }}
+            </div>
+          </div>
+
+          <div class="kb-card-body">
+            <pre class="kb-content-preview">{{ getKbContentPreview(entry.content) }}</pre>
+            <div class="kb-tags" *ngIf="entry.tags && entry.tags.length > 0">
+              <span class="kb-tag" *ngFor="let tag of entry.tags">{{ tag }}</span>
+            </div>
+          </div>
+
+          <div class="kb-card-meta">
+            <span class="meta-item" *ngIf="entry.source">
+              <i class="fa fa-tag"></i> {{ entry.source }}
+            </span>
+            <span class="meta-item" *ngIf="entry.usageCount">
+              <i class="fa fa-bar-chart"></i> Used {{ entry.usageCount }}x
+            </span>
+            <span class="meta-item" *ngIf="entry.userUpdate">
+              <i class="fa fa-user"></i> {{ entry.userUpdate }}
+            </span>
+            <span class="meta-item" *ngIf="entry.dateUpdate">
+              <i class="fa fa-clock-o"></i> {{ entry.dateUpdate | date:'short' }}
+            </span>
+          </div>
+
+          <div class="kb-card-actions">
+            <button class="btn-action" (click)="onEditKnowledge(entry)">
+              <i class="fa fa-pencil"></i> Edit
+            </button>
+            <button class="btn-action" (click)="onDuplicateKnowledge(entry)">
+              <i class="fa fa-copy"></i> Duplicate
+            </button>
+            <button class="btn-action" (click)="onToggleKnowledgeActive(entry)">
+              <i class="fa" [ngClass]="entry.isActive ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+              {{ entry.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+            <button class="btn-action btn-danger" (click)="onDeleteKnowledge(entry)">
+              <i class="fa fa-trash"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Knowledge Create / Edit Form -->
+    <div class="kb-form" *ngIf="showKbForm">
+      <div class="form-header">
+        <h3>{{ kbEditMode === 'create' ? 'Create New Knowledge Entry' : 'Edit Knowledge Entry' }}</h3>
+        <button class="btn-outline" (click)="onCancelKnowledge()">
+          <i class="fa fa-times"></i> Cancel
+        </button>
+      </div>
+
+      <form class="kb-edit-form">
+        <div class="form-row">
+          <div class="form-field half">
+            <label>Category <span class="required">*</span></label>
+            <select [(ngModel)]="kbFormModel.category" name="kbCategory" class="form-select">
+              <option value="contract_rule">Contract Rule</option>
+              <option value="pricing_pattern">Pricing Pattern</option>
+              <option value="correction">Correction</option>
+              <option value="best_practice">Best Practice</option>
+              <option value="hotel_specific">Hotel Specific</option>
+              <option value="general">General</option>
+            </select>
+            <div class="hint">What type of knowledge is this?</div>
+          </div>
+
+          <div class="form-field half">
+            <label>Scope <span class="required">*</span></label>
+            <select [(ngModel)]="kbFormModel.scope" name="kbScope" class="form-select">
+              <option value="all">Global (All AI features)</option>
+              <option value="contract_upload">Contract Upload only</option>
+              <option value="contract_analysis">Contract Analysis only</option>
+              <option value="chat">Chat only</option>
+            </select>
+            <div class="hint">Which AI feature should use this knowledge?</div>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Title <span class="required">*</span></label>
+          <ejs-textbox
+            [(ngModel)]="kbFormModel.title"
+            name="kbTitle"
+            placeholder="e.g. Orchid Cruises pricing always uses NET rates"
+            floatLabelType="Never">
+          </ejs-textbox>
+        </div>
+
+        <div class="form-field">
+          <label>Content <span class="required">*</span></label>
+          <textarea
+            class="prompt-textarea kb-content-textarea"
+            [(ngModel)]="kbFormModel.content"
+            name="kbContent"
+            placeholder="Describe the knowledge in detail...&#10;&#10;Example: When processing contracts for Orchid Cruises, the pricing is always in NET format (not rack rates). All cabin categories follow the pattern: Suite, Deluxe, Superior. Season dates are based on Vietnamese calendar."
+            rows="10">
+          </textarea>
+          <div class="textarea-footer">
+            <span class="hint">Be specific and detailed. This will be injected into the AI prompt as long-term memory.</span>
+            <span class="char-count">{{ kbFormModel.content?.length || 0 }} characters</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field half">
+            <label>Hotel Name <span class="optional">(optional)</span></label>
+            <ejs-textbox
+              [(ngModel)]="kbFormModel.hotelName"
+              name="kbHotelName"
+              placeholder="e.g. Orchid Cruises (leave empty for global)"
+              floatLabelType="Never">
+            </ejs-textbox>
+            <div class="hint">If set, this knowledge only applies when processing contracts for this hotel</div>
+          </div>
+
+          <div class="form-field half">
+            <label>Priority</label>
+            <input type="number" [(ngModel)]="kbFormModel.priority" name="kbPriority" class="form-input-number" min="0" max="100" step="1">
+            <div class="hint">Higher priority entries appear first (0 = normal, 100 = critical)</div>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Tags <span class="optional">(optional)</span></label>
+          <ejs-textbox
+            [(ngModel)]="kbTagsInput"
+            name="kbTags"
+            placeholder="e.g. pricing, net-rate, orchid (comma-separated)"
+            floatLabelType="Never">
+          </ejs-textbox>
+          <div class="hint">Comma-separated tags for organization</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field half">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="kbFormModel.isActive" name="kbIsActive">
+              <span>Active</span>
+              <span class="hint inline">(Only active entries are used by the AI at runtime)</span>
+            </label>
+          </div>
+          <div class="form-field half">
+            <label>Source</label>
+            <select [(ngModel)]="kbFormModel.source" name="kbSource" class="form-select">
+              <option value="manual">Manual</option>
+              <option value="auto_analysis">Auto Analysis</option>
+              <option value="user_correction">User Correction</option>
+              <option value="import">Import</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-outline" type="button" (click)="onCancelKnowledge()" [disabled]="isKbSaving">
+            Cancel
+          </button>
+          <button class="btn-primary" type="button" (click)="onSaveKnowledge()" [disabled]="isKbSaving">
+            <span *ngIf="isKbSaving"><i class="fa fa-spinner fa-spin"></i> Saving...</span>
+            <span *ngIf="!isKbSaving">
+              <i class="fa fa-save"></i> {{ kbEditMode === 'create' ? 'Create Entry' : 'Update Entry' }}
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

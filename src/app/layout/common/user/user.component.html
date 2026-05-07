@@ -1,0 +1,207 @@
+<!-- Button -->
+<button mat-icon-button [matMenuTriggerFor]="userActions">
+  <span class="relative">
+    <img class="w-7 h-7 rounded-full" *ngIf="showAvatar && user && user.avatar" [src]="user.avatar" />
+    <img style=" width: 27px; height: 21px; " class="rounded-full" *ngIf="showAvatar && user && !user.avatar"
+      [src]="'assets/images/logo/Tour_Chain.png'" />
+
+    <!-- <mat-icon *ngIf="!showAvatar || !user?.avatar" [svgIcon]="'heroicons_outline:user-circle'"></mat-icon> -->
+    <span class="absolute right-0 bottom-0 w-2 h-2 rounded-full" [ngClass]="{
+        'mr-px mb-px': !showAvatar || !user?.avatar,
+        'bg-green-500': !user?.status,
+        'bg-gray-500': user?.status === 'online',
+        'bg-amber-500': user?.status === 'away',
+        'bg-red-500': user?.status === 'busy',
+        'bg-gray-400': user?.status === 'not-visible'
+      }"></span>
+  </span>
+</button>
+<mat-menu [xPosition]="'before'" #userActions="matMenu">
+  <button mat-menu-item>
+    <span class="flex flex-col leading-none">
+      <span>{{ user?.fullname }}</span>
+      <span class="mt-1.5 text-md font-medium">{{ user?.email }}</span>
+    </span>
+  </button>
+  <mat-divider class="my-2"></mat-divider>
+  <button mat-menu-item (click)="openProfile()">
+    <mat-icon [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
+    <span>Profile</span>
+  </button>
+  @if(showDoashboard) {
+  <button mat-menu-item (click)="gotoDashboard()">
+    <mat-icon [svgIcon]="'heroicons_outline:chart-bar'"></mat-icon>
+    <span>Dashboard</span>
+  </button>
+  }
+  <mat-divider class="my-2"></mat-divider>
+  @if(user.globalsSendMessage) {
+  <button mat-menu-item (click)="globalsSendMessage = true">
+    <mat-icon [svgIcon]="'heroicons_outline:mail'"></mat-icon>
+    <span>Send Message For All</span>
+  </button>
+  }
+  <button mat-menu-item (click)="PopupSwitchRoles = true">
+    <mat-icon [svgIcon]="'heroicons_outline:cog'"></mat-icon>
+    <span>Switch Role</span>
+  </button>
+  <button mat-menu-item (click)="PopupConfig = true">
+    <mat-icon [svgIcon]="'heroicons_outline:adjustments'" class="rotate-90"></mat-icon>
+    <span>Configuration</span>
+  </button>
+  <!-- <button mat-menu-item [matMenuTriggerFor]="userStatus">
+        <mat-icon [svgIcon]="'heroicons_outline:dots-circle-horizontal'"></mat-icon>
+        <span>Status</span>
+    </button> -->
+  <mat-divider class="my-2"></mat-divider>
+  <button mat-menu-item (click)="signOut()">
+    <mat-icon [svgIcon]="'heroicons_outline:logout'"></mat-icon>
+    <span>Sign out</span>
+  </button>
+</mat-menu>
+
+<mat-menu class="user-status-menu" #userStatus="matMenu">
+  <button mat-menu-item (click)="updateUserStatus('online')">
+    <span class="w-4 h-4 mr-3 rounded-full bg-green-500"></span>
+    <span>Online</span>
+  </button>
+  <button mat-menu-item (click)="updateUserStatus('away')">
+    <span class="w-4 h-4 mr-3 rounded-full bg-amber-500"></span>
+    <span>Away</span>
+  </button>
+  <button mat-menu-item (click)="updateUserStatus('busy')">
+    <span class="w-4 h-4 mr-3 rounded-full bg-red-500"></span>
+    <span>Busy</span>
+  </button>
+  <button mat-menu-item (click)="updateUserStatus('not-visible')">
+    <span class="w-4 h-4 mr-3 rounded-full bg-gray-400"></span>
+    <span>Invisible</span>
+  </button>
+</mat-menu>
+
+<ejs-dialog *ngIf="popup_profile" [isModal]="true" [visible]="true" [header]="'Profile'" [showCloseIcon]="true"
+  (close)="popup_profile = !popup_profile" style="max-width: 60%" [width]="'900px'">
+  <ng-template #content>
+    <profile-dialog [dateTimeFormat]="'dd MMM, yyyy'" (refresh)="user = user" (out)="popup_profile = false"
+      [user]="user"></profile-dialog>
+  </ng-template>
+</ejs-dialog>
+
+<!-- REMOVED: switch-roles-dialog component not found -->
+<!-- <ejs-dialog *ngIf="PopupSwitchRoles" [isModal]="true" [visible]="true" [header]="'Switch Role'" [showCloseIcon]="true"
+  (close)="PopupSwitchRoles = !PopupSwitchRoles" style="max-width: 60%" [width]="'400px'">
+  <ng-template #content>
+    <switch-roles-dialog [user]="user" (out)="PopupSwitchRoles = false">
+    </switch-roles-dialog>
+  </ng-template>
+</ejs-dialog> -->
+
+<ejs-dialog *ngIf="PopupConfig" [isModal]="true" [visible]="true" [header]="'System Configuration'"
+  [showCloseIcon]="true" (close)="PopupConfig = !PopupConfig" style="max-width: 60%" [width]="'400px'">
+  <ng-template #content>
+    <div class="configuration-container">
+      <div class="config-section">
+        <h3 class="section-title">Display Settings</h3>
+        <p class="section-description">Customize your workspace layout and behavior</p>
+
+        <div class="config-items">
+          <!-- Freeze Navbar -->
+          <div class="config-item">
+            <div class="config-content">
+              <div class="config-header">
+                <mat-icon class="config-icon">menu</mat-icon>
+                <div class="config-text">
+                  <span class="config-title">Freeze Navigation Bar</span>
+                  <span class="config-subtitle">Keep the sidebar always visible</span>
+                </div>
+              </div>
+              <div class="config-tooltip">
+                <i class="bi bi-info-circle"
+                  matTooltip="When enabled, the navigation sidebar will remain fixed and won't auto-hide"
+                  matTooltipPosition="left"></i>
+              </div>
+            </div>
+            <div class="config-switch">
+              <ejs-switch [(ngModel)]="localConfig.freezeNavbar" (ngModelChange)="updateConfig()"
+                [cssClass]="'custom-switch'"></ejs-switch>
+            </div>
+          </div>
+
+          <!-- Freeze Toolbar -->
+          <div class="config-item">
+            <div class="config-content">
+              <div class="config-header">
+                <mat-icon class="config-icon">build</mat-icon>
+                <div class="config-text">
+                  <span class="config-title">Freeze Toolbar</span>
+                  <span class="config-subtitle">Pin action buttons bar</span>
+                </div>
+              </div>
+              <div class="config-tooltip">
+                <i class="bi bi-info-circle"
+                  matTooltip="Keep the toolbar with action buttons always visible below the header"
+                  matTooltipPosition="left"></i>
+              </div>
+            </div>
+            <div class="config-switch">
+              <ejs-switch [(ngModel)]="localConfig.freezeToolbar" (ngModelChange)="updateConfig()"
+                [cssClass]="'custom-switch'"></ejs-switch>
+            </div>
+          </div>
+
+          <!-- Freeze Information -->
+          <div class="config-item">
+            <div class="config-content">
+              <div class="config-header">
+                <mat-icon class="config-icon">info</mat-icon>
+                <div class="config-text">
+                  <span class="config-title">Freeze Information Panel</span>
+                  <span class="config-subtitle">Lock general info section</span>
+                </div>
+              </div>
+              <div class="config-tooltip">
+                <i class="bi bi-info-circle"
+                  matTooltip="Keep the general information section fixed in the 'INFORMATION' tab"
+                  matTooltipPosition="left"></i>
+              </div>
+            </div>
+            <div class="config-switch">
+              <ejs-switch [(ngModel)]="localConfig.freezeInformation" (ngModelChange)="updateConfig()"
+                [cssClass]="'custom-switch'"></ejs-switch>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reset to defaults button -->
+        <div class="config-actions">
+          <button mat-stroked-button color="primary" (click)="resetToDefaults()" class="btn btn-primary btn-sm reset-button">
+            <mat-icon>refresh</mat-icon>
+            Reset to Defaults
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</ejs-dialog>
+
+
+<ejs-dialog *ngIf="globalsSendMessage" [isModal]="true" [visible]="true" [header]="'Send Message For All'"
+  [showCloseIcon]="true" (close)="globalsSendMessage = !globalsSendMessage" [width]="'800px'">
+  <ng-template #content>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <label for="messageContent" class="form-label">Message</label>
+          <ckeditor [config]="ckeditConfig" [(ngModel)]="globalMessageContent"></ckeditor>
+          <!-- <ejs-richtexteditor [toolbarSettings]="toolbarset" [height]="500" [insertImageSettings]="insertImageSettings"
+            [fileManagerSettings]="fileManagerSettings" [(ngModel)]="globalMessageContent">
+          </ejs-richtexteditor> -->
+        </div>
+      </div>
+      <div class="mt-3 d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" (click)="globalsSendMessage = false">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="sendGlobalMessage()">Send Message</button>
+      </div>
+    </div>
+  </ng-template>
+</ejs-dialog>

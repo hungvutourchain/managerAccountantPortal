@@ -1,0 +1,16 @@
+<div class="control-section-eidt">
+    <div class="col-12 mt-2 p-0 fl clsheader">
+        <a href="javascript:;" class="mr-4" (click)="showckeditor = !showckeditor">
+            <i class="fas fa-keyboard"></i> {{showckeditor ? 'Rich Text Editor' : 'Ckeditor'}}
+        </a>
+    </div>
+    <div class="col-12 mt-2 fl p-0">
+        <ejs-richtexteditor [hidden]="showckeditor" [enableResize]="true" [toolbarSettings]='toolbarset'
+            [fontFamily]='family' [fileManagerSettings]='fileManagerSettings' [showCharCount]='true' [(ngModel)]="str"
+            [height]="height" [insertImageSettings]="insertImageSettings" (change)="showckeditor ? onChange() : null "
+            [className]="className">
+        </ejs-richtexteditor>
+        <ckeditor [config]="ckeditConfig" [hidden]="!showckeditor" (change)="!showckeditor ? onChange() : null "
+            [(ngModel)]="str"></ckeditor>
+    </div>
+</div>

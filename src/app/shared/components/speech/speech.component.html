@@ -1,0 +1,82 @@
+<div class="speech-container">
+  <!-- Language Selector -->
+  <div class="language-selector">
+    <label>{{ languageLabel }}</label>
+    <kendo-dropdownlist
+      [data]="languages"
+      [textField]="'name'"
+      [valueField]="'code'"
+      [valuePrimitive]="true"
+      [filterable]="true"
+      [(ngModel)]="currentLanguage"
+      [kendoDropDownFilter]="filterSettings"
+      (valueChange)="selectLanguage($event)"
+      [disabled]="isListening"
+    >
+      <ng-template kendoDropDownListItemTemplate let-dataItem>
+        <span>{{ dataItem.name }}</span>
+      </ng-template>
+    </kendo-dropdownlist>
+  </div>
+
+  <!-- Microphone Section -->
+  <div class="mic-container">
+    <!-- Main Button -->
+    <button
+      type="button"
+      class="mic-button"
+      [class.listening]="isListening"
+      [disabled]="!isSupported"
+      (click)="toggleListening()"
+      [attr.aria-label]="isListening ? 'Stop recording' : 'Start recording'"
+      [attr.title]="isListening ? 'Click to stop' : 'Click to start speaking'"
+    >
+      <i class="fas" [class.fa-microphone]="!isListening" [class.fa-stop]="isListening"></i>
+    </button>
+    
+    <!-- Sound Wave Animation (shows when listening) -->
+    <div class="sound-wave" [class.active]="isListening">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <!-- Status Badge -->
+    <span class="status-text" [class.listening]="isListening">
+      {{ isListening ? 'Listening...' : (isSupported ? 'Ready' : 'Not supported') }}
+    </span>
+  </div>
+
+  <!-- Transcript Display -->
+  <div class="transcript-container" 
+       [class.has-result]="currentTranscript && isFinalTranscript"
+       *ngIf="showTranscript">
+    <div class="transcript-label">Transcript</div>
+    <div 
+      class="transcript-text" 
+      [class.interim]="!isFinalTranscript"
+      *ngIf="currentTranscript; else placeholder"
+    >
+      {{ currentTranscript }}
+    </div>
+    <ng-template #placeholder>
+      <div class="transcript-placeholder">
+        {{ isListening ? 'Speak now...' : 'Your speech will appear here' }}
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-container" *ngIf="errorMessage$ | async as errorMessage">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span class="error-message">{{ errorMessage }}</span>
+  </div>
+
+  <!-- Hint Text -->
+  <div class="hint-text" *ngIf="showHint && isSupported && !isListening && !currentTranscript">
+    <i class="fas fa-info-circle" style="margin-right: 6px; opacity: 0.7;"></i>
+    Click the microphone to start voice input
+  </div>
+</div>

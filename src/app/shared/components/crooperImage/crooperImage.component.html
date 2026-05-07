@@ -1,0 +1,175 @@
+<a href="javascript:;" class="image-cropper" (click)="openCropper()" [matTooltip]="'Browse'">
+  <div *ngIf="!str; else image_preview" class="cls-default-image">
+    <!-- <i class="fas fa-images icon-image"></i> -->
+    <i class="bi bi-cloud-arrow-up-fill"></i>
+  </div>
+  <ng-template #image_preview>
+    <div class="position-relative">
+      <img [src]="str" class="image" />
+      <div class="upload-overlay">
+        <i class="bi bi-cloud-arrow-up-fill"></i>
+      </div>
+    </div>
+  </ng-template>
+</a>
+
+<!-- Image Cropping Functions -->
+
+<ejs-dialog [isModal]="true" *ngIf="isCrooperImage" [visible]="true" [header]="'Crop Image'" [animationSettings]="true"
+  [showCloseIcon]="true" (close)="isCrooperImage = !isCrooperImage" [width]="'65%'">
+  <ng-template #content>
+    <div class="row">
+      @if(str){
+      <div class="col-md-12 mb-3">
+        <div class="d-flex align-items-center p-2 bg-light rounded">
+          <span class="text-muted small me-2">URL:</span>
+          <input type="url" class="form-control form-control-sm border-0 bg-white" [disabled]="true"
+            placeholder="Paste image URL here..." [(ngModel)]="str" style="flex: 1;">
+        </div>
+      </div>
+      @if(Original){
+      <div class="col-md-12 mb-3">
+        <div class="d-flex align-items-center p-2 bg-light rounded">
+          <span class="text-muted small me-2">URL Original:</span>
+          <input type="url" class="form-control form-control-sm border-0 bg-white" [disabled]="true"
+            placeholder="Paste image URL here..." [(ngModel)]="Original" style="flex: 1;">
+        </div>
+      </div>
+      }
+      }
+      <div class="col-2 fl">
+        <label class="k-form-field">
+          <span>Width</span>
+          <ejs-numerictextbox [(ngModel)]="configImage.width" format="###">
+          </ejs-numerictextbox>
+        </label>
+      </div>
+      <div class="col-2 fl">
+        <label class="k-form-field">
+          <span>Height</span>
+          <ejs-numerictextbox [(ngModel)]="configImage.height" format="###">
+          </ejs-numerictextbox>
+        </label>
+      </div>
+      <div class="col-8 pt-3 fl">
+        <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
+          <div class="btn-group btn-group-sm ml-2" role="group" aria-label="First group">
+            <button type="button" class="btn btn-outline-secondary" (click)="WebAddress('open')">
+              Web Address
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="selectNewImage()">
+              Select Image
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pintura Editor -->
+      <div class="col-12 mt-3" *ngIf="imageLink && showPinturaEditor">
+        <pintura-editor #pinturaEditor
+          [src]="imageLink"
+          [options]="pinturaOptions"
+          (load)="onPinturaInit($event)"
+          (process)="onPinturaProcess($event)"
+          (close)="onPinturaClose()"
+          (loaderror)="onPinturaError($event)"
+          style="height: 600px;">
+        </pintura-editor>
+      </div>
+
+      <div class="col-12 h-[90px] d-flex justify-center items-center" *ngIf="!imageLink">
+        <i class="bi bi-camera rotate-30"></i>
+        <span>No Image</span>
+      </div>
+
+      <div class="col-12 mt-2 d-flex gap-2" *ngIf="imageLink">
+        <button [disabled]="isUploadingProcessedImage || !showPinturaEditor" (click)="onCropped()" type="button" class="btn btn-outline-success">
+          <span *ngIf="!isUploadingProcessedImage">Crop & Save Image</span>
+          <span *ngIf="isUploadingProcessedImage">
+            <i class="bi bi-hourglass-split"></i> Processing...
+          </span>
+        </button>
+        <button [disabled]="isUploadingProcessedImage" (click)="onApplyOriginal()" type="button" class="btn btn-outline-info">
+          Use Original
+        </button>
+        <button *ngIf="str" [disabled]="isUploadingProcessedImage || !imageLink" (click)="onRemoveImage()" type="button"
+          class="btn btn-outline-danger ml-auto">
+          Remove
+        </button>
+        <button *ngIf="imageLink && !showPinturaEditor" (click)="openPinturaEditor()" type="button" class="btn btn-outline-primary">
+          Open Editor
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</ejs-dialog>
+
+<!-- End Image Cropping Functions -->
+
+<!-- Image Choosing Functions -->
+
+<!-- <div *ngIf="popupImage" class="fullscreen-modal">
+  <div class="fullscreen-modal-content">
+    <div class="fullscreen-modal-header">
+      <h4 class="modal-title">Select Image</h4>
+      <button type="button" class="btn-close" (click)="popupImage = !popupImage" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="fullscreen-modal-body">
+      <div class="row h-100">
+        <div class="col-md-12 h-100">
+          <share-sync-images [(str)]="stringImage.icon"
+            (strChange)="ClosePopupImage($event)"></share-sync-images>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<ejs-dialog [isModal]="true" *ngIf="popupImage" [visible]="popupImage" [header]="'Select Image'"
+  [animationSettings]="true" [showCloseIcon]="true" (close)="popupImage = false" (overlayClick)="popupImage = false"
+  [width]="'80%'" [height]="'90%'" [cssClass]="'image-selection-dialog'">
+  <ng-template #content>
+    <div class="row h-100">
+      <div class="col-md-12 h-100">
+        <share-sync-images [(str)]="stringImage.icon" [url]="str" [Original]="Original"
+          (strChange)="ClosePopupImage($event)"></share-sync-images>
+      </div>
+    </div>
+  </ng-template>
+</ejs-dialog>
+
+<!-- <kendo-dialog *ngIf="popupImage && pageLoad !== 'profile'" title="Select Image" (close)="popupImage = !popupImage"
+  [minWidth]="300" [width]="'66vw'">
+  <share-sync-images [refreshPopup]="refreshImage" [(str)]="stringImage.icon"
+    (strChange)="ClosePopupImage($event)"></share-sync-images>
+</kendo-dialog>
+<ejs-dialog *ngIf="popupImage && pageLoad === 'profile'" [isModal]="true" [visible]="true" [header]="'Select Image'"
+  [animationSettings]="true" [showCloseIcon]="true" (close)="popupImage = !popupImage" [width]="'65%'">
+  <ng-template #content>
+    <share-sync-images [refreshPopup]="refreshImage" [(str)]="stringImage.icon"
+      (strChange)="ClosePopupImage($event)"></share-sync-images>
+  </ng-template>
+</ejs-dialog> -->
+
+<ejs-dialog [isModal]="true" *ngIf="popupWebAddress" [visible]="true" [header]="'Crop Image'" [animationSettings]="true"
+  [showCloseIcon]="true" (close)="WebAddress('Cancel')" [width]="'700px'">
+  <ng-template #content>
+    <div class="row">
+      <div class="col-12 mt-3 mb-3">
+        <label class="k-form-field">
+          <span>You can also provide a link from the web</span>
+          <input style="width: 100%" class="k-textbox" [(ngModel)]="stringWebAddress" name="template_header"
+            placeholder="Url" />
+        </label>
+      </div>
+      <div class="col-12 mt-3 mb-3" style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn btn-secondary btn-sm" (click)="WebAddress('Cancel')">Cancel</button>
+        <button class="btn btn-primary btn-sm" (click)="WebAddress('OK')">OK</button>
+      </div>
+    </div>
+  </ng-template>
+</ejs-dialog>
+
+<!-- End Image Choosing Functions -->

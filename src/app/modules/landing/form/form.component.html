@@ -1,0 +1,176 @@
+<div class="flex flex-col flex-auto min-w-0">
+  <div class="flex-auto">
+    <div class="form-container">
+      <div class="container">
+        <div class="row clsTitle">
+          <div class="col-sm-12 py-3 text-center form-title">
+            <h3>Customer Opportunity</h3>
+            <p>(Create a new lead or a business opportunity to your Team)</p>
+            <a class="btn btn-primary btn-block mt-5"
+              style="background: #006399; border-color: #006399;text-transform: uppercase;" href="/form-request"> Create
+              New LEAD </a>
+          </div>
+          <div class="col-sm-12 px-0 clsInfo">
+            <div class="container">
+              <form class="row" (submit)="onSubmit($event)" [formGroup]="formData">
+                <div class="col-sm-12 col-md-6 my-2">
+                  <div class="card">
+                    <div class="card-header">
+                      New Client / Existing Client
+                    </div>
+                    <div class="card-body">
+                      <div class="form-group">
+                        <label class="mb-2" for="agency">Agency</label>
+                        <input type="text" name="agency" class="form-control" list="agency-options"
+                          placeholder="Search Agency ..." formControlName="agency"
+                          (input)="searchAgency($any($event.target).value)">
+                        <datalist id="agency-options">
+                          <option *ngFor="let agency of lsAgency" [value]="agency.name"></option>
+                        </datalist>
+                        <small class="form-text text-danger" *ngIf="formDataControl.agency.errors && submit">Agency
+                          Required</small>
+                      </div>
+
+                      <div class="form-group">
+                        <label class="mb-2" for="place">Fair / Exhibition / Events</label>
+                        <select style="width: 100%;" class="form-control _cls_currency" id="place" formControlName="place">
+                          <option value="">Select...</option>
+                          <option value="Fair">Fair</option>
+                          <option value="Exhibition">Exhibition</option>
+                          <option value="Events">Events</option>
+                        </select>
+                        <small class="form-text text-danger"
+                          *ngIf="formDataControl.place.errors && submit">Fair/Exhibition/Events Required</small>
+                      </div>
+
+                      <div class="form-group">
+                        <label class="mb-2" for="placeName">Fair / Exhibition / Event Name:</label>
+                        <input type="text" name="placeName" class="form-control" id="placeName"
+                          formControlName="placeName">
+                        <small class="form-text text-danger" *ngIf="formDataControl.placeName.errors && submit">Fair /
+                          Exhibition / Event Name Required</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-6 my-2">
+                  <div class="card">
+                    <div class="card-header">
+                      Requirements
+                    </div>
+                    <div class="card-body">
+                      <div class="form-group">
+                        <label class="mb-2" for="priority">Priority</label>
+                        <select style="width: 100%;" class="form-control _cls_currency" id="priority"
+                          formControlName="priority" name="priority">
+                          <option value="">Select...</option>
+                          <option value="High">High</option>
+                          <option value="Normal">Normal</option>
+                          <option value="Low">Low</option>
+                        </select>
+                        <small class="form-text text-danger" *ngIf="formDataControl.priority.errors && submit">Priority
+                          Required</small>
+                      </div>
+                      <div class="form-group">
+                        <label class="mb-2" for="leisure">Leisure (FIT)</label>
+                        <input type="text" name="leisure" class="form-control" id="leisure" formControlName="leisure">
+                        <small class="form-text text-danger" *ngIf="formDataControl.leisure.errors && submit">Leisure
+                          Required</small>
+                      </div>
+                      <div class="form-group">
+                        <label class="mb-2" for="group">Group (GIT)</label>
+                        <input type="text" name="group" class="form-control" id="group" formControlName="group">
+                      </div>
+                      <div class="form-group">
+                        <label class="mb-2" for="OnlinePlatform">Online Platform</label>
+                        <input type="text" name="OnlinePlatform" class="form-control" id="OnlinePlatform"
+                          formControlName="OnlinePlatform">
+                        <small class="form-text text-danger"
+                          *ngIf="formDataControl.OnlinePlatform.errors && submit">Online
+                          Tariff Required</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-6 my-2">
+                  <div class="card">
+                    <div class="card-header">
+                      Information
+                    </div>
+                    <div class="card-body">
+                      <div class="form-group">
+                        <label class="mb-2" for="contact">Representative Contact
+                        </label>
+                        <input type="text" name="contact" class="form-control" id="contact" formControlName="contact">
+                        <small class="form-text text-danger" *ngIf="formDataControl.contact.errors && submit">contact
+                          Required</small>
+                      </div>
+                      <div class="form-group">
+                        <label class="mb-2" for="formtitle">Title</label>
+                        <input type="text" name="formtitle" class="form-control" id="formtitle"
+                          formControlName="formtitle">
+                        <small class="form-text text-danger" *ngIf="formDataControl.formtitle.errors && submit">title
+                          Required</small>
+                      </div>
+                      <div class="form-group">
+                        <label class="mb-2" for="email">Email</label>
+                        <input type="email" name="email" class="form-control" id="email" aria-describedby="emailHelp"
+                          formControlName="email">
+                        <small class="form-text text-danger" *ngIf="formDataControl.email.errors && submit">email
+                          Required</small>
+                      </div>
+                      <div class="form-group">
+                        <label class="mb-2" for="phone">Phone</label>
+                        <input type="text" name="phone" class="form-control" id="phone" formControlName="phone">
+                        <small class="form-text text-danger" *ngIf="formDataControl.phone.errors && submit">phone
+                          Required</small>
+                      </div>
+                      <div class="form-group">
+                        <label class="mb-2" for="Address">Address</label>
+                        <input type="text" name="Address" class="form-control" id="Address" formControlName="Address">
+                        <small class="form-text text-danger" *ngIf="formDataControl.Address.errors && submit">Address
+                          Required</small>
+                      </div>
+
+                      <div class="form-group">
+                        <label class="mb-2" for="formcountry">Country</label>
+                        <select style="width: 100%;" class="form-control _cls_currency" id="formcountry"
+                          required formControlName="formcountry">
+                          <option value="">Select country...</option>
+                          <option *ngFor="let country of lsnationality" [value]="country?.name || country">
+                            {{ country?.name || country }}
+                          </option>
+                        </select>
+                        <small class="form-text text-danger"
+                          *ngIf="formDataControl.formcountry.errors && submit">Country
+                          Required</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-6 my-2">
+                  <div class="card" style="height: 196px">
+                    <div class="card-header">
+                      Other Notes
+                    </div>
+                    <div class="card-body">
+                      <div class="form-group">
+                        <label class="mb-2" for="note">Comments</label>
+                        <textarea style="width: 100%;height: 100px;" formControlName="note" class="form-control"
+                          name="note" id="note"></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-4 mt-3 mb-5 mx-auto">
+                  <button type="submit" class="btn btn-primary btn-block"
+                    style="background: #006399; border-color: #006399;">Submit</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,83 @@
+.ai-training-container {
+  padding: 24px;
+  
+  .header {
+    margin-bottom: 24px;
+    
+    h2 {
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .subtitle {
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+  
+  .content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    
+    @media (min-width: 992px) {
+      flex-direction: row;
+      
+      .training-form-container {
+        flex: 1;
+      }
+      
+      .training-history-container {
+        flex: 1;
+      }
+    }
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  .form-field {
+    margin-bottom: 16px;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    
+    &.completed {
+      background-color: #e6f7ed;
+      color: #0d904f;
+    }
+    
+    &.in-progress {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+    
+    &.failed {
+      background-color: #fdecea;
+      color: #d32f2f;
+    }
+  }
+  
+  .no-data {
+    padding: 24px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  mat-spinner {
+    display: inline-block;
+    margin-right: 8px;
+  }
+}

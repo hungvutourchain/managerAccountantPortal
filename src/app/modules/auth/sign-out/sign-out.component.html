@@ -1,0 +1,109 @@
+<div class="modern-signin-container">
+  <div class="signin-layout">
+    <!-- Left Panel - Sign Out Content -->
+    <div class="signin-panel">
+      <div class="signin-content">
+        <!-- Header -->
+        <div class="signin-header">
+          <div class="signin-title-section">
+            <div class="signout-icon">
+              <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <h1 class="signin-title">You have signed out!</h1>
+            <p class="signin-subtitle">
+              <!-- Redirect countdown -->
+              <ng-container *ngIf="countdown > 0">
+                Redirecting in {{countdown | i18nPlural: countdownMapping }}
+              </ng-container>
+
+              <!-- Redirect message -->
+              <ng-container *ngIf="countdown === 0">
+                You are now being redirected!
+              </ng-container>
+            </p>
+          </div>
+        </div>
+
+        <!-- Success Message -->
+        <div class="success-message">
+          <div class="success-card">
+            <div class="success-icon">
+              <i class="fa-solid fa-shield-check"></i>
+            </div>
+            <h3>Session Ended Securely</h3>
+            <p>Your session has been terminated and all authentication tokens have been cleared for your security.</p>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button 
+            type="button"
+            class="signin-btn" 
+            [routerLink]="['/sign-in']">
+            <span class="btn-text">Sign In Again</span>
+            <i class="fa-solid fa-sign-in-alt btn-icon"></i>
+            <div class="btn-ripple"></div>
+          </button>
+
+          <!-- Navigation Links -->
+          <div class="navigation-links">
+            <a class="nav-link" [routerLink]="['/landing/home']">
+              <i class="fa-solid fa-home"></i>
+              Go to Home
+            </a>
+            <span class="separator">|</span>
+            <a class="nav-link" [routerLink]="['/landing']">
+              <i class="fa-solid fa-info-circle"></i>
+              About Us
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Company Info & Branding -->
+    <div class="branding-panel">
+      <div class="branding-content">
+        <div class="company-section">
+          <div class="company-logo">
+            <img src="assets/images/logo/Tour_Chain.png" alt="TourChain" />
+          </div>
+          <h2 class="company-name">TourChain</h2>
+          <p class="company-tagline">Professional Travel Management Platform</p>
+        </div>
+
+        <!-- Security Info -->
+        <div class="info-section">
+          <div class="info-card">
+            <div class="info-icon">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3>Secure Sign Out</h3>
+            <p>Your session has been safely terminated. All sensitive data has been cleared from this device.</p>
+            <div class="info-features">
+              <div class="feature-item">
+                <i class="fa-solid fa-check"></i>
+                <span>Session Terminated</span>
+              </div>
+              <div class="feature-item">
+                <i class="fa-solid fa-check"></i>
+                <span>Tokens Cleared</span>
+              </div>
+              <div class="feature-item">
+                <i class="fa-solid fa-check"></i>
+                <span>Data Protected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thank You Message -->
+        <div class="thank-you-section">
+          <h3>Thank You!</h3>
+          <p>We appreciate your trust in our platform. Come back anytime to manage your travel business.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

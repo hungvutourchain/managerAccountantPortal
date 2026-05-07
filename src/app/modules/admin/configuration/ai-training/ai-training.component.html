@@ -1,0 +1,136 @@
+<div class="ai-training-container">
+  <div class="header">
+    <h2>Deepseek AI Model Training</h2>
+    <p class="subtitle">Train your AI models with custom data to improve performance for specific use cases</p>
+  </div>
+
+  <div class="content-container">
+    <div class="training-form-container">
+      <ejs-card>
+        <e-card-header>
+          <div class="e-card-header-caption">
+            <div class="e-card-title">New Training</div>
+          </div>
+        </e-card-header>
+        <e-card-content>
+          <form (ngSubmit)="onSubmit()">
+            <div class="form-field">
+              <div class="e-float-input full-width">
+                <ejs-dropdownlist 
+                  [(ngModel)]="trainingModel.modelName" 
+                  name="modelName"
+                  [dataSource]="availableModels" 
+                  [fields]="{ text: 'name', value: 'id' }" 
+                  placeholder="Select Model"
+                  #modelNameControl="ngModel"
+                  required>
+                </ejs-dropdownlist>
+                <div class="e-error" *ngIf="modelNameControl.invalid && (modelNameControl.dirty || modelNameControl.touched)">
+                  Model selection is required
+                </div>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <div class="e-float-input full-width">
+                <ejs-textbox 
+                  [(ngModel)]="trainingModel.description" 
+                  name="description"
+                  placeholder="Enter a description for this training" 
+                  floatLabelType="Auto"
+                  #descriptionControl="ngModel"
+                  required
+                  minlength="10">
+                </ejs-textbox>
+                <div class="e-error" *ngIf="descriptionControl.invalid && (descriptionControl.dirty || descriptionControl.touched)">
+                  <span *ngIf="descriptionControl.errors?.required">Description is required</span>
+                  <span *ngIf="descriptionControl.errors?.minlength">Description must be at least 10 characters</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <div class="e-float-input full-width">
+                <ejs-textbox 
+                  [(ngModel)]="trainingModel.trainingData" 
+                  name="trainingData"
+                  placeholder="Enter your training data here. Format: Question: [question] Answer: [answer]" 
+                  floatLabelType="Auto" 
+                  multiline="true" 
+                  [rows]="10"
+                  #trainingDataControl="ngModel"
+                  required
+                  minlength="100">
+                </ejs-textbox>
+                <div class="e-hint">Enter pairs of questions and answers, one per line</div>
+                <div class="e-error" *ngIf="trainingDataControl.invalid && (trainingDataControl.dirty || trainingDataControl.touched)">
+                  <span *ngIf="trainingDataControl.errors?.required">Training data is required</span>
+                  <span *ngIf="trainingDataControl.errors?.minlength">Training data must be at least 100 characters</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <ejs-button 
+                cssClass="e-flat" 
+                [disabled]="isLoading" 
+                (click)="resetForm()"
+                type="button">
+                Reset
+              </ejs-button>
+              <ejs-button 
+                cssClass="e-primary" 
+                [isPrimary]="true" 
+                type="submit" 
+                [disabled]="isLoading || modelNameControl.invalid || descriptionControl.invalid || trainingDataControl.invalid">
+                <div *ngIf="isLoading">
+                  <ejs-spinner [visible]="true" [size]="20"></ejs-spinner>
+                </div>
+                <span *ngIf="!isLoading">Start Training</span>
+              </ejs-button>
+            </div>
+          </form>
+        </e-card-content>
+      </ejs-card>
+    </div>
+
+    <div class="training-history-container">
+      <ejs-card>
+        <e-card-header>
+          <div class="e-card-header-caption">
+            <div class="e-card-title">Training History</div>
+          </div>
+        </e-card-header>
+        <e-card-content>
+          <ejs-grid [dataSource]="trainingHistory" class="full-width" [allowPaging]="true" [pageSettings]="{ pageSize: 10 }">
+            <e-columns>
+              <e-column field="modelName" headerText="Model" [width]="120">
+                <ng-template #template let-data>
+                  {{ getModelNameById(data.modelName) }}
+                </ng-template>
+              </e-column>
+              <e-column field="description" headerText="Description" [width]="200"></e-column>
+              <e-column field="startTime" headerText="Date" [width]="150">
+                <ng-template #template let-data>
+                  {{ data.startTime | date:'medium' }}
+                </ng-template>
+              </e-column>
+              <e-column field="status" headerText="Status" [width]="120">
+                <ng-template #template let-data>
+                  <span class="status-badge" [ngClass]="data.status">
+                    {{ data.status | titlecase }}
+                  </span>
+                </ng-template>
+              </e-column>
+              <e-column field="accuracy" headerText="Accuracy" [width]="100"></e-column>
+            </e-columns>
+          </ejs-grid>
+
+          <div *ngIf="trainingHistory.length === 0" class="no-data">
+            No training history available
+          </div>
+        </e-card-content>
+      </ejs-card>
+    </div>
+  </div>
+</div>

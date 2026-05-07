@@ -1,0 +1,44 @@
+<div class="landing-page">
+    <div class="page-wrapper">
+        <!-- Header -->
+        <div class="header">
+            <img class="company-logo" [src]="infoWeb.imageLogo" alt="Company Logo">
+            <h1 class="company-name">{{infoWeb.nameCompany}}</h1>
+            <p class="subtitle">Choose Your Platform</p>
+        </div>
+
+        <!-- Platform Cards -->
+        <div class="cards-container">
+            <ng-container *ngFor="let module of listMenu; let i = index">
+                <a [href]="module.url" class="card" *ngIf="module.show">
+                    <div class="card-image">
+                        <img [src]="module.image" [alt]="module.name">
+                        <div class="card-image-overlay">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="card-title">{{module.name}}</h4>
+                        <p class="card-desc">{{module.contnet}}</p>
+                        <div class="card-tags">
+                            <span class="tag" *ngIf="module.type === 'hotel'">B2B & B2C</span>
+                            <span class="tag" *ngIf="module.type === 'hotel'">Contracts</span>
+                            <span class="tag" *ngIf="module.type === 'tour'">Operations</span>
+                            <span class="tag" *ngIf="module.type === 'tour'">Quotations</span>
+                        </div>
+                        <div class="card-action">
+                            <span>Access Platform</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </a>
+            </ng-container>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <img class="footer-logo" [src]="'./assets/images/TourChain.svg'" alt="TourChain">
+            <span class="footer-text">© {{currentYear}} {{infoWeb.nameCompany}} · Powered by TourChain</span>
+        </div>
+    </div>
+</div>

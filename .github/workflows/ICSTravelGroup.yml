@@ -1,0 +1,42 @@
+name: Deploy to Docker Swarm trial
+
+on:
+  push:
+    branches: ["icstravelgroup"] # Adjust as needed
+# ghcr.io/hungvutourchain/tourchain-net/hoteltourportal:latest
+env:
+  RESISTRY: ghcr.io
+  IMAGE_NAME: hungvutourchain/tourchain-net/hoteltourportal:icstravelgroup
+  IP: ${{secrets.IP_ICS_TRAVEL_GROUP}}
+  PAT: ${{secrets.PAT || secrets.PAT1 || secrets.PAT2}}
+  SSH: ${{ secrets.SSH_PRIVATE_KEY_ICS_TRAVEL_GROUP }}
+jobs:
+  publish:
+    name: publish image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        run: |
+          echo ${{ env.PAT }} | docker login ghcr.io -u ${{ github.actor }} -p ${{ env.PAT }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -f Dockerfileprodbackend . --tag ${{ env.RESISTRY }}/${{ env.IMAGE_NAME }}
+          docker push ${{ env.RESISTRY }}/${{ env.IMAGE_NAME }}
+
+  deploy:
+    needs: publish
+    name: Deploy to Docker Swarm
+    runs-on: ubuntu-latest
+    steps:
+      - name: install ssh keys
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ env.SSH }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.IP }} > ~/.ssh/known_hosts
+      - name: Connect and pull docker image
+        run: |
+          ssh root@${{ env.IP }} "echo ${{ env.PAT }} | docker login ghcr.io -u ${{ github.actor }} -p ${{ env.PAT }} &&cd .. && cd /host/tourchain/develop && docker stack deploy --compose-file docker-compose-hotelTourPortal.yml tourchain --with-registry-auth"
+      - name: cleanup
+        run: rm -rf ~/.ssh

@@ -1,0 +1,42 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": "./src",
+        "outDir": "./dist/out-tsc",
+        "downlevelIteration": true,
+        "forceConsistentCasingInFileNames": true,
+        "importHelpers": true,
+        "noImplicitReturns": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "module": "esnext",
+        "sourceMap": true,
+        "allowJs": true,
+        "noImplicitAny": false,
+        "suppressImplicitAnyIndexErrors": false,
+        "declaration": false,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "strictPropertyInitialization": false,
+        "declarationMap": false,
+        "target": "esnext",
+        "types": ["geojson"],
+        "lib": [
+            "es2021",
+            "dom"
+        ]
+    },
+    "angularCompilerOptions": {
+        "enableI18nLegacyMessageIdFormat": false,
+        "strictInputAccessModifiers": true,
+        "strictTemplates": false,
+        "preserveWhitespaces": true,
+        "compilationMode": "full",
+        "allowEmptyCodegenFiles": true,
+        "enableIvy": true,
+        "fullTemplateTypeCheck": true,
+        "strictInjectionParameters": true
+    }
+}

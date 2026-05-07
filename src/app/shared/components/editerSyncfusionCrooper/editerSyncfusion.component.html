@@ -1,0 +1,477 @@
+@if(!isUploadImage) {
+<div class="row m-0 editer-syncfusion">
+  <!-- Enhanced Header with Better UX -->
+  <div *ngIf="!isDisabled && !isNoteMode" class="col-12 mt-2 m-0 p-0 fl editor-header">
+    <div class="editor-toolbar">
+
+      <div class="toolbar-actions">
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-primary btn-sm"
+            (click)="ObjectValue()"
+            title="Switch to Layout Render mode">
+            <i class="fas fa-images me-1"></i>
+            <span class="d-none d-md-inline">Layout Render</span>
+          </button>
+
+          <button type="button" class="btn btn-outline-secondary btn-sm" [class.active]="!showckeditor"
+            (click)="toggleEditor()" title="Toggle between Rich Text Editor and CKEditor">
+            <i class="fas fa-keyboard me-1"></i>
+            <span class="d-none d-md-inline">
+              {{ !showckeditor ? "Rich Text" : "CKEditor" }}
+            </span>
+          </button>
+
+          <button type="button" class="btn btn-outline-info btn-sm" (click)="SpeechPopup = true" title="Voice input">
+            <i class="fas fa-microphone me-1"></i>
+            <span class="d-none d-md-inline">Speech</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isDisabled; else elseContent">
+    <!-- Rich Text Editor -->
+    <div class="col-12 mt-3 fl p-0 editor-container" *ngIf="showckeditor">
+      <div class="editor-wrapper rich-editor">
+        <ejs-richtexteditor #toolsRTE [pasteCleanupSettings]="pasteCleanupSettings" [enableResize]="true"
+          [height]="height || viewheight || 400" [enterKey]="enterKey" [toolbarSettings]="toolbarset"
+          [fontFamily]="family" [fileManagerSettings]="fileManagerSettings" [showCharCount]="true"
+          [enableHtmlEncode]="false" [enableHtmlSanitizer]="false" [(ngModel)]="str" [enableRtl]="dir && dir === 'rtl'"
+          (ngModelChange)="showckeditor ? onChange($event) : null">
+        </ejs-richtexteditor>
+      </div>
+    </div>
+
+    <!-- CKEditor -->
+    <div class="col-12 mt-3 fl p-0 editor-container" *ngIf="!showckeditor">
+      <div class="editor-wrapper ck-editor">
+        <ckeditor [config]="ckeditConfig" (ngModelChange)="!showckeditor ? onChange($event) : null" [(ngModel)]="str"
+          [height]="height || viewheight || 400" [language]="language">
+        </ckeditor>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Read-only Content Display -->
+  <ng-template #elseContent>
+    <div class="col-12 mt-3 fl content-display">
+      <div class="readonly-content" [innerHtml]="str"></div>
+    </div>
+  </ng-template>
+</div>
+} @else {
+<input type="file" #fileUploadInput accept="image/*" style="display:none" (change)="onLocalFileSelected($event)">
+@if(!isOpenImageCropper) {
+<div class="image-upload-container">
+  <!-- Header Controls -->
+
+  <div class="upload-header">
+    <!-- Breadcrumb: helps user understand they are in a sub-step -->
+    <div class="layout-breadcrumb mb-2">
+      <span class="text-muted small">
+        <i class="fas fa-pencil-alt me-1"></i>Editing Content
+      </span>
+      <i class="fas fa-chevron-right mx-2 text-muted small"></i>
+      <span class="text-primary small fw-semibold">
+        <i class="fas fa-images me-1"></i>Image Layout
+      </span>
+    </div>
+    <div class="control-buttons">
+      <button class="btn btn-success btn-sm" [disabled]="!Object.content" (click)="ActionChange('apply')" title="Confirm layout and return to content editor">
+        <i class="fas fa-check me-1"></i>
+        Confirm & Insert
+      </button>
+      <button class="btn btn-outline-secondary btn-sm" (click)="Cancel()" title="Discard image layout changes and go back">
+        <i class="fas fa-arrow-left me-1"></i>
+        Discard & Back</button>
+    </div>
+  </div>
+
+  <!-- Layout Type Selector -->
+  <div class="layout-selector">
+    <label class="form-label fw-semibold mb-2">
+      <i class="fas fa-th-large me-2 text-primary"></i>
+      Choose Layout Type
+    </label>
+    <kendo-dropdownlist class="layout-dropdown" [textField]="'name'" [valueField]="'id'"
+      [kendoDropDownFilter]="filterSettings" [filterable]="true" [valuePrimitive]="true" [(ngModel)]="Object.type"
+      (ngModelChange)="changelsTypeOption($event)" [data]="lsTypeOption">
+      <ng-template kendoDropDownListValueTemplate let-dataItem>
+        <div *ngIf="dataItem" class="layout-option">
+          <i [class]="dataItem.bootstrapIcon" class="me-2"></i>
+          <span>{{ dataItem.name }}</span>
+        </div>
+      </ng-template>
+      <ng-template kendoDropDownListItemTemplate let-dataItem>
+        <div *ngIf="dataItem" class="layout-option">
+          <i [class]="dataItem.bootstrapIcon" class="me-2"></i>
+          <span>{{ dataItem.name }}</span>
+        </div>
+      </ng-template>
+    </kendo-dropdownlist>
+  </div>
+
+  <!-- Single Image Layout (Types 1, 8, 9, 11) -->
+  <div class="upload-section" *ngIf="Object.type === 1 || Object.type === 8 || Object.type === 9 || Object.type === 11">
+    <div class="section-title">
+      <i class="fas fa-image me-2 text-info"></i>
+      Single Image Layout
+    </div>
+    <div class="single-image-container">
+      <div class="upload-card large-upload" [class.has-image]="Object.imageCropper1">
+        <div *ngIf="!Object.imageCropper1" class="upload-placeholder">
+          <div class="upload-actions">
+            <button type="button" class="upload-btn secondary" (click)="$event.stopPropagation(); $event.preventDefault(); TempNumber = 1; selectNewImage()"
+              title="Select image from gallery">
+              <i class="fas fa-images"></i>
+              <span>Select Images</span>
+            </button>
+          </div>
+          <!-- <p class="upload-hint">Drag & drop an image here or click to browse</p> -->
+        </div>
+        <div *ngIf="Object.imageCropper1" class="image-preview">
+          <img [src]="Object.imageCropper1" alt="Uploaded image" />
+          <div class="image-overlay">
+            <button class="btn btn-sm btn-light" (click)="browserFile(Object.image1, 1)" title="Change image">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="removeImage(1)" title="Remove image">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Small Single Image Layout (Types 4, 5) -->
+  <div class="upload-section" *ngIf="Object.type === 4 || Object.type === 5">
+    <div class="section-title">
+      <i class="fas fa-image me-2 text-info"></i>
+      Compact Image Layout
+    </div>
+    <div class="compact-layout">
+      <div class="upload-card small-upload" [class.has-image]="Object.imageCropper1">
+        <div *ngIf="!Object.imageCropper1" class="upload-placeholder compact" (click)="TempNumber = 1; selectNewImage()">
+          <i class="fas fa-plus upload-icon"></i>
+          <span class="upload-text">Add Image</span>
+        </div>
+        <div *ngIf="Object.imageCropper1" class="image-preview">
+          <img [src]="Object.imageCropper1" alt="Uploaded image" />
+          <div class="image-overlay">
+            <button class="btn btn-sm btn-light" (click)="browserFile(Object.image1, 1)">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three Images Layout (Types 3, 6) -->
+  <div class="upload-section" *ngIf="Object.type === 3 || Object.type === 6">
+    <div class="section-title">
+      <i class="fas fa-images me-2 text-info"></i>
+      Three Images Layout
+    </div>
+    <div class="three-images-layout">
+      <div class="upload-card medium-upload" [class.has-image]="Object.imageCropper1">
+        <div *ngIf="!Object.imageCropper1" class="upload-placeholder" (click)="TempNumber = 1; selectNewImage()">
+          <i class="fas fa-plus upload-icon"></i>
+          <span class="upload-text">Image 1</span>
+        </div>
+        <div *ngIf="Object.imageCropper1" class="image-preview">
+          <img [src]="Object.imageCropper1" alt="Image 1" />
+          <div class="image-overlay">
+            <button class="btn btn-sm btn-light" (click)="browserFile(Object.image1, 1)">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-card medium-upload" [class.has-image]="Object.imageCropper2">
+        <div *ngIf="!Object.imageCropper2" class="upload-placeholder" (click)="TempNumber = 2; selectNewImage()">
+          <i class="fas fa-plus upload-icon"></i>
+          <span class="upload-text">Image 2</span>
+        </div>
+        <div *ngIf="Object.imageCropper2" class="image-preview">
+          <img [src]="Object.imageCropper2" alt="Image 2" />
+          <div class="image-overlay">
+            <button class="btn btn-sm btn-light" (click)="browserFile(Object.image2, 2)">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-card medium-upload" [class.has-image]="Object.imageCropper3">
+        <div *ngIf="!Object.imageCropper3" class="upload-placeholder" (click)="TempNumber = 3; selectNewImage()">
+          <i class="fas fa-plus upload-icon"></i>
+          <span class="upload-text">Image 3</span>
+        </div>
+        <div *ngIf="Object.imageCropper3" class="image-preview">
+          <img [src]="Object.imageCropper3" alt="Image 3" />
+          <div class="image-overlay">
+            <button class="btn btn-sm btn-light" (click)="browserFile(Object.image3, 3)">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two Images Layout (Types 2, 7) -->
+  <div class="upload-section" *ngIf="Object.type === 2 || Object.type === 7 || Object.type === 10">
+    <div class="section-title">
+      <i class="fas fa-images me-2 text-info"></i>
+      Two Images Layout
+    </div>
+    <div class="two-images-layout">
+      <div class="upload-card large-upload" [class.has-image]="Object.imageCropper1">
+        <div *ngIf="!Object.imageCropper1" class="upload-placeholder" (click)="TempNumber = 1; selectNewImage()">
+          <i class="fas fa-plus upload-icon"></i>
+          <span class="upload-text">Left Image</span>
+        </div>
+        <div *ngIf="Object.imageCropper1" class="image-preview">
+          <img [src]="Object.imageCropper1" alt="Left image" />
+          <div class="image-overlay">
+            <button class="btn btn-sm btn-light" (click)="browserFile(Object.image1, 1)">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-card large-upload" [class.has-image]="Object.imageCropper2">
+        <div *ngIf="!Object.imageCropper2" class="upload-placeholder" (click)="TempNumber = 2; selectNewImage()">
+          <i class="fas fa-plus upload-icon"></i>
+          <span class="upload-text">Right Image</span>
+        </div>
+        <div *ngIf="Object.imageCropper2" class="image-preview">
+          <img [src]="Object.imageCropper2" alt="Right image" />
+          <div class="image-overlay">
+            <button class="btn btn-sm btn-light" (click)="browserFile(Object.image2, 2)">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}
+}
+<!-- <div *ngIf="popupImage" class="fullscreen-modal">
+  <div class="fullscreen-modal-content">
+    <div class="fullscreen-modal-header">
+      <h4 class="modal-title">Select Image</h4>
+      <button type="button" class="btn-close" (click)="popupImage = !popupImage" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="fullscreen-modal-body">
+      <div class="row h-100">
+        <div class="col-md-12 h-100">
+          <share-sync-images [(str)]="stringImage.icon" [user]="user"
+            (strChange)="ClosePopupImage($event)"></share-sync-images>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<ejs-dialog [isModal]="true" *ngIf="popupImage" [visible]='true' [header]="'Select Image'" [animationSettings]='true'
+    [showCloseIcon]='true' (close)="popupImage = !popupImage" [width]="'75%'" [target]="'body'" [zIndex]="1100">
+    <ng-template #content>
+        <div class="row">
+            <div class="col-md-12">
+                <share-sync-images [(str)]="stringImage.icon" (strChange)="ClosePopupImage($event)"></share-sync-images>
+            </div>
+        </div>
+    </ng-template>
+</ejs-dialog>
+
+<ejs-dialog [isModal]="true" *ngIf="isOpenImageCropper && !popupImage" [visible]="true" [header]="'Image Cropper'"
+  [animationSettings]="true" [showCloseIcon]="true" (close)="isOpenImageCropper = !isOpenImageCropper"
+  [width]="'990px'" [target]="'body'" [zIndex]="1100">
+  <ng-template #content>
+    <div class="row m-0 mt-3">
+      <!-- Configuration Panel -->
+      <div class="col-12 mb-4">
+        <div class="cropper-config-panel">
+          <div class="config-header">
+            <h6 class="config-title">
+              <i class="fas fa-cog me-2"></i>
+              Image Configuration
+            </h6>
+          </div>
+
+          <div class="config-content">
+            <div class="row g-3">
+              <!-- Dimensions -->
+              <div class="col-md-3">
+                <div class="dimension-group">
+                  <label class="form-label">
+                    <i class="fas fa-arrows-alt-h me-1"></i>
+                    Width
+                  </label>
+                  <ejs-numerictextbox [(ngModel)]="configImage.width" format="###" class="dimension-input">
+                  </ejs-numerictextbox>
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <div class="dimension-group">
+                  <label class="form-label">
+                    <i class="fas fa-arrows-alt-v me-1"></i>
+                    Height
+                  </label>
+                  <ejs-numerictextbox [(ngModel)]="configImage.height" format="###" class="dimension-input">
+                  </ejs-numerictextbox>
+                </div>
+              </div>
+
+              <!-- Image Source Actions -->
+              <div class="col-md-6">
+                <label class="form-label">Image Source</label>
+                <div class="source-actions">
+                  <!-- <button type="button" class="btn btn-outline-primary btn-sm me-2" (click)="WebAddress('open')"
+                    title="Add image from web URL">
+                    <i class="fas fa-link me-1"></i>
+                    Web URL
+                  </button> -->
+                  <button type="button" class="btn btn-outline-success btn-sm" (click)="selectNewImage()"
+                    title="Select image from gallery">
+                    <i class="fas fa-images me-1"></i>
+                    Select Image
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pintura Image Editor with Full Tools -->
+      <div class="col-12 mb-4">
+        <!-- Pintura Editor Component with Close Button -->
+        <div *ngIf="imgUrl && showPinturaEditor" class="pintura-container">
+          <div class="pintura-header d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">
+              <i class="fas fa-image me-2"></i>
+              Edit Image
+            </h5>
+            <div class="header-buttons">
+              <button [disabled]="!imgUrl" (click)="onApplyOriginal()" type="button" class="btn btn-outline-info btn-sm me-2"
+                title="Use original image without editing">
+                <i class="fas fa-image me-1"></i>
+                Use Original
+              </button>
+              <!-- <button type="button" class="btn btn-success btn-sm me-2" (click)="saveEditedImage()"
+                [disabled]="!pinturaEditor" title="Save edited image to server">
+                <i class="fas fa-save me-1"></i>
+                Save Image
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closePinturaEditor()"
+                title="Close Image Editor">
+                <i class="fas fa-times me-1"></i>
+                Close Editor
+              </button> -->
+            </div>
+          </div>
+
+          <div style="height: 80vh; border: 1px solid #ddd; border-radius: 8px; position: relative;">
+            <pintura-editor #pinturaEditor
+              [src]="imgUrl" [options]="pinturaOptions" 
+              (load)="onPinturaInit($event)"
+              (process)="onPinturaProcess($event)" 
+              (close)="onPinturaClose()"
+              (loaderror)="onPinturaError($event)">
+            </pintura-editor>
+            
+            <!-- Loading overlay for image upload -->
+            <div *ngIf="isUploadingProcessedImage" class="upload-loading-overlay">
+              <div class="d-flex flex-column align-items-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+                <p class="text-primary font-weight-bold">Saving processed image...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!imgUrl" class="text-center p-4"
+          style="border: 1px dashed #b7c7c7; height: 400px; display: flex; align-items: center; justify-content: center;">
+          <div>
+            <i class="fas fa-image fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Please select an image first</p>
+          </div>
+        </div>
+
+        <!-- Fallback message if editor doesn't show (shouldn't happen) -->
+        <div *ngIf="imgUrl && !showPinturaEditor" class="text-center p-4"
+          style="border: 1px dashed #dc3545; height: 200px; display: flex; align-items: center; justify-content: center; background-color: #fff5f5;">
+          <div>
+            <h6 class="text-danger">⚠️ Editor Loading Issue</h6>
+            <p class="text-muted mb-3">Editor should have opened automatically</p>
+            <small class="text-muted d-block">Layout: {{configImage.width}}x{{configImage.height}} | Image:
+              {{TempNumber}}</small>
+            <button type="button" class="btn btn-primary mt-2" (click)="openPinturaEditor()">
+              <i class="fas fa-edit me-2"></i>
+              Force Open Editor
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-template>
+</ejs-dialog>
+
+<ejs-dialog #webImageDialog header="Web Image" *ngIf="popupWebAddress" (close)="WebAddress('Cancel')" [width]="'500px'"
+  [isModal]="true" [visible]="popupWebAddress" [showCloseIcon]="true" [target]="'body'">
+  <ng-template #content>
+    <div class="row">
+      <div class="col-12 mt-3 mb-3">
+        <div class="e-float-input">
+          <input type="text" class="e-input" [(ngModel)]="stringWebAddress" name="template_header" placeholder="Url"
+            style="width: 100%" />
+          <span class="e-float-line"></span>
+          <label class="e-float-text">You can also provide a link from the web</label>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+  <ng-template #footerTemplate>
+    <div class="dialog-footer">
+      <button ejs-button cssClass="e-flat" (click)="WebAddress('Cancel')">
+        Cancel
+      </button>
+      <button ejs-button cssClass="e-primary" (click)="WebAddress('OK')">
+        OK
+      </button>
+    </div>
+  </ng-template>
+</ejs-dialog>
+
+<ejs-dialog *ngIf="SpeechPopup" [isModal]="true" [visible]="true" [showCloseIcon]="true"
+  (close)="SpeechPopup = !SpeechPopup" cssClass="speech-dialog" [width]="'380px'">
+  <ng-template #header>
+    <div class="speech-dialog-header">
+      <i class="fas fa-microphone-alt"></i>
+      <span>Voice Input</span>
+    </div>
+  </ng-template>
+  <ng-template #content>
+    <wsa-speech 
+      [showHint]="true"
+      [showTranscript]="true"
+      [languageLabel]="'Language'"
+      (speechResult)="outSpeech($event); SpeechPopup = false">
+    </wsa-speech>
+  </ng-template>
+</ejs-dialog>

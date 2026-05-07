@@ -1,0 +1,119 @@
+<!-- Navigation -->
+<ng-container *ngIf="isScreenSmall">
+    <fuse-vertical-navigation class="dark bg-gray-900 print:hidden" [mode]="'over'" [name]="'mainNavigation'"
+        [navigation]="navigation.default" [opened]="false">
+        <!-- Navigation header hook -->
+        <ng-container fuseVerticalNavigationContentHeader>
+            <!-- Logo -->
+            <div class="flex items-center h-20 pt-6 px-8">
+                <img class="w-12" src="assets/images/logo/Tour_Chain.png" alt="Logo image">
+            </div>
+        </ng-container>
+    </fuse-vertical-navigation>
+</ng-container>
+
+<!-- Wrapper -->
+<div class="flex flex-col flex-auto w-full min-w-0">
+    <!-- Header -->
+    <div class="topbar print:hidden">
+        <ng-container *ngIf="!isScreenSmall">
+            <!-- Left: Logo + Navigation -->
+            <div class="topbar__left">
+                <!-- Logo -->
+                <a class="topbar__logo" href="/">
+                    <img [src]="infoWeb?.imageLogo || 'favicon.ico'" alt="Logo">
+                </a>
+
+                <div class="topbar__divider"></div>
+
+                <!-- Page Switcher -->
+                <button class="topbar__page-btn" [matMenuTriggerFor]="menuOption" matTooltip="Switch Module">
+                    <i class="bi bi-arrow-down-up"></i>
+                    <span>Page</span>
+                    <i class="bi bi-chevron-down topbar__page-btn-arrow"></i>
+                </button>
+                <mat-menu [xPosition]="'before'" #menuOption="matMenu">
+                    <a mat-menu-item
+                        href="hotel?country={{user && user.nation ? user.nation : ''}}&user={{user && user.username ? user.username : ''}}">
+                        <i class="bi bi-building"></i>
+                        <span>Open Hotel</span>
+                    </a>
+                    <a mat-menu-item
+                        href="tours?country={{user && user.nation ? user.nation : ''}}&user={{user && user.username ? user.username : ''}}">
+                        <i class="bi bi-map"></i>
+                        <span>Open Tour</span>
+                    </a>
+                </mat-menu>
+
+                <div class="topbar__divider"></div>
+
+                <!-- Country Selector -->
+                @if(!hiddenSelectSource) {
+                <div *ngIf="countriesSelect && countriesSelect.length" class="topbar__country">
+                    <select class="topbar__country-dropdown" [(ngModel)]="countriesSelectValue" (ngModelChange)="changeNation($event)">
+                        <option *ngFor="let country of countriesSelect" [value]="country.nation">
+                            {{ country.name }}
+                        </option>
+                    </select>
+                </div>
+                }
+
+                <!-- Purge Cache -->
+                <button class="topbar__cache-btn" matTooltip="Purge Cache"
+                    (click)="reloadData(countriesSelectValue)">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>Purge Cache</span>
+                </button>
+            </div>
+        </ng-container>
+        <!-- Navigation toggle button (mobile) -->
+        <ng-container *ngIf="isScreenSmall">
+            <button mat-icon-button (click)="toggleNavigation('mainNavigation')">
+                <mat-icon [svgIcon]="'heroicons_outline:menu'"></mat-icon>
+            </button>
+        </ng-container>
+        <!-- Right: Actions -->
+        <div class="topbar__right">
+            <div class="topbar__actions">
+                <menu-layout></menu-layout>
+                <fuse-fullscreen class="hidden md:block"></fuse-fullscreen>
+                <div class="topbar__divider"></div>
+                <user></user>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex flex-col flex-auto w-full">
+        <!-- *ngIf="true" hack is required here for router-outlet to work correctly. Otherwise, layout changes won't be registered and the view won't be updated! -->
+        <router-outlet *ngIf="true"></router-outlet>
+    </div>
+    <!--  AI Assist -->
+    <!-- <app-ai-assist-view [user]="user"></app-ai-assist-view> -->
+    <!--  End AI Assist -->
+    <!-- Footer -->
+    <div class="relative mt-2 mb-2 pr-4 w-full dark:bg-transparent print:hidden" style="text-align: right;">
+        <!-- <span class="mr-2">{{ lastUpdateTime | date:'medium' }}, Internet Quality:
+            <span class="internet-quality mr-1" [ngClass]="{
+                'quality-excellent': internetQuality === 'Excellent',
+                'quality-good': internetQuality === 'Good',
+                'quality-fair': internetQuality === 'Fair',
+                'quality-poor': internetQuality === 'Poor'
+            }">{{ internetQuality }}</span> <span class="mr-1"> <i class="bi bi-cloud-download"></i>
+                {{internetResult.downloadSpeed}} Mbps , <i class="bi bi-cloud-upload"></i>
+                {{internetResult.uploadSpeed}} Mbps</span>
+        </span> -->
+        <span class="font-medium text-secondary">Source <b style="color: #673ab7;"> {{infoWeb.nameCompany}}</b></span>
+    </div>
+</div>
+<ejs-dialog *ngIf="SystemNotification" [isModal]="true" [visible]="true" [header]="'System Notification'"
+    [showCloseIcon]="true" (close)="SystemNotification = !SystemNotification" [width]="'800px'">
+    <ng-template #content>
+        <div class="row m-0 p-0">
+            <div class="col-md-12 m-0 p-0" [innerHTML]="SystemNotificationMessage">
+            </div>
+        </div>
+    </ng-template>
+</ejs-dialog>
+<!-- Quick chat -->
+<!-- <quick-chat #quickChat="quickChat"></quick-chat> -->

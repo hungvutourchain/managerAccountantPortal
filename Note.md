@@ -1,0 +1,1 @@
+reCalPriceHotelRoomAssignment => function này cần phải sửa.

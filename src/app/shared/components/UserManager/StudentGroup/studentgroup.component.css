@@ -1,0 +1,21 @@
+.cls_float_left {
+  float: left;
+  width: 100%;  
+  margin-right: 3px;
+  margin: 0;
+}
+.cls_float_left ejs-datepicker, 
+.cls_float_left input, 
+.cls_float_left kendo-numerictextbox,
+.cls_float_left kendo-dropdownlist,
+.cls_float_left .k-form-field
+{
+  width: 100%;
+}
+.cls_a {
+  padding: 0;
+  font-size: 21px;
+  background: 0 0;
+  border: none;
+  margin: 1px 3px;
+}

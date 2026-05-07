@@ -1,0 +1,634 @@
+<div class="license-management-container">
+    <!-- Header and Filters -->
+    <div class="license-management-container">
+        <!-- Header and Filters -->
+        <div class="license-header">
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>License Management</h2>
+                </div>
+            </div>
+            <div class="license-filters">
+                <div class="row filter-row">
+                    <div class="col-md-3">
+                        <div class="filter-field">
+                            <label class="e-float-text">Nation</label>
+                            <ejs-dropdownlist [dataSource]="lsDataStudent" [(value)]="selectedNation"
+                                (change)="onNationChange()" [fields]="{ text: 'name', value: 'value' }"
+                                placeholder="All Nations">
+                            </ejs-dropdownlist>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="filter-field">
+                            <label class="e-float-text">License Type</label>
+                            <ejs-dropdownlist [dataSource]="licenseTypes" [(value)]="selectedLicenseType"
+                                (change)="onLicenseTypeChange()" [fields]="{ text: 'name', value: 'value' }"
+                                placeholder="All Types">
+                            </ejs-dropdownlist>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="filter-field date-range">
+                            <label class="e-float-text">Date Range</label>
+                            <div class="date-range-container">
+                                <ejs-datepicker [(value)]="dateRange.start" placeholder="Start date"
+                                    format="MM/dd/yyyy">
+                                </ejs-datepicker>
+                                <span class="date-separator">to</span>
+                                <ejs-datepicker [(value)]="dateRange.end" placeholder="End date" format="MM/dd/yyyy">
+                                </ejs-datepicker>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button ejs-button cssClass="e-primary w-100" (click)="onDateRangeChange()">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="license-tabs">
+            <div class="tab-container row">
+                <div class="col-md-4">
+                    <button mat-button class="w-100" [class.active-tab]="activeTab === 'usage'"
+                        (click)="onTabChange('usage')">
+                        License Usage
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button mat-button class="w-100" [class.active-tab]="activeTab === 'expired'"
+                        (click)="onTabChange('expired')">
+                        Expired Licenses
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button mat-button class="w-100" [class.active-tab]="activeTab === 'expiration'"
+                        (click)="onTabChange('expiration')">
+                        Expiration Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- License Usage Tab Content -->
+        <div *ngIf="activeTab === 'usage'" class="tab-content">
+            <div class="loading-indicator" *ngIf="isLoadingUsageReport || isLoadingSummary">
+                <ejs-progressbar type="Circular" height="40" width="40" [isIndeterminate]="true"></ejs-progressbar>
+                <span>Loading license data...</span>
+            </div>
+
+            <div *ngIf="!isLoadingUsageReport && !isLoadingSummary" class="license-usage-content">
+                <!-- Summary Cards -->
+                <div class="summary-cards" *ngIf="licenseUsageSummary">
+                    <ejs-card cssClass="summary-card">
+                        <e-card-content>
+                            <div class="card-title">Total Licenses</div>
+                            <div class="card-value">{{licenseUsageSummary.totalLicenses}}</div>
+                        </e-card-content>
+                    </ejs-card>
+
+                    <ejs-card cssClass="summary-card">
+                        <e-card-content>
+                            <div class="card-title">Active Licenses</div>
+                            <div class="card-value">{{licenseUsageSummary.activeLicenseCount}}</div>
+                        </e-card-content>
+                    </ejs-card>
+
+                    <ejs-card cssClass="summary-card">
+                        <e-card-content>
+                            <div class="card-title">Expired Licenses</div>
+                            <div class="card-value">{{licenseUsageSummary.expiredLicenseCount}}</div>
+                        </e-card-content>
+                    </ejs-card>
+
+                    <ejs-card cssClass="summary-card">
+                        <e-card-content>
+                            <div class="card-title">Expiring Soon</div>
+                            <div class="card-value">{{licenseUsageSummary.expiringLicenseCount}}</div>
+                        </e-card-content>
+                    </ejs-card>
+                </div>
+
+                <!-- Usage Charts -->
+                <div class="usage-charts">
+                    <ejs-card cssClass="chart-card">
+                        <e-card-header>
+                            <div class="e-card-header-caption">
+                                <div class="e-card-title">License Utilization</div>
+                            </div>
+                        </e-card-header>
+                        <e-card-content>
+                            <div class="utilization-container" *ngIf="licenseUsageReport">
+                                <ejs-progressbar type="Linear" height="20"
+                                    [value]="licenseUsageReport.utilizationPercentage" [showProgressValue]="true"
+                                    progressValueFormat="{{formatPercentage(licenseUsageReport.utilizationPercentage)}}">
+                                </ejs-progressbar>
+                                <div class="utilization-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Used:</span>
+                                        <span class="detail-value">{{licenseUsageReport.totalUsedLicenses}}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Available:</span>
+                                        <span class="detail-value">{{licenseUsageReport.totalAvailableLicenses}}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Total:</span>
+                                        <span class="detail-value">{{licenseUsageReport.totalMaxLicenses}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </e-card-content>
+                    </ejs-card>
+
+                    <ejs-card cssClass="chart-card">
+                        <e-card-header>
+                            <div class="e-card-header-caption">
+                                <div class="e-card-title">License Types</div>
+                            </div>
+                        </e-card-header>
+                        <e-card-content>
+                            <div class="license-types-table" *ngIf="licenseUsageReport?.licenseTypeUsages">
+                                <ejs-grid [dataSource]="licenseUsageReport.licenseTypeUsages" [allowPaging]="false"
+                                    [allowSorting]="true">
+                                    <e-columns>
+                                        <e-column field="licenseType" headerText="License Type" width="150"></e-column>
+                                        <e-column field="totalLicenses" headerText="Total" width="100"
+                                            textAlign="Right"></e-column>
+                                        <e-column field="usedLicenses" headerText="Used" width="100"
+                                            textAlign="Right"></e-column>
+                                        <e-column field="availableLicenses" headerText="Available" width="100"
+                                            textAlign="Right"></e-column>
+                                        <e-column field="activeLicenses" headerText="Active" width="100"
+                                            textAlign="Right"></e-column>
+                                        <e-column field="expiredLicenses" headerText="Expired" width="100"
+                                            textAlign="Right"></e-column>
+                                    </e-columns>
+                                </ejs-grid>
+                            </div>
+                        </e-card-content>
+                    </ejs-card>
+                </div>
+
+                <!-- Recent Activities -->
+                <ejs-card cssClass="activities-card" *ngIf="licenseUsageReport?.recentActivities?.length">
+                    <e-card-header>
+                        <div class="e-card-header-caption">
+                            <div class="e-card-title">Recent License Activities</div>
+                        </div>
+                    </e-card-header>
+                    <e-card-content>
+                        <ejs-grid [dataSource]="licenseUsageReport.recentActivities" [allowPaging]="false"
+                            [allowSorting]="true">
+                            <e-columns>
+                                <e-column field="userName" headerText="User" width="150"></e-column>
+                                <e-column field="activityType" headerText="Activity" width="120"></e-column>
+                                <e-column field="licenseType" headerText="License Type" width="150"></e-column>
+                                <e-column field="activityDate" headerText="Date" width="180">
+                                    <ng-template #template let-data>
+                                        {{data.activityDate | date:'medium'}}
+                                    </ng-template>
+                                </e-column>
+                                <e-column field="changes" headerText="Changes" width="120">
+                                    <ng-template #template let-data>
+                                        <span
+                                            *ngIf="data.previousUsedLicenses !== null && data.currentUsedLicenses !== null">
+                                            {{data.previousUsedLicenses}} → {{data.currentUsedLicenses}}
+                                        </span>
+                                    </ng-template>
+                                </e-column>
+                            </e-columns>
+                        </ejs-grid>
+                    </e-card-content>
+                </ejs-card>
+            </div>
+        </div>
+
+        <!-- Expired Licenses Tab Content -->
+        <div *ngIf="activeTab === 'expired'" class="tab-content">
+            <div class="loading-indicator" *ngIf="isLoadingExpired">
+                <ejs-progressbar type="Circular" height="40" width="40" [isIndeterminate]="true"></ejs-progressbar>
+                <span>Loading expired licenses...</span>
+            </div>
+
+            <div *ngIf="!isLoadingExpired" class="expired-licenses-content">
+                <ejs-card cssClass="expired-licenses-card">
+                    <e-card-header>
+                        <div class="e-card-header-caption">
+                            <div class="e-card-title">Expired Licenses</div>
+                        </div>
+                    </e-card-header>
+                    <e-card-content>
+                        <div *ngIf="expiredLicenses?.length === 0" class="no-data-message">
+                            No expired licenses found.
+                        </div>
+
+                        <ejs-grid *ngIf="expiredLicenses?.length > 0" [dataSource]="expiredLicenses"
+                            [allowPaging]="true" [pageSettings]="{ pageSize: pageEvent.pageSize, pageCount: 5 }"
+                            [allowSorting]="true" (pageChanged)="onPageChange($event)">
+                            <e-columns>
+                                <e-column field="userName" headerText="User" width="150"></e-column>
+                                <e-column field="email" headerText="Email" width="200"></e-column>
+                                <e-column field="licenseType" headerText="License Type" width="150"></e-column>
+                                <e-column field="licenseExpiryDate" headerText="Expiry Date" width="150">
+                                    <ng-template #template let-data>
+                                        {{data.licenseExpiryDate | date:'mediumDate'}}
+                                    </ng-template>
+                                </e-column>
+                                <e-column field="daysExpired" headerText="Days Expired" width="120">
+                                    <ng-template #template let-data>
+                                        <span class="expired-days">{{getDaysRemaining(data.licenseExpiryDate) * -1}}
+                                            days</span>
+                                    </ng-template>
+                                </e-column>
+                                <e-column headerText="Actions" width="120">
+                                    <ng-template #template let-data>
+                                        <div class="action-buttons">
+                                            <button ejs-button cssClass="e-primary e-small e-round e-icon-btn"
+                                                iconCss="e-icons e-refresh" (click)="renewLicense(data)"
+                                                title="Renew License">
+                                            </button>
+                                            <button ejs-button cssClass="e-info e-small e-round e-icon-btn"
+                                                iconCss="e-icons e-info" (click)="getUserLicenseDetails(data.userId)"
+                                                title="View Details">
+                                            </button>
+                                        </div>
+                                    </ng-template>
+                                </e-column>
+                            </e-columns>
+                        </ejs-grid>
+                    </e-card-content>
+                </ejs-card>
+            </div>
+        </div>
+
+        <!-- Expiration Report Tab Content -->
+        <div *ngIf="activeTab === 'expiration'" class="tab-content">
+            <div class="loading-indicator" *ngIf="isLoadingExpiration">
+                <ejs-progressbar type="Circular" height="40" width="40" [isIndeterminate]="true"></ejs-progressbar>
+                <span>Loading expiration report...</span>
+            </div>
+
+            <div *ngIf="!isLoadingExpiration" class="expiration-report-content">
+                <ejs-card cssClass="expiration-report-card">
+                    <e-card-header>
+                        <div class="e-card-header-caption">
+                            <div class="e-card-title">License Expiration Report</div>
+                        </div>
+                    </e-card-header>
+                    <e-card-content>
+                        <div *ngIf="!licenseExpirationReport || licenseExpirationReport.length === 0"
+                            class="no-data-message">
+                            No expiration data found.
+                        </div>
+
+                        <div *ngIf="licenseExpirationReport && licenseExpirationReport.length > 0">
+                            <!-- Expiration Summary -->
+                            <div class="expiration-summary">
+                                <div class="expiration-category">
+                                    <div class="category-title critical">Critical (< 7 days)</div>
+                                            <div class="category-count">{{licenseExpirationReport |
+                                                filterExpirationByDays:0:7 | count}}</div>
+                                    </div>
+                                    <div class="expiration-category">
+                                        <div class="category-title warning">Warning (7-30 days)</div>
+                                        <div class="category-count">{{licenseExpirationReport |
+                                            filterExpirationByDays:7:30
+                                            | count}}</div>
+                                    </div>
+                                    <div class="expiration-category">
+                                        <div class="category-title good">Good (> 30 days)</div>
+                                        <div class="category-count">{{licenseExpirationReport |
+                                            filterExpirationByDays:30:999 | count}}</div>
+                                    </div>
+                                </div>
+
+                                <!-- Expiration Table -->
+                                <ejs-grid [dataSource]="licenseExpirationReport" [allowPaging]="true"
+                                    [pageSettings]="{ pageSize: pageEvent.pageSize, pageCount: 5 }"
+                                    [allowSorting]="true" (pageChanged)="onPageChange($event)">
+                                    <e-columns>
+                                        <e-column field="userName" headerText="User" width="150"></e-column>
+                                        <e-column field="email" headerText="Email" width="200"></e-column>
+                                        <e-column field="licenseType" headerText="License Type" width="150"></e-column>
+                                        <e-column field="licenseStartDate" headerText="Start Date" width="150">
+                                            <ng-template #template let-data>
+                                                {{data.licenseStartDate | date:'mediumDate'}}
+                                            </ng-template>
+                                        </e-column>
+                                        <e-column field="licenseExpiryDate" headerText="Expiry Date" width="150">
+                                            <ng-template #template let-data>
+                                                {{data.licenseExpiryDate | date:'mediumDate'}}
+                                            </ng-template>
+                                        </e-column>
+                                        <e-column field="daysRemaining" headerText="Days Remaining" width="150">
+                                            <ng-template #template let-data>
+                                                <span
+                                                    [ngClass]="getExpirationStatusClass(getDaysRemaining(data.licenseExpiryDate))">
+                                                    {{getDaysRemaining(data.licenseExpiryDate)}} days
+                                                </span>
+                                            </ng-template>
+                                        </e-column>
+                                        <e-column headerText="Actions" width="150">
+                                            <ng-template #template let-data>
+                                                <div class="action-buttons">
+                                                    <button ejs-button cssClass="e-primary e-small e-round e-icon-btn"
+                                                        iconCss="e-icons e-refresh" (click)="renewLicense(data)"
+                                                        title="Renew License">
+                                                    </button>
+                                                    <button ejs-button cssClass="e-info e-small e-round e-icon-btn"
+                                                        iconCss="e-icons e-info"
+                                                        (click)="getUserLicenseDetails(data.userId)"
+                                                        title="View Details">
+                                                    </button>
+                                                    <button ejs-button cssClass="e-warning e-small e-round e-icon-btn"
+                                                        iconCss="e-icons e-mail" (click)="sendReminderEmail(data)"
+                                                        title="Send Reminder">
+                                                    </button>
+                                                </div>
+                                            </ng-template>
+                                        </e-column>
+                                    </e-columns>
+                                </ejs-grid>
+                            </div>
+                    </e-card-content>
+                </ejs-card>
+            </div>
+        </div>
+
+
+        <!-- Add New License Dialog (Hidden until triggered) -->
+        <div class="add-license-button">
+            <button ejs-button cssClass="e-primary e-round e-fab" iconCss="e-icons e-add"
+                (click)="showAddLicenseDialog = true" title="Add New License">
+            </button>
+        </div>
+
+    </div>
+
+    <!-- User License Details Dialog (Hidden until triggered) -->
+    <ejs-dialog *ngIf="userLicenseDetails" #licenseDetailsDialog
+        [header]="'License Details: ' + userLicenseDetails?.userName" [visible]="!!userLicenseDetails" [isModal]="true"
+        [showCloseIcon]="true" [width]="'600px'" [target]="'body'" (close)="userLicenseDetails = null">
+        <ng-template #content>
+            <div class="dialog-content">
+                <div class="user-info">
+                    <div class="info-item">
+                        <span class="info-label">User ID:</span>
+                        <span class="info-value">{{userLicenseDetails.userId}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{userLicenseDetails.email}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value"
+                            [ngClass]="userLicenseDetails.isActive ? 'active-status' : 'inactive-status'">
+                            {{userLicenseDetails.isActive ? 'Active' : 'Inactive'}}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="license-info">
+                    <h3>License Information</h3>
+                    <div class="info-item">
+                        <span class="info-label">License ID:</span>
+                        <span class="info-value">{{userLicenseDetails.licenseId}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">License Type:</span>
+                        <span class="info-value">{{userLicenseDetails.licenseType}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Start Date:</span>
+                        <span class="info-value">{{userLicenseDetails.licenseStartDate | date:'mediumDate'}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Expiry Date:</span>
+                        <span class="info-value">{{userLicenseDetails.licenseExpiryDate | date:'mediumDate'}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Days Remaining:</span>
+                        <span class="info-value"
+                            [ngClass]="getExpirationStatusClass(getDaysRemaining(userLicenseDetails.licenseExpiryDate))">
+                            {{getDaysRemaining(userLicenseDetails.licenseExpiryDate)}} days
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Last Updated:</span>
+                        <span class="info-value">{{userLicenseDetails.lastUpdated | date:'medium'}}</span>
+                    </div>
+                </div>
+
+                <div class="license-history"
+                    *ngIf="userLicenseDetails.licenseHistory && userLicenseDetails.licenseHistory.length > 0">
+                    <h3>License History</h3>
+                    <ejs-grid [dataSource]="userLicenseDetails.licenseHistory" [allowPaging]="false"
+                        [allowSorting]="true">
+                        <e-columns>
+                            <e-column field="activityType" headerText="Activity" width="120"></e-column>
+                            <e-column field="activityDate" headerText="Date" width="180">
+                                <ng-template #template let-data>
+                                    {{data.activityDate | date:'medium'}}
+                                </ng-template>
+                            </e-column>
+                            <e-column field="performedBy" headerText="Performed By" width="150"></e-column>
+                            <e-column field="notes" headerText="Notes" width="200"></e-column>
+                        </e-columns>
+                    </ejs-grid>
+                </div>
+
+                <div class="license-actions">
+                    <div class="e-btn-group">
+                        <button ejs-button cssClass="e-primary" iconCss="e-icons e-refresh"
+                            (click)="renewLicense(userLicenseDetails)">
+                            Renew License
+                        </button>
+                        <button ejs-button cssClass="e-info" iconCss="e-icons e-edit"
+                            (click)="editLicense(userLicenseDetails)">
+                            Edit License
+                        </button>
+                        <button ejs-button cssClass="e-danger" iconCss="e-icons e-delete"
+                            (click)="revokeLicense(userLicenseDetails)">
+                            Revoke License
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </ejs-dialog>
+
+    <!-- License Renewal Dialog (Hidden until triggered) -->
+    <ejs-dialog *ngIf="showRenewalDialog" #renewalDialog header="Renew License" [visible]="showRenewalDialog"
+        [isModal]="true" [showCloseIcon]="true" [width]="'500px'" [target]="'body'" (close)="showRenewalDialog = false">
+        <ng-template #content>
+            <div class="dialog-content">
+                <div class="renewal-info">
+                    <div class="info-item">
+                        <span class="info-label">User:</span>
+                        <span class="info-value">{{selectedLicense.userName}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Current License Type:</span>
+                        <span class="info-value">{{selectedLicense.licenseType}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Current Expiry Date:</span>
+                        <span class="info-value">{{selectedLicense.licenseExpiryDate | date:'mediumDate'}}</span>
+                    </div>
+                </div>
+
+                <div class="renewal-form">
+                    <div class="form-group">
+                        <label class="e-float-text">License Type</label>
+                        <ejs-dropdownlist [dataSource]="licenseTypes" [(ngModel)]="renewalInfo.licenseType"
+                            [fields]="{text: 'name', value: 'value'}" placeholder="Select License Type">
+                        </ejs-dropdownlist>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="e-float-text">New Expiry Date</label>
+                        <ejs-datepicker [(ngModel)]="renewalInfo.endDate" placeholder="Select Expiry Date"
+                            [format]="'dd/MM/yyyy'">
+                        </ejs-datepicker>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="e-float-text">Notes</label>
+                        <ejs-textbox [(ngModel)]="renewalInfo.notes" placeholder="Enter notes" multiline="true"
+                            [floatLabelType]="'Auto'">
+                        </ejs-textbox>
+                    </div>
+                </div>
+
+                <div class="renewal-actions e-dlg-footer">
+                    <div class="e-footer-content">
+                        <button ejs-button cssClass="e-primary" iconCss="e-icons e-check" (click)="confirmRenewal()">
+                            Confirm Renewal
+                        </button>
+                        <button ejs-button cssClass="e-flat" iconCss="e-icons e-close"
+                            (click)="showRenewalDialog = false">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </ejs-dialog>
+
+    <ejs-dialog *ngIf="showAddLicenseDialog" #addLicenseDialog header="Add New License" [visible]="showAddLicenseDialog"
+        [isModal]="true" [showCloseIcon]="true" [width]="'550px'" [target]="'body'"
+        (close)="showAddLicenseDialog = false">
+        <ng-template #content>
+            <div class="dialog-content">
+                <div class="add-license-form">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="e-float-text">User</label>
+                                <ejs-autocomplete [dataSource]="filteredUsers | async" [(ngModel)]="newLicense.userId"
+                                    [fields]="{value: 'id', text: 'name'}" [placeholder]="'Select User'"
+                                    [showPopupButton]="true">
+                                    <ng-template #itemTemplate let-data>
+                                        {{data.name}} ({{data.email}})
+                                    </ng-template>
+                                </ejs-autocomplete>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="e-float-text">License Type</label>
+                                <ejs-dropdownlist [dataSource]="licenseTypes" [(ngModel)]="newLicense.licenseType"
+                                    [fields]="{text: 'name', value: 'value'}" placeholder="Select License Type">
+                                </ejs-dropdownlist>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="e-float-text">Start Date</label>
+                                <ejs-datepicker [(ngModel)]="newLicense.startDate" placeholder="Select Start Date"
+                                    [format]="'dd/MM/yyyy'">
+                                </ejs-datepicker>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="e-float-text">Expiry Date</label>
+                                <ejs-datepicker [(ngModel)]="newLicense.endDate" placeholder="Select Expiry Date"
+                                    [format]="'dd/MM/yyyy'">
+                                </ejs-datepicker>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group checkbox-group">
+                                <ejs-checkbox label="Active" [(ngModel)]="newLicense.isActive"></ejs-checkbox>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="e-float-text">Notes</label>
+                                <ejs-textbox [(ngModel)]="newLicense.notes" placeholder="Enter notes" multiline="true"
+                                    [floatLabelType]="'Auto'">
+                                </ejs-textbox>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="add-license-actions e-dlg-footer">
+                    <div class="e-footer-content">
+                        <button ejs-button cssClass="e-primary" iconCss="e-icons e-add" (click)="addNewLicense()">
+                            Add License
+                        </button>
+                        <button ejs-button cssClass="e-flat" iconCss="e-icons e-close"
+                            (click)="showAddLicenseDialog = false">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </ejs-dialog>
+
+    <!-- Confirmation Dialog -->
+    <ejs-dialog *ngIf="showConfirmationDialog" #confirmationDialog [header]="confirmationDialogTitle"
+        [visible]="showConfirmationDialog" [isModal]="true" [showCloseIcon]="true" [width]="'400px'" [target]="'body'"
+        (close)="showConfirmationDialog = false">
+        <ng-template #content>
+            <div class="dialog-content">
+                <p>{{confirmationDialogMessage}}</p>
+
+                <div class="confirmation-actions e-dlg-footer">
+                    <div class="e-footer-content">
+                        <button ejs-button cssClass="e-primary" iconCss="e-icons e-check" (click)="confirmAction()">
+                            Confirm
+                        </button>
+                        <button ejs-button cssClass="e-flat" iconCss="e-icons e-close"
+                            (click)="showConfirmationDialog = false">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </ejs-dialog>

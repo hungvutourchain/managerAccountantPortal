@@ -1,0 +1,33 @@
+<div class="d-flex gap-2">
+  <i class="fas fa-file text-gray-400 fs-3"></i>
+  <button (click)="selectNewImage()" class="btn btn-outline-success btn-sm">
+    Browse
+  </button>
+</div>
+
+<!-- <ejs-dialog [isModal]="true" *ngIf="popupImage" [visible]='true' [header]="'Select Image'" [animationSettings]='true'
+  [showCloseIcon]='true' (close)="popupImage = !popupImage" [width]="'65%'">
+  <ng-template #content>
+    <share-sync-images [refreshPopup]="refreshImage" [(str)]="str" (strChange)="ClosePopupImage($event)"
+      btnText="Select File"></share-sync-images>
+  </ng-template>
+</ejs-dialog> -->
+
+<ejs-dialog
+  [header]="'Select Image'"
+  *ngIf="popupImage"
+  (close)="popupImage = !popupImage"
+  [isModal]="true"
+  [visible]="true"
+  [showCloseIcon]="true"
+  [width]="'1300px'"
+>
+  <ng-template #content>
+  <share-sync-images
+    [refreshPopup]="refreshImage"
+    [(str)]="str"
+    (strChange)="ClosePopupImage($event)"
+    btnText="Select File"
+  ></share-sync-images>
+  </ng-template>
+</ejs-dialog>

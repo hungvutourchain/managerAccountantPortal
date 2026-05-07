@@ -1,0 +1,13 @@
+### STAGE 1: Build ###
+## FROM registry.gitlab.com/tour_chain/root/b2b-api-classic-base:development AS build
+FROM node:22 as build
+WORKDIR /usr/src/app
+COPY package.json package-lock.json .npmrc ./
+RUN npm install -f
+COPY . .
+RUN npm run build-prodbackend
+
+### STAGE 2: Serve ###
+FROM nginx:1.25.2-alpine
+COPY ./nginx/backend/default.conf /etc/nginx/conf.d
+COPY --from=build /usr/src/app/dist /usr/share/nginx/html

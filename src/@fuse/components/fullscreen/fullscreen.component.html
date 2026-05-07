@@ -1,0 +1,20 @@
+<!-- Button -->
+<a href="javascript:;" [matTooltip]="'Normal'"
+    class="ckl_filter mat-mdc-tooltip-trigger mdc-icon-button mat-mdc-icon-button mat-unthemed mat-mdc-button-base ng-star-inserted"
+    *ngIf="activateFilter" (click)="functFilter(false)">
+    <i class="bi bi-sunrise"></i>
+</a>
+<!-- <a href="javascript:;" [matTooltip]="'Black & White'"
+    class="ckl_filter mat-mdc-tooltip-trigger mdc-icon-button mat-mdc-icon-button mat-unthemed mat-mdc-button-base ng-star-inserted"
+    *ngIf="!activateFilter" (click)="functFilter(true)">
+    <i class="bi bi-sunset" style="color: red;"></i>
+</a> -->
+
+<button mat-icon-button [matTooltip]="tooltip || 'Toggle Fullscreen'" (click)="toggleFullscreen()">
+    <ng-container [ngTemplateOutlet]="iconTpl || defaultIconTpl"></ng-container>
+</button>
+
+<!-- Default icon -->
+<ng-template #defaultIconTpl>
+    <mat-icon [svgIcon]="'heroicons_outline:arrows-expand'"></mat-icon>
+</ng-template>

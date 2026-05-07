@@ -1,0 +1,202 @@
+// Image upload container styles
+.image-cropper {
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Default image placeholder styles
+.cls-default-image {
+  width: auto;
+  height: 40px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+
+    i {
+      color: #007bff;
+      transform: scale(1.1);
+    }
+  }
+
+  i {
+    font-size: 2.5rem;
+    color: #6c757d;
+    transition: all 0.3s ease;
+  }
+}
+
+// Image preview container
+.position-relative {
+  position: relative;
+  width: auto;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  // Upload overlay that appears on hover
+  .upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 123, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    i {
+      font-size: 2rem;
+      color: white;
+    }
+  }
+
+  &:hover {
+    .upload-overlay {
+      opacity: 1;
+    }
+
+    .image {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .cls-default-image,
+  .position-relative {
+    width: auto;
+    height: 40px;
+  }
+
+  .cls-default-image i {
+    font-size: 2rem;
+  }
+
+  .upload-overlay i {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .cls-default-image,
+  .position-relative {
+    width: auto;
+    height: 40px;
+  }
+
+  .cls-default-image i {
+    font-size: 1.8rem;
+  }
+
+  .upload-overlay i {
+    font-size: 1.3rem;
+  }
+}
+
+// Animation for smooth transitions
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cls-default-image,
+.position-relative {
+  animation: fadeIn 0.5s ease-out;
+}
+
+// Focus styles for accessibility
+a:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+// Loading state (if needed)
+.loading {
+  .cls-default-image,
+  .position-relative {
+    opacity: 0.6;
+    pointer-events: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Error state
+.error {
+  .cls-default-image {
+    border-color: #dc3545;
+    background-color: #f8d7da;
+
+    i {
+      color: #dc3545;
+    }
+  }
+}
+
+// Success state
+.success {
+  .cls-default-image {
+    border-color: #28a745;
+    background-color: #d4edda;
+
+    i {
+      color: #28a745;
+    }
+  }
+}

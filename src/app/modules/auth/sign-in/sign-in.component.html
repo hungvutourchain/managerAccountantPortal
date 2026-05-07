@@ -1,0 +1,415 @@
+<div class="modern-signin-container">
+  <div class="signin-layout">
+    <!-- Left Panel - Sign In Form -->
+    <div class="signin-panel">
+      <div class="signin-content">
+        <!-- Header with Module Indicator -->
+        <div class="signin-header">
+          <div class="signin-title-section">
+            <h1 class="signin-title">Welcome Back</h1>
+            <p class="signin-subtitle" *ngIf="!selectedModule">Sign in to access your platform</p>
+            <p class="signin-subtitle" *ngIf="selectedModule">Sign in to access {{selectedModule.name}} platform</p>
+          </div>
+        </div>
+
+        <!-- Sign In Form -->
+        <form class="modern-form">
+          <!-- Username Field -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa-solid fa-user form-icon"></i>
+              Username
+            </label>
+            <div class="input-container">
+              <input 
+                class="modern-input"
+                [ngModelOptions]="{ standalone: true }" 
+                type="text" 
+                name="username"
+                placeholder="Enter your username" 
+                [(ngModel)]="signInForm.username" 
+                autocomplete="username"
+                (keydown.enter)="CheckTheUserIsUsing()" />
+              <div class="input-underline"></div>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa-solid fa-lock form-icon"></i>
+              Password
+            </label>
+            <div class="input-container password-container">
+              <input 
+                class="modern-input"
+                [ngModelOptions]="{ standalone: true }" 
+                [type]="typePassword" 
+                name="password"
+                placeholder="Enter your password" 
+                [(ngModel)]="signInForm.password" 
+                autocomplete="current-password"
+                (keydown.enter)="CheckTheUserIsUsing()" />
+              <button type="button" class="password-toggle" (click)="togglePassword()">
+                <span>{{typePassword === 'password' ? '●●●' : 'ABC'}}</span>
+              </button>
+              <div class="input-underline"></div>
+            </div>
+          </div>
+
+          <!-- Country Field -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa-solid fa-globe form-icon"></i>
+              Country
+              <button type="button" class="refresh-btn" (click)="refreshCountrySource()" [matTooltip]="'Reload Data'">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+            </label>
+            <div class="dropdown-container">
+              <ejs-dropdownlist 
+                [ngModelOptions]="{ standalone: true }" 
+                [(ngModel)]="signInForm.nation"
+                [value]="signInForm.nation" 
+                [dataSource]="ls_Country" 
+                [fields]="{ text: 'name', value: 'nation' }"
+                [placeholder]="'Select Country'"
+                cssClass="modern-dropdown"
+                (keydown)="$event.key === 'Enter' ? CheckTheUserIsUsing() : null">
+              </ejs-dropdownlist>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <div class="forgot-password">
+              <a class="forgot-link" [routerLink]="['/forgot-password']" [queryParams]="ObjectTypeParams">
+                <i class="fa-solid fa-key"></i>
+                Forgot password?
+              </a>
+            </div>
+            
+            <button 
+              type="button"
+              class="signin-btn" 
+              (click)="CheckTheUserIsUsing()">
+              <span class="btn-text">Sign In</span>
+              <i class="fa-solid fa-arrow-right btn-icon"></i>
+              <div class="btn-ripple"></div>
+            </button>
+
+            <!-- Back to Home Link -->
+            <div class="back-to-home">
+              <a class="home-link" [routerLink]="['/landing']">
+                <i class="fa-solid fa-home"></i>
+                Back to Home
+              </a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Panel - Company Info & Branding -->
+    <div class="branding-panel">
+      <div class="branding-content">
+        <div class="company-section">
+          <div class="company-logo">
+            <img [src]="infoWeb.imageLogo" [alt]="infoWeb.nameCompany" />
+          </div>
+          <h2 class="company-name">{{infoWeb.nameCompany}}</h2>
+          <p class="company-tagline">Professional Travel Management Platform</p>
+        </div>
+
+        <!-- Module Preview (if selected) -->
+        <div class="module-preview" *ngIf="selectedModule">
+          <div class="preview-card">
+            <div class="preview-image">
+              <img [src]="selectedModule.image" [alt]="selectedModule.name" />
+              <div class="preview-overlay">
+                <i [ngClass]="{
+                  'fa-solid fa-hotel': selectedModule.type === 'hotel',
+                  'fa-solid fa-map-location-dot': selectedModule.type === 'tour'
+                }"></i>
+              </div>
+            </div>
+            <div class="preview-info">
+              <h3>{{selectedModule.name}}</h3>
+              <p>{{selectedModule.contnet}}</p>
+              <div class="preview-features">
+                <span class="feature-tag" *ngIf="selectedModule.type === 'hotel'">B2B & B2C</span>
+                <span class="feature-tag" *ngIf="selectedModule.type === 'hotel'">Contracts</span>
+                <span class="feature-tag" *ngIf="selectedModule.type === 'tour'">Operations</span>
+                <span class="feature-tag" *ngIf="selectedModule.type === 'tour'">Quotations</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ejs-dialog [isModal]="true" *ngIf="PopupSwitchRoles" [visible]="true" [header]="'👥 Role Management'"
+  [animationSettings]="true" [showCloseIcon]="true" (close)="PopupSwitchRoles = false" [width]="'500px'" cssClass="modern-role-dialog">
+  <ng-template #content>
+    <div class="modern-role-content">
+      <!-- Header Section -->
+      <div class="role-header">
+        <div class="role-icon">
+          <i class="fa-solid fa-users-gear"></i>
+        </div>
+        <h3>Select Your Active Role</h3>
+        <p>Choose the role you want to use for this session. Only one role can be active at a time.</p>
+      </div>
+
+      <!-- Roles List -->
+      <div class="roles-container">
+        <div class="role-item" *ngFor="let x of user.role; let $inx = index">
+          <div class="role-info">
+            <div class="role-name">
+              <i class="fa-solid fa-user-tag role-item-icon"></i>
+              <span class="role-title">{{ x.name }}</span>
+            </div>
+            <div class="role-description" *ngIf="x.code === 'Product'">
+              <small>Manage products and inventory</small>
+            </div>
+            <div class="role-description" *ngIf="x.code === 'Report'">
+              <small>Access reports and analytics</small>
+            </div>
+            <div class="role-description" *ngIf="x.code === 'Operation'">
+              <small>Handle operations and bookings</small>
+            </div>
+            <div class="role-description" *ngIf="x.code === 'Accounting'">
+              <small>Manage financial operations</small>
+            </div>
+            <div class="role-description" *ngIf="x.code === 'View'">
+              <small>View-only access</small>
+            </div>
+          </div>
+          
+          <div class="role-toggle">
+            <ejs-switch 
+              *ngIf="x.code !== 'Leader' && x.code !== 'ReservationManager'" 
+              [(ngModel)]="x.active"
+              (ngModelChange)="ChangeRoles(x, $event)"
+              cssClass="modern-role-switch">
+            </ejs-switch>
+            <div class="role-status" *ngIf="x.code === 'Leader' || x.code === 'ReservationManager'">
+              <span class="status-badge fixed">Fixed Role</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Box -->
+      <div class="role-info-box">
+        <i class="fa-solid fa-info-circle"></i>
+        <div class="info-content">
+          <strong>Role Selection Guidelines:</strong>
+          <ul>
+            <li>Select exactly one role to continue</li>
+            <li>Your permissions will be based on the selected role</li>
+            <li>You can change roles anytime from your profile settings</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="role-actions">
+        <button class="btn-cancel" (click)="ActionRole(false)">
+          <i class="fa-solid fa-xmark"></i>
+          Cancel
+        </button>
+        <button class="btn-confirm" (click)="ActionRole(true)">
+          <i class="fa-solid fa-check"></i>
+          Confirm & Continue
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</ejs-dialog>
+
+<ejs-dialog [isModal]="true" *ngIf="openOTPModal" [visible]="true" [header]="'📧 Email Verification'"
+  [animationSettings]="true" [showCloseIcon]="true" (close)="openOTPModal = false" [width]="'400px'">
+  <ng-template #content>
+    <div class="d-flex flex-col gap-4 mt-6">
+      <!-- Header Message -->
+      <div class="text-center">
+        <div class="mb-3">
+          <i class="bi bi-envelope-check" style="font-size: 3rem; color: #28a745;"></i>
+        </div>
+        <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px;">
+          Check your email for verification code
+        </div>
+        <div style="font-size: 14px; color: #666; line-height: 1.4;">
+          We've sent a 4-digit code to<br>
+          <strong style="color: #2c5aa0;">{{otpEmail}}</strong>
+        </div>
+      </div>
+
+      <!-- Success notification -->
+      <div *ngIf="notifyText" class="alert alert-success" style="padding: 10px; border-radius: 8px; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; font-size: 14px;">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        {{ notifyText }}
+      </div>
+
+      <!-- Error message -->
+      <div *ngIf="!!alertTextVerify" class="alert alert-danger" style="padding: 10px; border-radius: 8px; background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; font-size: 14px;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ alertTextVerify }}
+      </div>
+
+      <!-- OTP Input -->
+      <div class="text-center">
+        <div class="otp-content mb-3">
+          <div ejs-otpinput 
+               [stylingMode]="'Outlined'" 
+               [length]="4" 
+               [(value)]="otpDigits" 
+               type="text"
+               placeholder="X"
+               (input)="onOtpChange(otpDigits)"
+               (keydown)="$event.key === 'Enter' && otpDigits?.length === 4 ? userVerify() : null"
+               style="font-size: 18px; font-weight: bold;">
+          </div>
+        </div>
+        
+        <!-- Helper text -->
+        <div style="font-size: 12px; color: #666; margin-bottom: 15px;">
+          <i class="bi bi-info-circle me-1"></i>
+          Enter the 4-digit code sent to your email
+        </div>
+
+        <!-- Timer/Expiry info -->
+        <div style="font-size: 12px; color: #856404; background-color: #fff3cd; padding: 8px; border-radius: 6px; border: 1px solid #ffeeba;">
+          <i class="bi bi-clock me-1"></i>
+          Code expires in 30 minutes
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="d-flex gap-2 mt-4">
+        <button [disabled]="disableduserVerify" 
+                
+                class="btn flex-fill"
+                [ngClass]="disableduserVerify ? 'btn-disabled-verify' : 'btn-success'"
+                (click)="userVerify()"
+                style="padding: 12px; font-weight: 600;">
+          <i class="bi bi-check-lg me-2" [ngStyle]="disableduserVerify ? {'color':'#222'} : {}"></i>
+          <span [ngStyle]="disableduserVerify ? {'color':'#222'} : {}">Verify Code</span>
+        </button>
+        <style>
+          .btn-disabled-verify {
+            background: #e0e0e0 !important;
+            color: #222 !important;
+            border: 1px solid #bdbdbd !important;
+            cursor: not-allowed !important;
+          }
+        </style>
+        <button 
+                class="btn btn-outline-secondary" 
+                (click)="SendEmailVerify()"
+                style="padding: 12px; min-width: auto;">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+
+      <!-- Resend info -->
+      <div class="text-center mt-2">
+        <small style="color: #666; font-size: 11px;">
+          Didn't receive the code? Check your spam folder or click 
+          <a href="javascript:;" (click)="SendEmailVerify()" style="color: #2c5aa0; text-decoration: underline;">resend</a>
+        </small>
+      </div>
+    </div>
+  </ng-template>
+</ejs-dialog>
+
+<ejs-dialog [isModal]="true" *ngIf="twoFAGoogle" [visible]="true" [header]="'🔐 Authenticator Verification'"
+  [animationSettings]="true" [showCloseIcon]="true" (close)="twoFAGoogle = false" [width]="'400px'">
+  <ng-template #content>
+    <div class="d-flex flex-col gap-4 mt-6">
+      <!-- Header Message -->
+      <div class="text-center">
+        <div class="mb-3">
+          <i class="bi bi-shield-check" style="font-size: 3rem; color: #17a2b8;"></i>
+        </div>
+        <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px;">
+          Enter code from your authenticator app
+        </div>
+        <div style="font-size: 14px; color: #666; line-height: 1.4;">
+          Open your authentication app and enter<br>
+          the 6-digit code for <strong style="color: #2c5aa0;">TourChain</strong>
+        </div>
+      </div>
+
+      <!-- Error message -->
+      <div *ngIf="!!alertTextVerify" class="alert alert-danger" style="padding: 10px; border-radius: 8px; background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; font-size: 14px;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ alertTextVerify }}
+      </div>
+
+      <!-- OTP Input -->
+      <div class="text-center">
+        <div class="otp-content mb-3">
+          <div ejs-otpinput 
+               [stylingMode]="'Outlined'" 
+               [length]="6" 
+               [(value)]="numberGoogleVerify" 
+               type="text"
+               placeholder="X"
+               (keydown)="$event.key === 'Enter' && numberGoogleVerify?.length === 6 ? userVerifyGoogle() : null"
+               style="font-size: 18px; font-weight: bold;">
+          </div>
+        </div>
+        
+        <!-- Helper text -->
+        <div style="font-size: 12px; color: #666; margin-bottom: 15px;">
+          <i class="bi bi-info-circle me-1"></i>
+          Enter the 6-digit code from your authenticator app
+        </div>
+
+        <!-- App suggestions -->
+        <div style="font-size: 12px; color: #17a2b8; background-color: #d1ecf1; padding: 8px; border-radius: 6px; border: 1px solid #bee5eb;">
+          <i class="bi bi-phone me-1"></i>
+          Common apps: Google Authenticator, Authy, Microsoft Authenticator
+        </div>
+      </div>
+
+      <!-- Authenticator App Icons -->
+        <div class="d-flex justify-content-center align-items-center gap-3 mt-3">
+        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #4285f4, #34a853); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-brands fa-google" style="color: white; font-size: 18px;"></i>
+        </div>
+        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #0078d4, #106ebe); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-brands fa-microsoft" style="color: white; font-size: 18px;"></i>
+        </div>
+        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #dc3545, #c82333); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-shield-halved" style="color: white; font-size: 18px;"></i>
+        </div>
+        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #6610f2, #6f42c1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-mobile-screen" style="color: white; font-size: 18px;"></i>
+        </div>
+      </div>      <!-- Action button -->
+      <div class="d-flex justify-content-center mt-4">
+        <button [disabled]="numberGoogleVerify?.length !== 6" 
+                
+                class="btn"
+                [ngClass]="numberGoogleVerify?.length !== 6 ? 'btn-disabled-verify' : 'btn-primary'"
+                (click)="userVerifyGoogle()"
+                style="padding: 12px 40px; font-weight: 600; min-width: 200px;">
+          <i class="bi bi-shield-check me-2" [ngStyle]="numberGoogleVerify?.length !== 6 ? {'color':'#222'} : {}"></i>
+          <span [ngStyle]="numberGoogleVerify?.length !== 6 ? {'color':'#222'} : {}">Verify Code</span>
+        </button>
+      </div>
+
+      <!-- Help text -->
+      <div class="text-center mt-2">
+        <small style="color: #666; font-size: 11px;">
+          Having trouble? Make sure your device's time is synchronized and the app shows the current TourChain code.
+        </small>
+      </div>
+    </div>
+  </ng-template>
+</ejs-dialog>

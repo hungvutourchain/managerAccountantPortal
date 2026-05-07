@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlightRadar24 API Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .test-section h2 {
+            color: #495057;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .badge-loading {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .endpoint-list {
+            list-style: none;
+            padding: 0;
+        }
+        .endpoint-list li {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛫 FlightRadar24 API Test Dashboard</h1>
+        
+        <div class="test-section">
+            <h2>✅ Working Endpoints (Static Data)</h2>
+            <p class="info">These endpoints are confirmed to work with your API key:</p>
+            <ul class="endpoint-list">
+                <li>/api/static/airports/{code}/full - ✅ Confirmed Working</li>
+                <li>/api/static/airlines/{code}/full - ✅ Confirmed Working</li>
+            </ul>
+            <button onclick="testStaticAirports()">Test Airport Data (LHR)</button>
+            <button onclick="testStaticAirlines()">Test Airline Data (VN)</button>
+            <div id="static-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 Flight Search Endpoints (Testing)</h2>
+            <p class="info">Testing various endpoints to find flight data:</p>
+            <button onclick="testSearchEndpoint()">Test Search API</button>
+            <button onclick="testFlightsEndpoint()">Test Flights API</button>
+            <button onclick="testFeedEndpoint()">Test Feed API</button>
+            <button onclick="testAllEndpoints()">Test All Endpoints</button>
+            <div id="flight-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 API Documentation</h2>
+            <p class="info">Your API Key Status: <span class="status-badge badge-success">VALID</span></p>
+            <p>The key works with <strong>/api/static/</strong> endpoints (airports, airlines)</p>
+            <p>Testing required for live flight data endpoints</p>
+        </div>
+    </div>
+
+    <script>
+        const API_TOKEN = '0199e1a4-3e2c-711b-b00f-356589042d21|ktolDzrXKeH2uVM8IM7QN9icEPg1yfFGx7jHFbKLc91ebd45';
+        const BASE_URL = 'https://fr24api.flightradar24.com';
+
+        function showResult(elementId, html) {
+            const resultDiv = document.getElementById(elementId);
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        }
+
+        function showLoading(elementId) {
+            showResult(elementId, '<p class="info">⏳ Loading... <span class="status-badge badge-loading">IN PROGRESS</span></p>');
+        }
+
+        async function makeRequest(url, elementId) {
+            try {
+                showLoading(elementId);
+                console.log('Making request to:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Accept-Version': 'v1',
+                    }
+                });
+
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                return {
+                    success: true,
+                    status: response.status,
+                    data: data
+                };
+            } catch (error) {
+                console.error('Error:', error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        async function testStaticAirports() {
+            const url = `${BASE_URL}/api/static/airports/LHR/full`;
+            const result = await makeRequest(url, 'static-result');
+            
+            if (result.success) {
+                const airport = result.data;
+                showResult('static-result', `
+                    <p class="success">✅ SUCCESS <span class="status-badge badge-success">HTTP ${result.status}</span></p>
+                    <h3>London Heathrow Airport Data:</h3>
+                    <pre>${JSON.stringify(airport, null, 2)}</pre>
+                `);
+            } else {
+                showResult('static-result', `
+                    <p class="error">❌ ERROR <span class="status-badge badge-error">FAILED</span></p>
+                    <p>${result.error}</p>
+                `);
+            }
+        }
+
+        async function testStaticAirlines() {
+            const url = `${BASE_URL}/api/static/airlines/VN/full`;
+            const result = await makeRequest(url, 'static-result');
+            
+            if (result.success) {
+                const airline = result.data;
+                showResult('static-result', `
+                    <p class="success">✅ SUCCESS <span class="status-badge badge-success">HTTP ${result.status}</span></p>
+                    <h3>Vietnam Airlines Data:</h3>
+                    <pre>${JSON.stringify(airline, null, 2)}</pre>
+                `);
+            } else {
+                showResult('static-result', `
+                    <p class="error">❌ ERROR <span class="status-badge badge-error">FAILED</span></p>
+                    <p>${result.error}</p>
+                `);
+            }
+        }
+
+        async function testSearchEndpoint() {
+            const url = `${BASE_URL}/api/search/live?query=vietnam&limit=20`;
+            const result = await makeRequest(url, 'flight-result');
+            
+            if (result.success) {
+                showResult('flight-result', `
+                    <p class="success">✅ SUCCESS <span class="status-badge badge-success">HTTP ${result.status}</span></p>
+                    <h3>Search Results:</h3>
+                    <pre>${JSON.stringify(result.data, null, 2)}</pre>
+                `);
+            } else {
+                showResult('flight-result', `
+                    <p class="error">❌ FAILED <span class="status-badge badge-error">${result.error}</span></p>
+                    <p>This endpoint may not be available in your subscription plan.</p>
+                `);
+            }
+        }
+
+        async function testFlightsEndpoint() {
+            const url = `${BASE_URL}/api/flights?bounds=90,-90,-180,180&limit=50`;
+            const result = await makeRequest(url, 'flight-result');
+            
+            if (result.success) {
+                showResult('flight-result', `
+                    <p class="success">✅ SUCCESS <span class="status-badge badge-success">HTTP ${result.status}</span></p>
+                    <h3>Flights Data:</h3>
+                    <pre>${JSON.stringify(result.data, null, 2)}</pre>
+                `);
+            } else {
+                showResult('flight-result', `
+                    <p class="error">❌ FAILED <span class="status-badge badge-error">${result.error}</span></p>
+                    <p>This endpoint may not be available in your subscription plan.</p>
+                `);
+            }
+        }
+
+        async function testFeedEndpoint() {
+            const url = `${BASE_URL}/api/feed?bounds=90,-90,-180,180`;
+            const result = await makeRequest(url, 'flight-result');
+            
+            if (result.success) {
+                showResult('flight-result', `
+                    <p class="success">✅ SUCCESS <span class="status-badge badge-success">HTTP ${result.status}</span></p>
+                    <h3>Feed Data:</h3>
+                    <pre>${JSON.stringify(result.data, null, 2)}</pre>
+                `);
+            } else {
+                showResult('flight-result', `
+                    <p class="error">❌ FAILED <span class="status-badge badge-error">${result.error}</span></p>
+                    <p>This endpoint may not be available in your subscription plan.</p>
+                `);
+            }
+        }
+
+        async function testAllEndpoints() {
+            const endpoints = [
+                { name: 'Search API', url: `${BASE_URL}/api/search/live?query=&limit=50` },
+                { name: 'Flights API', url: `${BASE_URL}/api/flights?bounds=90,-90,-180,180&limit=50` },
+                { name: 'Feed API', url: `${BASE_URL}/api/feed?bounds=90,-90,-180,180` },
+                { name: 'Live API', url: `${BASE_URL}/api/live?bounds=90,-90,-180,180&limit=50` },
+                { name: 'Flight Positions', url: `${BASE_URL}/api/live/flight-positions/full?bounds=90,-90,-180,180` }
+            ];
+
+            let results = '<h3>Testing All Flight Data Endpoints:</h3>';
+            
+            for (const endpoint of endpoints) {
+                showResult('flight-result', results + `<p class="info">Testing ${endpoint.name}...</p>`);
+                const result = await makeRequest(endpoint.url, 'flight-result');
+                
+                if (result.success) {
+                    results += `
+                        <div style="margin: 10px 0; padding: 10px; background: #d4edda; border-radius: 4px;">
+                            <p class="success">✅ ${endpoint.name} - SUCCESS</p>
+                            <p style="font-size: 12px; color: #155724;">URL: ${endpoint.url}</p>
+                            <details>
+                                <summary>View Response</summary>
+                                <pre>${JSON.stringify(result.data, null, 2).substring(0, 500)}...</pre>
+                            </details>
+                        </div>
+                    `;
+                } else {
+                    results += `
+                        <div style="margin: 10px 0; padding: 10px; background: #f8d7da; border-radius: 4px;">
+                            <p class="error">❌ ${endpoint.name} - FAILED</p>
+                            <p style="font-size: 12px; color: #721c24;">${result.error}</p>
+                        </div>
+                    `;
+                }
+                
+                showResult('flight-result', results);
+            }
+
+            results += '<p class="info">✅ Testing Complete!</p>';
+            showResult('flight-result', results);
+        }
+
+        // Initial message
+        console.log('FlightRadar24 API Test Page Loaded');
+        console.log('API Token (first 25 chars):', API_TOKEN.substring(0, 25) + '...');
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+// @import 'styles/appearances/default';
+// @import 'styles/appearances/compact';
+// @import 'styles/appearances/dense';
+// @import 'styles/appearances/thin';
+
+@use 'styles/appearances/default' as *;
+@use 'styles/appearances/compact' as *;
+@use 'styles/appearances/dense' as *;
+@use 'styles/appearances/thin' as *;

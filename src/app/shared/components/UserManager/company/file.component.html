@@ -1,0 +1,92 @@
+<table class="table table-hover table-bordered table-striped table-condensed flip-content">
+    <thead>
+        <tr>
+            <th> Search</th>
+            <th colspan="5">
+                <input type="text" class="form-control " [(ngModel)]="searchText" placeholder="text ... " 
+                style="width: 100%;
+                border: none;
+                height: 16px;
+                font-size: 11px;">
+            </th>
+        </tr>
+        <tr>
+            <th class="flip-content clsControl" style="width: 30px;">No.</th>
+            <th class="flip-content">Name</th>
+            <th class="flip-content">Code</th>
+            <th class="flip-content">Email</th>
+            <th class="flip-content">Phone</th>
+            <th class="flip-content">Address</th>
+            <th class="clsControl" style="width: 60px;">
+                <a href="javascript:;" class="btn btn-icon-only" (click)="objectValue('new',null)">
+                   <b>New</b>
+                </a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let x of lsobject | filter: searchText; let $index = index">
+            <td class="clsControl">{{$index + 1}}</td>
+            <td>{{x.name}}</td>
+            <td>{{x.code}}</td>
+            <td>{{x.email}}</td>
+            <td>{{x.phone}}</td>
+            <td>{{x.address}}</td>
+            <td class="clsVerMid clsControl">
+                <a href="javascript:;" class="btn btn-icon-only red" (click)="objectValue('edit',x)">
+                    <i class="fa fa-edit"></i>
+                </a>
+                <a href="javascript:;" class="btn btn-icon-only purple" (click)="objectValue('delete',x)">
+                    <i class="fa fa-times"></i>
+                </a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<ejs-dialog *ngIf="openDialog" [header]="'Add/Edit'" (close)="openDialog = false" [isModal]="true" [visible]="true"
+    [showCloseIcon]="true" [width]="'450px'">
+    <ng-template #content>
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset class="form-group">
+                <label class="form-label">Name</label>
+                <input [(ngModel)]="object.name" type="text" class="form-control"
+                    placeholder="Enter name">
+            </fieldset>
+        </div>
+        <div class="col-md-12">
+            <fieldset class="form-group">
+                <label class="form-label">Code</label>
+                <input [(ngModel)]="object.code" type="text" class="form-control"
+                    placeholder="Enter code">
+            </fieldset>
+        </div>      
+        <div class="col-md-12">
+            <fieldset class="form-group">
+                <label class="form-label">Email</label>
+                <input [(ngModel)]="object.email" type="text" class="form-control"
+                    placeholder="Enter email">
+            </fieldset>
+        </div>       
+        <div class="col-md-12">
+            <fieldset class="form-group">
+                <label class="form-label">Phone</label>
+                <input [(ngModel)]="object.phone" type="text" class="form-control"
+                    placeholder="Enter phone">
+            </fieldset>
+        </div>       
+        <div class="col-md-12">
+            <fieldset class="form-group">
+                <label class="form-label">Address</label>
+                <input [(ngModel)]="object.address" type="text" class="form-control"
+                    placeholder="Enter address">
+            </fieldset>
+        </div>       
+    </div>
+    <div style="display: flex; justify-content: flex-end; gap: 8px; padding-top: 14px; border-top: 1px solid #e0e0e0; margin-top: 14px;">
+        <button class="btn btn-secondary btn-sm" (click)="objectValue('cancel',object)">Close</button>        
+        <button class="btn btn-primary btn-sm" (click)="objectValue(cSave?'save':'add',object)" >{{cSave? 'Change' : 'Add'}}</button>
+    </div>
+    </ng-template>
+</ejs-dialog>

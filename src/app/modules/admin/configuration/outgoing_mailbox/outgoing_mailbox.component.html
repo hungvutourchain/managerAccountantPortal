@@ -1,0 +1,590 @@
+<div class="flex flex-col flex-auto min-w-0 p-6 bg-gray-50">
+    <!-- Header Section -->
+    <div class="mb-6" style="color: black;">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Email Configuration</h2>
+        <p class="text-gray-600">Configure outgoing email settings and mailbox types</p>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <!-- Master Configuration Section -->
+        <div class="xl:col-span-1">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-black bg-opacity-20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-envelope text-black text-sm"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-black">Master Configuration</h3>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6 space-y-6">
+                    <!-- Service Type Selection -->
+                    <div class="space-y-4">
+                        <h4 class="font-medium text-gray-900">Email Service Type</h4>
+                        <div class="space-y-3">
+                            <label
+                                class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors duration-200">
+                                <ejs-checkbox [(ngModel)]="emailSetting.isMailChimp"
+                                    (ngModelChange)="onMailChimpChange($event)" class="text-blue-600"></ejs-checkbox>
+                                <div>
+                                    <span class="font-medium text-gray-900">MailChimp Service</span>
+                                    <p class="text-sm text-gray-500">Use MailChimp for email delivery</p>
+                                </div>
+                            </label>
+                            <label
+                                class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors duration-200">
+                                <ejs-checkbox [(ngModel)]="emailSetting.relyByEmailSystem"
+                                    (ngModelChange)="onEmailSystemChange($event)" class="text-blue-600"></ejs-checkbox>
+                                <div>
+                                    <span class="font-medium text-gray-900">Email System</span>
+                                    <p class="text-sm text-gray-500">Use internal email system</p>
+                                </div>
+                            </label>
+                            <label
+                                class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors duration-200">
+                                <ejs-checkbox [(ngModel)]="emailSetting.isBrevoSmtp"
+                                    (ngModelChange)="onBrevoSmtpChange($event)" class="text-blue-600"></ejs-checkbox>
+                                <div>
+                                    <span class="font-medium text-gray-900">Brevo SMTP</span>
+                                    <p class="text-sm text-gray-500">Use Brevo SMTP for email delivery</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Fields -->
+                    <div class="space-y-4">
+                        <!-- MailChimp Configuration -->
+                        <div *ngIf="emailSetting.isMailChimp" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-key text-gray-400 mr-2"></i>MailChimp Token
+                                </label>
+                                <input type="password"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                    [(ngModel)]="emailSetting.tokenMailChimp"
+                                    placeholder="Enter your MailChimp API token" />
+                            </div>
+                        </div>
+
+                        <!-- Brevo SMTP Configuration -->
+                        <!-- Brevo SMTP Configuration -->
+                        <div *ngIf="emailSetting.isBrevoSmtp" class="space-y-4">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <i class="fas fa-info-circle text-blue-600"></i>
+                                    <h5 class="font-medium text-blue-900">Brevo SMTP Configuration</h5>
+                                </div>
+                                <p class="text-sm text-blue-700">Configure your Brevo SMTP settings for reliable email
+                                    delivery.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-server text-gray-400 mr-2"></i>SMTP Server
+                                    </label>
+                                    <input type="text"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                        [(ngModel)]="emailSetting.brevoConfig.smtpServer"
+                                        placeholder="smtp-relay.brevo.com" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-plug text-gray-400 mr-2"></i>Port
+                                    </label>
+                                    <input type="number"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                        [(ngModel)]="emailSetting.brevoConfig.port" placeholder="587" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-user text-gray-400 mr-2"></i>Username
+                                    </label>
+                                    <input type="text"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                        [(ngModel)]="emailSetting.brevoConfig.username"
+                                        placeholder="Your Brevo username" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-key text-gray-400 mr-2"></i>SMTP Key
+                                    </label>
+                                    <input type="password"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                        [(ngModel)]="emailSetting.tokenMailChimp"
+                                        placeholder="Your Brevo SMTP key (xsmtpsib-...)" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-envelope text-gray-400 mr-2"></i>From Email
+                                    </label>
+                                    <input type="email"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                        [(ngModel)]="emailSetting.brevoConfig.fromEmail"
+                                        placeholder="noreply@yourdomain.com" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-user-tag text-gray-400 mr-2"></i>From Name
+                                    </label>
+                                    <input type="text"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                        [(ngModel)]="emailSetting.brevoConfig.fromName"
+                                        placeholder="Your Company Name" />
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <span class="font-medium text-gray-900">Use SSL</span>
+                                        <p class="text-sm text-gray-500">Enable SSL encryption for secure connection</p>
+                                    </div>
+                                    <ejs-switch [(ngModel)]="emailSetting.brevoConfig.useSSL"></ejs-switch>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMTP Configuration -->
+                        <div *ngIf="!emailSetting.isMailChimp && !emailSetting.isBrevoSmtp" class="space-y-4">
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-server text-gray-400 mr-2"></i>Mail Server
+                                    </label>
+                                    <input type="text"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                        [(ngModel)]="emailSetting.mailServer" placeholder="smtp.example.com" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        <i class="fas fa-plug text-gray-400 mr-2"></i>Mail Port
+                                    </label>
+                                    <input type="number"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                        [(ngModel)]="emailSetting.mailPort" placeholder="587" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Common Fields -->
+                        <div class="space-y-4" *ngIf="!emailSetting.isBrevoSmtp">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-user text-gray-400 mr-2"></i>Sender Name
+                                </label>
+                                <input type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                    [(ngModel)]="emailSetting.senderName" placeholder="Your Company Name" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-envelope text-gray-400 mr-2"></i>Outgoing Email Account
+                                </label>
+                                <input type="email"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                    [(ngModel)]="emailSetting.sender" placeholder="noreply@example.com" />
+                            </div>
+                            <div *ngIf="!emailSetting.isMailChimp && !emailSetting.isBrevoSmtp">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-lock text-gray-400 mr-2"></i>Password
+                                </label>
+                                <input type="password"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                    [(ngModel)]="emailSetting.password" placeholder="Enter password" />
+                            </div>
+                        </div>
+
+                        <!-- CC Option -->
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div>
+                                <span class="font-medium text-gray-900">CC to Current User</span>
+                                <p class="text-sm text-gray-500">Send copy to current user</p>
+                            </div>
+                            <ejs-switch [(ngModel)]="emailSetting.withCurrentUser"></ejs-switch>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col space-y-3 pt-4 border-t border-gray-200">
+                        <button type="button"
+                            class="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+                            (click)="saveEmailConfig(emailSetting)">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Configuration
+                        </button>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button"
+                                class="inline-flex items-center justify-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200"
+                                (click)="loadEmailConfig()">
+                                <i class="fas fa-undo mr-2"></i>
+                                Reset
+                            </button>
+                            <button type="button"
+                                class="inline-flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
+                                (click)="sendEmailTest()">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Test Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Types Configuration Section -->
+        <div class="xl:col-span-2">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-black bg-opacity-20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-list text-black text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-black">Email Types Configuration</h3>
+                                <p class="text-blue-700 text-sm">Manage different email configurations for various
+                                    purposes</p>
+                            </div>
+                        </div>
+                        <button type="button"
+                            class="inline-flex items-center px-4 py-2 bg-black bg-opacity-20 hover:bg-opacity-30 text-black text-sm font-medium rounded-lg transition-all duration-200 shadow-sm"
+                            (click)="EmailTypeValue('new',null)">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add Email Type
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6">
+                    <!-- Empty State -->
+                    <div *ngIf="!lsEmails || lsEmails.length === 0" class="text-center py-16">
+                        <div class="mx-auto w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                            <i class="fas fa-envelope-open text-blue-400 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">No Email Types Configured</h3>
+                        <p class="text-gray-500 mb-6 max-w-md mx-auto">
+                            Create email configurations for different purposes like booking confirmations,
+                            notifications, and marketing emails.
+                        </p>
+                        <button type="button"
+                            class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+                            (click)="EmailTypeValue('new',null)">
+                            <i class="fas fa-plus mr-2"></i>
+                            Create First Email Type
+                        </button>
+                    </div>
+
+                    <!-- Email Types Table -->
+                    <div *ngIf="lsEmails && lsEmails.length > 0" class="overflow-hidden">
+                        <!-- Modern Card Layout -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div *ngFor="let emailType of lsEmails;"
+                                class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+
+                                <!-- Card Header -->
+                                <div class="px-6 py-4 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div
+                                                class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-envelope text-blue-600"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-lg font-semibold text-gray-900">{{emailType.emailType}}
+                                                </h4>
+                                                <p class="text-sm text-gray-500">
+                                                    {{emailType.email?.isMailChimp ? 'MailChimp Service' : 'SMTP
+                                                    Service'}}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Status Badge -->
+                                        <div class="flex items-center space-x-2">
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                [ngClass]="{
+                                                    'bg-green-100 text-green-800': emailType.email?.sender,
+                                                    'bg-yellow-100 text-yellow-800': !emailType.email?.sender
+                                                  }">
+                                                {{emailType.email?.sender ? 'Configured' : 'Incomplete'}}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Content -->
+                                <div class="px-6 py-4 space-y-4">
+                                    <!-- Email Details -->
+                                    <div class="grid grid-cols-1 gap-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-gray-500">Sender Name:</span>
+                                            <span class="text-sm text-gray-900">{{emailType.email?.senderName || 'Not
+                                                set'}}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-gray-500">Email Account:</span>
+                                            <span class="text-sm text-gray-900">{{emailType.email?.sender || 'Not
+                                                set'}}</span>
+                                        </div>
+                                        <div *ngIf="!emailType.email?.isMailChimp"
+                                            class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-gray-500">Mail Server:</span>
+                                            <span class="text-sm text-gray-900">{{emailType.email?.mailServer || 'Not
+                                                set'}}</span>
+                                        </div>
+                                        <div *ngIf="!emailType.email?.isMailChimp"
+                                            class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-gray-500">Port:</span>
+                                            <span class="text-sm text-gray-900">{{emailType.email?.mailPort || 'Not
+                                                set'}}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Features -->
+                                    <div class="flex flex-wrap gap-2">
+                                        <span *ngIf="emailType.email?.isMailChimp"
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            <i class="fas fa-mail-bulk mr-1"></i>
+                                            MailChimp
+                                        </span>
+                                        <span *ngIf="emailType.email?.withCurrentUser"
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <i class="fas fa-copy mr-1"></i>
+                                            CC to User
+                                        </span>
+                                        <span *ngIf="emailType.email?.relyByEmailSystem"
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-cogs mr-1"></i>
+                                            Email System
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Card Actions -->
+                                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-xs text-gray-500">
+                                            Last updated: {{emailType.updatedAt | date:'dd MMM, yyyy'}}
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button"
+                                                class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                                                (click)="EmailTypeValue('edit', emailType)" title="Edit email type">
+                                                <i class="fas fa-edit mr-1"></i>
+                                                Edit
+                                            </button>
+                                            <button type="button"
+                                                class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors duration-200"
+                                                (click)="EmailTypeValue('delete', emailType)" title="Delete email type">
+                                                <i class="fas fa-trash-alt mr-1"></i>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Traditional Table View (Optional) -->
+                        <!-- <div class="overflow-hidden mt-5">
+                            <table class="table table-bordered table-hover w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-2">Mail Type</th>
+                                        <th class="px-4 py-2">Service Type</th>
+                                        <th class="px-4 py-2">Mail Server</th>
+                                        <th class="px-4 py-2">Mail Port</th>
+                                        <th class="px-4 py-2">Sender Name</th>
+                                        <th class="px-4 py-2">Outgoing Email Account</th>
+                                        <th class="px-4 py-2">CC to Current User</th>
+                                        <th class="px-4 py-2"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <ng-container *ngIf="lsEmails && lsEmails.length; else tpElse">
+                                        <tr *ngFor="let x of lsEmails">
+                                            <td class="px-4 py-2">{{x.emailType}}</td>
+                                            <td class="px-4 py-2">
+                                                <ejs-checkbox [disabled]="true" [(ngModel)]="x.email.isMailChimp" class="text-blue-600"></ejs-checkbox>
+                                            </td>
+                                            <td class="px-4 py-2">{{x.email?.mailServer}}</td>
+                                            <td class="px-4 py-2">{{x.email?.mailPort}}</td>
+                                            <td class="px-4 py-2">{{x.email?.senderName}}</td>
+                                            <td class="px-4 py-2">{{x.email?.sender}}</td>
+                                            <td class="px-4 py-2">
+                                                <ejs-checkbox [disabled]="true" [(ngModel)]="x.email.withCurrentUser" class="text-blue-600"></ejs-checkbox>
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <a href="javascript:;" class="red" (click)="EmailTypeValue('edit',x)">
+                                                    <i class="fas fa-edit text-red-600"></i>
+                                                </a>
+                                                <a href="javascript:;" class="ml-3 purple" (click)="EmailTypeValue('delete',x)">
+                                                    <i class="fas fa-trash-alt text-purple-600"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </ng-container>
+                                    <ng-template #tpElse>
+                                        <tr>
+                                            <td colspan="8" class="text-center py-4">No Data Found</td>
+                                        </tr>
+                                    </ng-template>
+                                </tbody>
+                            </table>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ejs-dialog *ngIf="popupSettingEmail" [isModal]="true" [visible]='true' [header]="'Outgoing Mailbox'"
+    [showCloseIcon]="'true'" [width]="'600px'" (close)="popupSettingEmail = !popupSettingEmail"
+    style="max-height: 100%;">
+    <ng-template #content>
+        <div class="row mt-2">
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Outgoing Mailbox Type</span>
+                    <kendo-dropdownlist [(ngModel)]="EmailType.emailType" [data]="ListEmailTypes">
+                    </kendo-dropdownlist>
+                </label>
+            </div>
+            <div class="col-md-12 mb-2 fl_left">
+                <ejs-checkbox [(ngModel)]="EmailType.email.isMailChimp" label="Outgoing MailChimp"></ejs-checkbox>
+            </div>
+            <div class="col-md-12 mb-2 fl_left">
+                <ejs-checkbox [(ngModel)]="EmailType.email.isBrevo" label="Outgoing Brevo SMTP"></ejs-checkbox>
+            </div>
+            <div class="col-md-12 mb-3 fl_left">
+                <ejs-checkbox [(ngModel)]="EmailType.email.relyByEmailSystem"
+                    label="Outgoing By Email System"></ejs-checkbox>
+            </div>
+
+            @if(EmailType.email.isMailChimp){
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Token MailChimp</span>
+                    <input type="text" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.tokenMailChimp" />
+                </label>
+            </div>
+            } @else if(EmailType.email.isBrevo) {
+            <!-- Brevo SMTP Configuration -->
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Brevo SMTP Server</span>
+                    <input type="text" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.brevoConfig.smtpServer" placeholder="smtp-relay.brevo.com" />
+                </label>
+            </div>
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Brevo SMTP Port</span>
+                    <input type="number" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.brevoConfig.port" placeholder="587" />
+                </label>
+            </div>
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Brevo Username</span>
+                    <input type="text" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.brevoConfig.username" />
+                </label>
+            </div>
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Brevo Password/API Key</span>
+                    <input type="password" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.brevoConfig.password" />
+                </label>
+            </div>
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Brevo From Email</span>
+                    <input type="email" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.brevoConfig.fromEmail" />
+                </label>
+            </div>
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Brevo From Name</span>
+                    <input type="text" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.brevoConfig.fromName" />
+                </label>
+            </div>
+            <div class="col-md-12 fl_left mb-3">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Use SSL</span>
+                    <ejs-switch id="brevoUseSSL" [(ngModel)]="EmailType.email.brevoConfig.useSSL"></ejs-switch>
+                </label>
+            </div>
+            } @else {
+            <!-- Standard SMTP Configuration -->
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Mail Server</span>
+                    <input type="text" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.mailServer" />
+                </label>
+            </div>
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Mail Port</span>
+                    <input type="number" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.mailPort" />
+                </label>
+            </div>
+            }
+
+            @if(!EmailType.email.isBrevo) {
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Sender Name</span>
+                    <input type="text" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.senderName" />
+                </label>
+            </div>
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Outgoing Email Account</span>
+                    <input type="text" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.sender" />
+                </label>
+            </div>
+            }
+
+            @if(!EmailType.email.isMailChimp && !EmailType.email.isBrevo){
+            <div class="col-md-12 fl_left">
+                <label class="k-form-field" style="width: 100%">
+                    <span>Password</span>
+                    <input type="password" class="k-textbox" [ngStyle]="{width: '100%'}"
+                        [(ngModel)]="EmailType.email.password" />
+                </label>
+            </div>
+            }
+
+            <div class="col-md-12 fl_left mb-3">
+                <label class="k-form-field" style="width: 100%">
+                    <span>CC email to Current User</span>
+                    <ejs-switch id="isActiveCode" [(ngModel)]="EmailType.email.withCurrentUser"></ejs-switch>
+                </label>
+            </div>
+
+            <div class="col-md-12 fl_left">
+                <button [ngClass]="'btn btn-gradient mr-3'" (click)="EmailTypeValue('cancel', null)">Close</button>
+                <button [ngClass]="'btn btn-gradient mr-3'"
+                    (click)="EmailTypeValue(cSave? 'change' : 'add', EmailType)">{{cSave
+                    ?'Change' : 'Save'}}</button>
+            </div>
+        </div>
+    </ng-template>
+</ejs-dialog>

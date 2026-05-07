@@ -1,0 +1,471 @@
+<div class="ai-management-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div>
+        <h2>AI Management</h2>
+        <p class="subtitle">Central hub for managing all AI-powered features, model training, and prompt configurations.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Azure OpenAI Config Section -->
+  <div class="config-section">
+    <div class="config-card">
+      <div class="config-header">
+        <div class="config-header-left">
+          <div class="config-icon azure">
+            <i class="bi bi-cloud-fill"></i>
+          </div>
+          <div>
+            <h3>Azure OpenAI Configuration</h3>
+            <p class="config-subtitle">Connection settings for Azure OpenAI service. Changes take effect immediately for all AI features.</p>
+          </div>
+        </div>
+        <div class="config-actions">
+          <span class="config-source-badge" *ngIf="azureConfig.id">
+            <i class="bi bi-database-fill"></i> Database
+          </span>
+          <span class="config-source-badge fallback" *ngIf="!azureConfig.id && !isEditingConfig">
+            <i class="bi bi-file-earmark-code"></i> appsettings.json
+          </span>
+          <button class="btn-config-edit" *ngIf="!isEditingConfig" (click)="startEditConfig()">
+            <i class="bi bi-pencil-square"></i> Edit
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="config-loading" *ngIf="configLoading">
+        <div class="spinner-sm"></div>
+        <span>Loading configuration...</span>
+      </div>
+
+      <!-- Message -->
+      <div class="config-message" *ngIf="configMessage" [class.success]="configMessage.type === 'success'" [class.error]="configMessage.type === 'error'">
+        <i [class]="configMessage.type === 'success' ? 'bi bi-check-circle-fill' : 'bi bi-exclamation-triangle-fill'"></i>
+        {{ configMessage.text }}
+      </div>
+
+      <!-- View Mode -->
+      <div class="config-fields" *ngIf="!isEditingConfig && !configLoading">
+        <div class="field-row">
+          <div class="field-item">
+            <label>Endpoint</label>
+            <span class="field-value">{{ azureConfig.endpoint || '—' }}</span>
+          </div>
+          <div class="field-item">
+            <label>Deployment Name</label>
+            <span class="field-value">{{ azureConfig.deploymentName || '—' }}</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-item">
+            <label>API Key</label>
+            <span class="field-value mono">{{ showApiKey ? azureConfig.apiKey : getMaskedApiKey(azureConfig.apiKey) }}
+              <button class="btn-eye" (click)="toggleApiKeyVisibility()" *ngIf="azureConfig.apiKey">
+                <i [class]="showApiKey ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+              </button>
+            </span>
+          </div>
+          <div class="field-item">
+            <label>API Version</label>
+            <span class="field-value">{{ azureConfig.apiVersion || '—' }}</span>
+          </div>
+        </div>
+        <!-- Model Capabilities View -->
+        <div class="capabilities-view-section">
+          <div class="capabilities-header">
+            <i class="bi bi-cpu"></i>
+            <span>Model Capabilities</span>
+          </div>
+          <div class="capabilities-cards">
+            <div class="cap-card">
+              <div class="cap-card-icon" [class.active]="azureConfig.supportsNativePdf">
+                <i [class]="azureConfig.supportsNativePdf ? 'bi bi-file-earmark-pdf-fill' : 'bi bi-file-earmark-image'"></i>
+              </div>
+              <div class="cap-card-body">
+                <span class="cap-card-label">PDF Processing</span>
+                <span class="cap-card-value" [class.active]="azureConfig.supportsNativePdf">
+                  {{ azureConfig.supportsNativePdf ? 'Native PDF' : 'Convert to Images' }}
+                </span>
+              </div>
+            </div>
+            <div class="cap-card">
+              <div class="cap-card-icon pages">
+                <i class="bi bi-images"></i>
+              </div>
+              <div class="cap-card-body">
+                <span class="cap-card-label">Max Image Pages</span>
+                <span class="cap-card-value">{{ azureConfig.maxImagePages || 20 }} pages</span>
+              </div>
+            </div>
+            <div class="cap-card">
+              <div class="cap-card-icon tokens">
+                <i class="bi bi-hash"></i>
+              </div>
+              <div class="cap-card-body">
+                <span class="cap-card-label">Max Output Tokens</span>
+                <span class="cap-card-value">{{ (azureConfig.maxOutputTokens || 16384) | number }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field-row" *ngIf="azureConfig.dateUpdate">
+          <div class="field-item">
+            <label>Last Updated</label>
+            <span class="field-value subtle">{{ azureConfig.dateUpdate | date:'medium' }} by {{ azureConfig.userUpdate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Mode -->
+      <div class="config-form" *ngIf="isEditingConfig && !configLoading">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Endpoint <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="azureConfig.endpoint" placeholder="https://your-resource.openai.azure.com" />
+          </div>
+          <div class="form-group">
+            <label>Deployment Name <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="azureConfig.deploymentName" placeholder="gpt-4o" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>API Key <span class="required">*</span></label>
+            <div class="input-with-toggle">
+              <input [type]="showApiKey ? 'text' : 'password'" [(ngModel)]="azureConfig.apiKey" placeholder="Your Azure OpenAI API Key" />
+              <button class="btn-eye" (click)="toggleApiKeyVisibility()">
+                <i [class]="showApiKey ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>API Version</label>
+            <input type="text" [(ngModel)]="azureConfig.apiVersion" placeholder="2025-01-01-preview" />
+          </div>
+        </div>
+        <!-- Model Capabilities -->
+        <div class="capabilities-edit-section">
+          <div class="capabilities-edit-header">
+            <div class="capabilities-edit-title">
+              <i class="bi bi-cpu"></i>
+              <span>Model Capabilities</span>
+            </div>
+            <button class="btn-model-guide" (click)="toggleModelGuide()">
+              <i [class]="showModelGuide ? 'bi bi-chevron-up' : 'bi bi-info-circle'"></i>
+              {{ showModelGuide ? 'Hide Guide' : 'Model Guide' }}
+            </button>
+          </div>
+
+          <!-- Model Reference Guide (collapsible) -->
+          <div class="model-guide" *ngIf="showModelGuide">
+            <div class="model-guide-header">
+              <i class="bi bi-lightbulb-fill"></i>
+              <span>Click any model row to auto-fill capability fields. Models are grouped by provider.</span>
+            </div>
+            <div class="model-guide-providers">
+              <div class="provider-group" *ngFor="let provider of getProviders()">
+                <div class="provider-label">
+                  <i [class]="getProviderIcon(provider)" [style.color]="getProviderColor(provider)"></i>
+                  <span>{{ provider }}</span>
+                </div>
+                <table class="model-guide-table">
+                  <thead>
+                    <tr>
+                      <th>Model</th>
+                      <th>Native PDF</th>
+                      <th>Max Output</th>
+                      <th>Max Pages</th>
+                      <th>Notes</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let model of getModelsByProvider(provider)" class="model-row" (click)="applyModelPreset(model)" [class.highlight]="azureConfig.deploymentName && azureConfig.deploymentName.toLowerCase().includes(model.name.toLowerCase())">
+                      <td class="model-name">{{ model.name }}</td>
+                      <td>
+                        <span [class]="model.supportsNativePdf ? 'badge-yes' : 'badge-no'">
+                          <i [class]="model.supportsNativePdf ? 'bi bi-check-circle-fill' : 'bi bi-x-circle-fill'"></i>
+                          {{ model.supportsNativePdf ? 'Yes' : 'No' }}
+                        </span>
+                      </td>
+                      <td>{{ model.maxOutputTokens | number }}</td>
+                      <td>{{ model.maxImagePages }}</td>
+                      <td class="model-note">{{ model.note }}</td>
+                      <td>
+                        <button class="btn-apply-preset" title="Apply this model's settings">
+                          <i class="bi bi-arrow-right-circle"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Capability Fields -->
+          <div class="form-row cap-fields">
+            <div class="form-group toggle-group">
+              <label>
+                <i class="bi bi-file-earmark-pdf"></i> Supports Native PDF
+              </label>
+              <div class="toggle-with-desc">
+                <div class="toggle-switch" [class.active]="azureConfig.supportsNativePdf" (click)="azureConfig.supportsNativePdf = !azureConfig.supportsNativePdf">
+                  <div class="toggle-track">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+                <span class="toggle-status" [class.on]="azureConfig.supportsNativePdf">
+                  {{ azureConfig.supportsNativePdf ? 'Enabled — PDF sent directly to AI' : 'Disabled — PDF pages converted to images first' }}
+                </span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label><i class="bi bi-images"></i> Max Image Pages</label>
+              <input type="number" [(ngModel)]="azureConfig.maxImagePages" placeholder="20" min="1" max="50" />
+              <span class="form-hint">Limit PDF pages sent as images to the AI (1–50)</span>
+            </div>
+          </div>
+          <div class="form-row cap-fields">
+            <div class="form-group">
+              <label><i class="bi bi-hash"></i> Max Output Tokens</label>
+              <input type="number" [(ngModel)]="azureConfig.maxOutputTokens" placeholder="16384" min="1024" max="128000" />
+              <span class="form-hint">Maximum response length. Higher = more detailed extraction</span>
+            </div>
+            <div class="form-group"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-save" (click)="saveConfig()" [disabled]="configSaving">
+            <div class="spinner-sm" *ngIf="configSaving"></div>
+            <i class="bi bi-check-lg" *ngIf="!configSaving"></i>
+            {{ configSaving ? 'Saving...' : 'Save Configuration' }}
+          </button>
+          <button class="btn-cancel" (click)="cancelEditConfig()" [disabled]="configSaving">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI User Permissions Section -->
+  <div class="config-section user-permissions-section">
+    <div class="config-card">
+      <div class="config-header">
+        <div class="config-header-left">
+          <div class="config-icon permissions">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div>
+            <h3>AI User Permissions</h3>
+            <p class="config-subtitle">Manage which users have access to AI features. If no permissions are configured, all users can use AI by default.</p>
+          </div>
+        </div>
+        <div class="config-actions">
+          <span class="perm-count-badge" *ngIf="userPermissions.length > 0">
+            <i class="bi bi-person-check"></i> {{ userPermissions.length }} user{{ userPermissions.length > 1 ? 's' : '' }}
+          </span>
+          <button class="btn-add-user" (click)="openAddUserPanel()" *ngIf="!showAddUserPanel">
+            <i class="bi bi-person-plus-fill"></i> Add User
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="config-loading" *ngIf="permissionsLoading">
+        <div class="spinner-sm"></div>
+        <span>Loading permissions...</span>
+      </div>
+
+      <!-- Message -->
+      <div class="config-message" *ngIf="permissionMessage" [class.success]="permissionMessage.type === 'success'" [class.error]="permissionMessage.type === 'error'">
+        <i [class]="permissionMessage.type === 'success' ? 'bi bi-check-circle-fill' : 'bi bi-exclamation-triangle-fill'"></i>
+        {{ permissionMessage.text }}
+      </div>
+
+      <!-- Add User Panel -->
+      <div class="add-user-panel" *ngIf="showAddUserPanel">
+        <div class="add-user-header">
+          <h4><i class="bi bi-person-plus"></i> Grant AI Access</h4>
+          <button class="btn-close-panel" (click)="closeAddUserPanel()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div class="add-user-body">
+          <!-- User Search -->
+          <div class="user-search-group">
+            <label>Select User</label>
+            <div class="user-search-input">
+              <i class="bi bi-search"></i>
+              <input type="text" [(ngModel)]="userSearchText" (ngModelChange)="filterUsers()" placeholder="Search by name or email..." [disabled]="usersLoading" />
+            </div>
+            <div class="user-dropdown loading-state" *ngIf="usersLoading && !selectedUser">
+              <p><i class="bi bi-arrow-repeat spinning"></i> Loading users...</p>
+            </div>
+            <div class="user-dropdown" *ngIf="!usersLoading && filteredUsers.length > 0 && !selectedUser">
+              <div class="user-dropdown-item" *ngFor="let user of filteredUsers" (click)="selectUser(user)">
+                <div class="user-avatar-sm" [title]="user.fullname">
+                  <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.fullname" />
+                  <span *ngIf="!user.avatar">{{ getUserInitials(user.fullname) }}</span>
+                </div>
+                <div class="user-dropdown-info">
+                  <span class="user-dropdown-name">{{ user.fullname }}</span>
+                  <span class="user-dropdown-email">{{ user.email }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="user-dropdown no-results" *ngIf="!usersLoading && filteredUsers.length === 0 && userSearchText && !selectedUser">
+              <p>No users found matching "{{ userSearchText }}"</p>
+            </div>
+            <div class="user-dropdown no-results" *ngIf="!usersLoading && filteredUsers.length === 0 && !userSearchText && availableUsers.length === 0 && !selectedUser">
+              <p><i class="bi bi-exclamation-triangle"></i> Failed to load users. Please close and try again.</p>
+            </div>
+          </div>
+
+          <!-- Selected User Preview -->
+          <div class="selected-user-preview" *ngIf="selectedUser">
+            <div class="user-avatar-sm">
+              <img *ngIf="selectedUser.avatar" [src]="selectedUser.avatar" [alt]="selectedUser.fullname" />
+              <span *ngIf="!selectedUser.avatar">{{ getUserInitials(selectedUser.fullname) }}</span>
+            </div>
+            <div class="selected-user-info">
+              <strong>{{ selectedUser.fullname }}</strong>
+              <span>{{ selectedUser.email }}</span>
+            </div>
+            <button class="btn-clear-user" (click)="selectedUser = null; userSearchText = ''; filterUsers()">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </div>
+
+          <!-- Feature Selection -->
+          <div class="feature-select-group" *ngIf="selectedUser">
+            <label>Allowed Features</label>
+            <div class="feature-checkboxes">
+              <div class="feature-checkbox" *ngFor="let feat of aiFeatureOptions"
+                   [class.active]="isFeatureSelected(feat.key)"
+                   (click)="toggleFeature(feat.key)">
+                <i [class]="feat.icon"></i>
+                <span>{{ feat.label }}</span>
+                <i class="bi bi-check-lg check-icon" *ngIf="isFeatureSelected(feat.key)"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-user-footer" *ngIf="selectedUser">
+          <button class="btn-save" (click)="saveUserPermission()" [disabled]="permissionSaving">
+            <div class="spinner-sm" *ngIf="permissionSaving"></div>
+            <i class="bi bi-check-lg" *ngIf="!permissionSaving"></i>
+            {{ permissionSaving ? 'Saving...' : 'Grant Access' }}
+          </button>
+          <button class="btn-cancel" (click)="closeAddUserPanel()" [disabled]="permissionSaving">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- Permissions Table -->
+      <div class="permissions-list" *ngIf="!permissionsLoading && userPermissions.length > 0 && !showAddUserPanel">
+        <div class="perm-table-header">
+          <div class="perm-col user-col">User</div>
+          <div class="perm-col features-col">Allowed Features</div>
+          <div class="perm-col status-col">Status</div>
+          <div class="perm-col actions-col">Actions</div>
+        </div>
+        <div class="perm-table-row" *ngFor="let perm of userPermissions" [class.inactive]="!perm.isActive">
+          <div class="perm-col user-col">
+            <div class="user-avatar-sm" [title]="perm.fullname">
+              <img *ngIf="perm.avatar" [src]="perm.avatar" [alt]="perm.fullname" />
+              <span *ngIf="!perm.avatar">{{ getUserInitials(perm.fullname) }}</span>
+            </div>
+            <div class="user-info-text">
+              <span class="user-name">{{ perm.fullname }}</span>
+              <span class="user-email">{{ perm.email }}</span>
+            </div>
+          </div>
+          <div class="perm-col features-col">
+            <span class="feature-badge" *ngFor="let feat of perm.allowedFeatures" [title]="getFeatureLabel(feat)">
+              <i [class]="getFeatureIcon(feat)"></i> {{ getFeatureLabel(feat) }}
+            </span>
+          </div>
+          <div class="perm-col status-col">
+            <div class="toggle-switch" [class.active]="perm.isActive" (click)="toggleUserActive(perm)" title="{{ perm.isActive ? 'Active — click to deactivate' : 'Inactive — click to activate' }}">
+              <div class="toggle-track">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span class="toggle-label">{{ perm.isActive ? 'Active' : 'Inactive' }}</span>
+            </div>
+          </div>
+          <div class="perm-col actions-col">
+            <button class="btn-remove" (click)="removeUserPermission(perm)" title="Remove AI access">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="perm-empty-state" *ngIf="!permissionsLoading && userPermissions.length === 0 && !showAddUserPanel">
+        <div class="empty-icon">
+          <i class="bi bi-people"></i>
+        </div>
+        <h4>No Permission Restrictions</h4>
+        <p>All users currently have access to AI features. Add specific users to restrict AI access to only authorized personnel.</p>
+        <button class="btn-add-user outline" (click)="openAddUserPanel()">
+          <i class="bi bi-person-plus-fill"></i> Add First User
+        </button>
+      </div>
+    </div>
+  </div>
+  @if(currentUser?.isConfigurationAI) {
+    <!-- Feature Cards Grid -->
+    <div class="cards-grid">
+      <div class="feature-card" *ngFor="let card of featureCards" (click)="navigateTo(card)">
+        <div class="card-accent" [style.background]="card.color"></div>
+        <div class="card-content">
+          <div class="card-icon" [style.background]="card.color + '15'" [style.color]="card.color">
+            <i [class]="card.icon"></i>
+          </div>
+          <h3 class="card-title">{{ card.title }}</h3>
+          <p class="card-description">{{ card.description }}</p>
+          <div class="card-stats" *ngIf="card.stats">
+            <div class="stat-item" *ngFor="let stat of card.stats">
+              <span class="stat-label">{{ stat.label }}</span>
+              <span class="stat-value">{{ stat.value }}</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="card-link" [style.color]="card.color">
+              Open <i class="bi bi-arrow-right"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  <!-- Quick Info Section -->
+  <div class="info-section">
+    <div class="info-card">
+      <div class="info-icon">
+        <i class="bi bi-lightbulb"></i>
+      </div>
+      <div class="info-content">
+        <h4>Getting Started</h4>
+        <ul>
+          <li><strong>Azure OpenAI Config</strong> — Set your connection details above. Overrides appsettings.json when saved to database.</li>
+          <li><strong>Prompt Configuration</strong> — Define system prompts that control how AI responds in different contexts (contract upload, chat, analysis).</li>
+          <li><strong>Model Training</strong> — Submit custom training data to fine-tune Deepseek models for your business domain.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
