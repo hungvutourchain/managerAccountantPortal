@@ -47,7 +47,7 @@ const routerConfig: ExtraOptions = {
     MarkdownModule.forRoot({}),
   ],
   providers: [
-    { provide: APP_ID, useValue: 'applicationTourChainID' }, // Set your application id here
+    { provide: APP_ID, useValue: 'applicationAccountantPortalID' }, // Set your application id here
   ],
   bootstrap: [AppComponent],
 })

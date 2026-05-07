@@ -7,8 +7,8 @@ import { NotificationsService } from 'app/layout/common/notifications/notificati
 import { QuickChatService } from 'app/layout/common/quick-chat/quick-chat.service';
 import { ShortcutsService } from 'app/layout/common/shortcuts/shortcuts.service';
 import { UserService } from 'app/core/user/user.service';
-import { FeatureFlagManagerService } from 'app/layout/common/feature-flag-manager.service';
-import { SettingViewManagerService } from 'app/layout/common/setting-view-manager.service';
+// import { FeatureFlagManagerService } from 'app/layout/common/feature-flag-manager.service';
+// import { SettingViewManagerService } from 'app/layout/common/setting-view-manager.service';
 
 @Injectable({
     providedIn: 'root'
@@ -25,8 +25,8 @@ export class InitialDataResolver implements Resolve<any>
         private _quickChatService: QuickChatService,
         private _shortcutsService: ShortcutsService,
         private _userService: UserService,
-        private _featureFlagManager: FeatureFlagManagerService,
-        private _settingViewManager: SettingViewManagerService,
+        // private _featureFlagManager: FeatureFlagManagerService,
+        // private _settingViewManager: SettingViewManagerService,
 
     )
     {
@@ -52,8 +52,8 @@ export class InitialDataResolver implements Resolve<any>
             this._quickChatService.getChats(),
             this._shortcutsService.getAll(),
             this._userService.get(),
-            this._featureFlagManager.get(),
-            this._settingViewManager.get()
+            // this._featureFlagManager.get(),
+            // this._settingViewManager.get()
         ])
     }
 }

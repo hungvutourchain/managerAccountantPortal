@@ -61,16 +61,9 @@
               "src/styles/vendors.scss",
               "src/@fuse/styles/main.scss",
               "src/styles/tailwind.scss",
-              "node_modules/@pqina/pintura/pintura.css",
               "src/styles.scss"
             ],
             "scripts": [
-              // REMOVED: hammerjs not found
-              // "node_modules/hammerjs/hammer.min.js",
-              "src/assets/js/jszip.min.js",
-              "src/assets/lib/maps/js/mapbox-gl-geocoder.min.js",
-              "src/assets/lib/maps/js/mapbox-gl.js",
-              "src/assets/lib/maps/js/mapbox-map.js"
             ]
           },
           "configurations": {

@@ -56,7 +56,6 @@ export class AssignVsEmailSupplierDetailComponent implements OnChanges {
   async ngOnChanges() {
     if (this.idAssignVsEmails) {
       this.isEdit = true
-      this.loadData(this.idAssignVsEmails)
     } else {
       this.isEdit = false
       let AssignVsEmails = this.local.get('AssignVsEmails')
@@ -82,9 +81,9 @@ export class AssignVsEmailSupplierDetailComponent implements OnChanges {
       this.loadBookingClick()
     }
   }
-  async loadData(idAssignVsEmails) {
-    this.AssignVsEmails = await this.dbService.GetOneAssignVsEmails({ idAssignVsEmails }).toPromise()
-  }
+  // async loadData(idAssignVsEmails) {
+  //   this.AssignVsEmails = await this.dbService.GetOneAssignVsEmails({ idAssignVsEmails }).toPromise()
+  // }
   popupEditValue: boolean = false;
   isViewValue: boolean = false;
   isReEdit: boolean = false;
@@ -102,18 +101,18 @@ export class AssignVsEmailSupplierDetailComponent implements OnChanges {
           let tempObject = this.AssignVsEmails.listTours[0];
           if (tempObject) dueDate = tempObject.dueDate || new Date()
         }
-        this.objectValuePayment = {
-          _id: this.afac.ObjectId(),
-          fullBookingName: '',
-          begindate: new Date(),
-          enddate: new Date(),
-          dueDate: this.afac.localToUtc(dueDate),
-          statusTicket: "Balance",
-          amount: 0,
-          quantity: 1,
-          total: 0,
-          invoice: ''
-        };
+        // this.objectValuePayment = {
+        //   _id: this.afac.ObjectId(),
+        //   fullBookingName: '',
+        //   begindate: new Date(),
+        //   enddate: new Date(),
+        //   dueDate: this.afac.localToUtc(dueDate),
+        //   statusTicket: "Balance",
+        //   amount: 0,
+        //   quantity: 1,
+        //   total: 0,
+        //   invoice: ''
+        // };
         this.popupValuePayment = true;
         this.isEditValuePayment = false
         break;
@@ -275,28 +274,28 @@ export class AssignVsEmailSupplierDetailComponent implements OnChanges {
       AssignVsEmails: object,
       advanceBalancePayments: null
     }
-    await this.dbService.UpdateAssignVsEmails(param).toPromise()
+    // await this.dbService.UpdateAssignVsEmails(param).toPromise()
   }
   ListOptionService: string[] = [];
   valuesOptionService: any = []
   searchBookingAutocomplete(event: any) {
     const searchTerm = event ? event.toLowerCase() : '';
     if (searchTerm && searchTerm.length > 0) {
-      this.dbService
-        .searchBookingAutocomplete({
-          search: searchTerm,
-          nation: this.user.nation
-        })
-        .subscribe((rs: any) => {
-          if (rs && rs.length) {
-            this.valuesOptionService = rs
-            this.ListOptionService = rs.map(feat => feat.name);
-          }
-          else {
-            this.valuesOptionService = []
-            this.ListOptionService = [];
-          }
-        });
+      // this.dbService
+      //   .searchBookingAutocomplete({
+      //     search: searchTerm,
+      //     nation: this.user.nation
+      //   })
+      //   .subscribe((rs: any) => {
+      //     if (rs && rs.length) {
+      //       this.valuesOptionService = rs
+      //       this.ListOptionService = rs.map(feat => feat.name);
+      //     }
+      //     else {
+      //       this.valuesOptionService = []
+      //       this.ListOptionService = [];
+      //     }
+      //   });
     } else {
       this.ListOptionService = [];
     }
@@ -334,9 +333,9 @@ export class AssignVsEmailSupplierDetailComponent implements OnChanges {
           currencyUser: this.user.currency,
           productCode: vl.productCode,
         }
-        const { items } = await this.dbService.AdvanceBalancePaymentAsync(obj).toPromise()
+        // const { items } = await this.dbService.AdvanceBalancePaymentAsync(obj).toPromise()
         this.ObjectService = vl
-        this.lstDataService = items || []
+        this.lstDataService = []
         // if (this.lstDataService && this.ObjectService.listSerivce) {
         this.lstDataService = this.lstDataService.map(x => {
           let n = x?.Items_Calculator
@@ -450,54 +449,54 @@ export class AssignVsEmailSupplierDetailComponent implements OnChanges {
   loadListSerivce() {
     return this.AssignVsEmails?.listTours?.flatMap(x => x.listSerivce && x.listSerivce.length > 0 ? x.listSerivce : []);
   }
-  async ActionAssign(lstData: any): Promise<Observable<any>> {
-    let model: any = {}
-    let tempObject: any = {
-      logs: []
-    }
-    tempObject.logs.unshift({
-      date: new Date(),
-      text: "Created by",
-      by: this.user.username,
-    });
-    let MultiServices: any = lstData
-    let lsDates: any = this.getListDatesByRange(MultiServices)
-    tempObject.status = "New";
-    tempObject.assignedBy = this.user.username;
-    tempObject.userCreate = this.user.username;
-    tempObject.DateCreate = this.user.username;
-    tempObject.totalAssigned = 0
-    tempObject.serviceName = this.information.serviceName
-    tempObject.serviceCode = this.information.serviceCode
-    tempObject.SupplierId = this.information.SupplierId
-    tempObject.SupplierObjectId = this.information.SupplierObjectId
-    tempObject._idService = this.information._idService
-    tempObject.phone = this.information.phone
-    tempObject.email = this.information.email
-    tempObject.languageGuide = this.information.languageGuide
-    tempObject.Curency = this.user.currency;
-    model.lstTours = []
-    tempObject.lsDates = lsDates || [];
-    if (MultiServices && MultiServices.length > 0)
-      MultiServices.forEach(item => {
-        if (item.selectedAssign) item.assignDone = true
-        if (!model.lstTours) model.lstTours = []
-        let obj = model.lstTours.find(x =>
-          x.tourId === item._id &&
-          x.itemService == item.Items_Calculator._id &&
-          x.IsItem == item.Items_Calculator.IsItem
-        )
-        if (!obj)
-          model.lstTours.push({
-            tourId: item._id,
-            idService: item.Items_Calculator._id,
-            IsItem: item.Items_Calculator.IsItem
-          })
-      });
-    model.nation = this.user.nation;
-    model.Service = tempObject
-    return await this.dbService.TaskAssignMultiService(model).toPromise()
-  }
+  // async ActionAssign(lstData: any): Promise<Observable<any>> {
+  //   let model: any = {}
+  //   let tempObject: any = {
+  //     logs: []
+  //   }
+  //   tempObject.logs.unshift({
+  //     date: new Date(),
+  //     text: "Created by",
+  //     by: this.user.username,
+  //   });
+  //   let MultiServices: any = lstData
+  //   let lsDates: any = this.getListDatesByRange(MultiServices)
+  //   tempObject.status = "New";
+  //   tempObject.assignedBy = this.user.username;
+  //   tempObject.userCreate = this.user.username;
+  //   tempObject.DateCreate = this.user.username;
+  //   tempObject.totalAssigned = 0
+  //   tempObject.serviceName = this.information.serviceName
+  //   tempObject.serviceCode = this.information.serviceCode
+  //   tempObject.SupplierId = this.information.SupplierId
+  //   tempObject.SupplierObjectId = this.information.SupplierObjectId
+  //   tempObject._idService = this.information._idService
+  //   tempObject.phone = this.information.phone
+  //   tempObject.email = this.information.email
+  //   tempObject.languageGuide = this.information.languageGuide
+  //   tempObject.Curency = this.user.currency;
+  //   model.lstTours = []
+  //   tempObject.lsDates = lsDates || [];
+  //   if (MultiServices && MultiServices.length > 0)
+  //     MultiServices.forEach(item => {
+  //       if (item.selectedAssign) item.assignDone = true
+  //       if (!model.lstTours) model.lstTours = []
+  //       let obj = model.lstTours.find(x =>
+  //         x.tourId === item._id &&
+  //         x.itemService == item.Items_Calculator._id &&
+  //         x.IsItem == item.Items_Calculator.IsItem
+  //       )
+  //       if (!obj)
+  //         model.lstTours.push({
+  //           tourId: item._id,
+  //           idService: item.Items_Calculator._id,
+  //           IsItem: item.Items_Calculator.IsItem
+  //         })
+  //     });
+  //   model.nation = this.user.nation;
+  //   model.Service = tempObject
+  //   return await this.dbService.TaskAssignMultiService(model).toPromise()
+  // }
   onChangeSupplierAss(ev) {
     const temp = this.lsSupplier.find(mx => mx._idService === ev);
     if (!temp) return {};
@@ -526,11 +525,11 @@ export class AssignVsEmailSupplierDetailComponent implements OnChanges {
     this.information = this.onChangeSupplierAss(this.AssignVsEmails._idService)
     this.loadingApplyPayment = true;
     let lsData = this.loadListSerivce()
-    await this.ActionAssign(lsData)
+    // await this.ActionAssign(lsData)
     this.AssignVsEmails.txtIdPayment = `TCCE${this.afac.ConvertDateTimeToString(new Date(), "ddMMyyyyHHmmss")}`;
     let param = { AssignVsEmails: this.AssignVsEmails };
     try {
-      var rs = await this.dbService.AddAssignVsEmails(param).toPromise();
+      var rs =  {}/// await this.dbService.AddAssignVsEmails(param).toPromise();
       if (rs) {
         this.handleSuccessfulSave(rs);
 
@@ -630,7 +629,7 @@ export class AssignVsEmailSupplierDetailComponent implements OnChanges {
     let param = {
       AssignVsEmails: this.AssignVsEmails
     }
-    var rs = await this.dbService.UpdateAssignVsEmails(param).toPromise()
+    var rs =  {}/// await this.dbService.UpdateAssignVsEmails(param).toPromise()
     if (rs) {
       this.local.remove('AssignVsEmails')
       this.out.emit(rs)

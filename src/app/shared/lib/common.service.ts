@@ -10,7 +10,7 @@ import * as moment from "moment";
 import { environment as env, environment } from "environments/environment";
 import { LibService } from "./lib.service";
 import { Observable, Subject, takeUntil } from "rxjs";
-import { FeatureFlagManagerService } from "app/layout/common/feature-flag-manager.service";
+// import { FeatureFlagManagerService } from "app/layout/common/feature-flag-manager.service";
 // Constants
 const PRICE_TYPES = {
   ACCOMMODATION_FEE: "ACCOMMODATIONFEE",
@@ -29,7 +29,7 @@ export class AppFactory extends LibService {
     this._cachedUserTimezone = moment.tz.guess();
   }
   listTypeBed: any = [];
-  private _featureFlagService = inject(FeatureFlagManagerService);
+  // private _featureFlagService = inject(FeatureFlagManagerService);
   private _unsubscribeAll: Subject<any> = new Subject<any>();
   feature: any = {};
 
@@ -78,6 +78,12 @@ export class AppFactory extends LibService {
   addDay(date, number) {
     const temp = new Date(date);
     return new Date(temp.setDate(temp.getDate() + number));
+  }
+
+  ConvertDateTimeToString(date: any, format: string): string {
+    const value = date instanceof Date ? date : new Date(date);
+    const result = this.datePipe.transform(value, format);
+    return result || "";
   }
 
   // ============ STUB METHODS - Added to fix compilation errors ============

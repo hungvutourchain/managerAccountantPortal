@@ -86,113 +86,50 @@ export class SendEmailTaskNewComponent implements OnChanges {
   ) { }
   ngOnChanges(): void {
     try {
-      if (!this.FilterTaskService) this.FilterTaskService = {};
-      this.FilterTaskService._idService = this._idService;
-      this.FilterTaskService._idAssign = this._idAssign;
-      this.FilterTaskService.lstTourIds = this.lstTourIds || [];
+    //   if (!this.FilterTaskService) this.FilterTaskService = {};
+    //   this.FilterTaskService._idService = this._idService;
+    //   this.FilterTaskService._idAssign = this._idAssign;
+    //   this.FilterTaskService.lstTourIds = this.lstTourIds || [];
 
-      this.emailCC = this.user.email;
-      this.signature = this.user.signature || "";
-      this.logEdit = {
-        comment: "",
-        strDate: this.afac.ConvertDateTimeToString(new Date(), "dd MMM, yyyy HH:mm"),
-        status: "Request by",
-        author: this.user.username,
-      };
-      if (this.sendEmailToSupplier && this.idBookingOrigin) {
-      this.loadRetailSalesSicData();
-    }
-      this.getData();
+    //   this.emailCC = this.user.email;
+    //   this.signature = this.user.signature || "";
+    //   this.logEdit = {
+    //     comment: "",
+    //     strDate: this.afac.ConvertDateTimeToString(new Date(), "dd MMM, yyyy HH:mm"),
+    //     status: "Request by",
+    //     author: this.user.username,
+    //   };
+    //   if (this.sendEmailToSupplier && this.idBookingOrigin) {
+    //   this.loadRetailSalesSicData();
+    // }
+      // this.getData();
     } catch (err) {
       this.notifi("error", "Load data fail !", 7000);
       console.log("Load data fail!", err);
     }
   }
-  async getData() {
-    // Use Promise.all to ensure all data is loaded before opening popup
-    const taskEmailPromise = new Promise<void>((resolve) => {
-      this.dbService.TaskSendEmailAsync(this.FilterTaskService).subscribe((rs) => {
-        this.serviceTask = rs;
-        rs && this.SendEmailList(rs);
-        this.loadingTask = false;
-        resolve();
-      });
-    });
-
-    const languageCodesPromise = this.dbService
-      .getLanguageCodes()
-      .toPromise()
-      .then((res) => {
-        this.lsLanguageCodes = res;
-      });
-
-    const templatesPromise = this.dbService
-      .listTemplateEmailSupplierOPEByNation({ nation: this.user.nation })
-      .toPromise()
-      .then(async (res) => {
-        this.lsTemplates = res?.filter((e) => e.types == "Service Operation");
-        
-        // Kiểm tra sendEmailToSupplier và tìm template với ID cụ thể
-        if (this.sendEmailToSupplier && this.lsTemplates?.length) {
-          const targetTemplate = this.lsTemplates.find(template => template._id === '68ac252cde3fcef435797128'); // live wow
-          
-          if (targetTemplate) {
-            this.templateId = targetTemplate._id;
-          } else {
-            this.templateId = this.lsTemplates[0]._id;
-          }
-        } else if (this.lsTemplates?.length) {
-          this.templateId = this.lsTemplates[0]._id;
-        }
-      });
-
-    const dictionaryPromise = this.dbService
-      .GetDictionaryByLanguageCode({
-        nation: this.user.nation,
-        languageCode: this.languageCode,
-      })
-      .toPromise()
-      .then((res) => {
-        this.dictByLang = [];
-        if (res?.dictionarys) {
-          for (const [key, content] of Object.entries(res?.dictionarys)) {
-            this.dictByLang.push({ keyword: `[#${key}#]`, value: content });
-          }
-        }
-      });
-
-    // Wait for all data to be loaded
-    await Promise.all([taskEmailPromise, languageCodesPromise, templatesPromise, dictionaryPromise]);
-    
-    // Auto open email popup after all data loaded
-    this.openSend();
-    
-    // Generate data if sendEmailToSupplier is true and templateId is set
-    if (this.sendEmailToSupplier && this.templateId) {
-      await this.generateData();
-    }
-  }
+  
   addLog(vl) {
     let temp = cloneDeep(this.logEdit);
     temp.strDate = this.afac.ConvertDateTimeToString(new Date(), "dd MMM, yyyy HH:mm");
     vl.commentsSendEmailTask.items.push(temp);
   }
-  async refreshTemplates() {
-    try {
-      document.getElementById("btnRefresh")?.classList.add("rotate");
-      await this.dbService
-        .listTemplateEmailSupplierOPEByNation({ nation: this.user.nation })
-        .toPromise()
-        .then((res) => {
-          if (res) this.lsTemplates = res?.filter((e) => e.types == "Service Operation");
-        });
-      setTimeout(() => {
-        document.getElementById("btnRefresh")?.classList.remove("rotate");
-      }, 1000);
-    } catch (err) {
-      this.notifi("error", "Could not connect to the server! Please try again later.");
-    }
-  }
+  // async refreshTemplates() {
+  //   try {
+  //     document.getElementById("btnRefresh")?.classList.add("rotate");
+  //     await this.dbService
+  //       .listTemplateEmailSupplierOPEByNation({ nation: this.user.nation })
+  //       .toPromise()
+  //       .then((res) => {
+  //         if (res) this.lsTemplates = res?.filter((e) => e.types == "Service Operation");
+  //       });
+  //     setTimeout(() => {
+  //       document.getElementById("btnRefresh")?.classList.remove("rotate");
+  //     }, 1000);
+  //   } catch (err) {
+  //     this.notifi("error", "Could not connect to the server! Please try again later.");
+  //   }
+  // }
 
   async openSend() {
     
@@ -249,7 +186,7 @@ export class SendEmailTaskNewComponent implements OnChanges {
     let masterCode: any = "";
     masterCode = await this.afac.getMasterCode();
 
-    this.tokenId = this.afac.ObjectId();
+    this.tokenId =  '' //this.afac.ObjectId();
     let info = "";
     let count: number = 0;
     this.lsEmails = this.listSelectService.filter((x) => x.checkBox === true);
@@ -267,35 +204,35 @@ export class SendEmailTaskNewComponent implements OnChanges {
     let now = new Date();
     this.Subject += ` (${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()})`;
     let assignedServiceIds = this.lsEmails.map((x) => x.assignedServiceId);
-    this.dbService.SendEmailTaskById({ assignedServiceId: assignedServiceIds }).subscribe((rs) => {
-      if (!rs) {
-        rs = [];
-        this.notifi("error", "Something went wrong! Please contact admin or try again later.");
-      }
-      this.lsEmails.forEach((x) => {
-        const obj = rs.find((r) => r.assignedServiceId === x.assignedServiceId);
-        const isNew = !obj;
-        const masterCodeValue = obj ? obj.masterCode : masterCode;
-        const tokenIdValue = this.tokenId;
-        const requestCodeValue = obj ? obj.requestCode : `${masterCode}-${++count}`;
-        const commentsSendEmailTaskValue = {
-          isNew,
-          assignedServiceId: x.assignedServiceId,
-          _id: isNew ? this.afac.ObjectId() : undefined,
-          items: isNew ? [] : obj.commentsSendEmailTask.items,
-        };
+    // this.dbService.SendEmailTaskById({ assignedServiceId: assignedServiceIds }).subscribe((rs) => {
+    //   if (!rs) {
+    //     rs = [];
+    //     this.notifi("error", "Something went wrong! Please contact admin or try again later.");
+    //   }
+    //   this.lsEmails.forEach((x) => {
+    //     const obj = rs.find((r) => r.assignedServiceId === x.assignedServiceId);
+    //     const isNew = !obj;
+    //     const masterCodeValue = obj ? obj.masterCode : masterCode;
+    //     const tokenIdValue = this.tokenId;
+    //     const requestCodeValue = obj ? obj.requestCode : `${masterCode}-${++count}`;
+    //     const commentsSendEmailTaskValue = {
+    //       isNew,
+    //       assignedServiceId: x.assignedServiceId,
+    //       _id: isNew ? this.afac.ObjectId() : undefined,
+    //       items: isNew ? [] : obj.commentsSendEmailTask.items,
+    //     };
 
-        // Gán giá trị mới cho x
-        Object.assign(x, {
-          masterCode: masterCodeValue,
-          tokenId: tokenIdValue,
-          requestCode: requestCodeValue,
-          note: obj ? obj.note : x.note,
-          commentsSendEmailTask: commentsSendEmailTaskValue,
-          createDate: new Date(),
-        });
-      });
-    });
+    //     // Gán giá trị mới cho x
+    //     Object.assign(x, {
+    //       masterCode: masterCodeValue,
+    //       tokenId: tokenIdValue,
+    //       requestCode: requestCodeValue,
+    //       note: obj ? obj.note : x.note,
+    //       commentsSendEmailTask: commentsSendEmailTaskValue,
+    //       createDate: new Date(),
+    //     });
+    //   });
+    // });
     this.popupSubmitSendmail = true;
     this.lsEmails.forEach((x) => {
       x.sendEmailTo = this.Contacts;
@@ -485,11 +422,11 @@ export class SendEmailTaskNewComponent implements OnChanges {
     });
   }
   lstGuidesitinerary: any = [];
-  getlistsGuidesitinerary(id) {
-    this.dbService.GetGuidesItineraryByTourId({ ids: [id] }).subscribe((rs) => {
-      this.lstGuidesitinerary = rs;
-    });
-  }
+  // getlistsGuidesitinerary(id) {
+  //   this.dbService.GetGuidesItineraryByTourId({ ids: [id] }).subscribe((rs) => {
+  //     this.lstGuidesitinerary = rs;
+  //   });
+  // }
   popupGuidesitinerary: boolean = false;
   Guidesitineraryloading: boolean = false;
   objEmails: any = {};
@@ -497,10 +434,10 @@ export class SendEmailTaskNewComponent implements OnChanges {
     this.objEmails = x;
     this.popupGuidesitinerary = true;
     this.Guidesitineraryloading = true;
-    this.dbService.GetGuidesItineraryByTourId({ ids: [x.parentTourId || x.tourId] }).subscribe((rs) => {
-      this.lstGuidesitinerary = rs || [];
-      this.Guidesitineraryloading = false;
-    });
+    // this.dbService.GetGuidesItineraryByTourId({ ids: [x.parentTourId || x.tourId] }).subscribe((rs) => {
+    //   this.lstGuidesitinerary = rs || [];
+    //   this.Guidesitineraryloading = false;
+    // });
   }
   closeGuidesitinerary() {
     let ls = this.lstGuidesitinerary.filter((x) => x.check);
@@ -530,20 +467,20 @@ export class SendEmailTaskNewComponent implements OnChanges {
   }
   cfText = "All the change you have made will be overrided! Do you want to continue?";
   async handleChangeLanguage(code = "") {
-    await this.dbService
-      .GetDictionaryByLanguageCode({
-        nation: this.user.nation,
-        languageCode: code,
-      })
-      .toPromise()
-      .then((res) => {
-        this.dictByLang = [];
-        if (res?.dictionarys) {
-          for (const [key, content] of Object.entries(res?.dictionarys)) {
-            this.dictByLang.push({ keyword: `[#${key}#]`, value: content });
-          }
-        }
-      });
+    // await this.dbService
+    //   .GetDictionaryByLanguageCode({
+    //     nation: this.user.nation,
+    //     languageCode: code,
+    //   })
+    //   .toPromise()
+    //   .then((res) => {
+    //     this.dictByLang = [];
+    //     if (res?.dictionarys) {
+    //       for (const [key, content] of Object.entries(res?.dictionarys)) {
+    //         this.dictByLang.push({ keyword: `[#${key}#]`, value: content });
+    //       }
+    //     }
+    //   });
   }
   async handleChangeTemplate(templateId = "") {
     debugger
@@ -566,26 +503,26 @@ export class SendEmailTaskNewComponent implements OnChanges {
       } else isConfirm = true;
       if (isConfirm) {
         this.isGenerating = true;
-        await this.dbService
-          .LoadViewTemplateEmailSupplier({
-            emailId: this.templateId,
-            languageCode: this.languageCode,
-            nation: this.user.nation,
-          })
-          .toPromise()
-          .then(
-           async (res) => {
-              this.templateContent = res?.content;
-              this.templateSubject = res?.subject;
-              this.emailContent = await this.mapDataToTemplate();
-              this.isGenerating = false;
-              this.loadingTask = false;
-            },
-            (error) => {
-              this.isGenerating = false;
-              this.loadingTask = false;
-            }
-          );
+        // await this.dbService
+        //   .LoadViewTemplateEmailSupplier({
+        //     emailId: this.templateId,
+        //     languageCode: this.languageCode,
+        //     nation: this.user.nation,
+        //   })
+        //   .toPromise()
+        //   .then(
+        //    async (res) => {
+        //       this.templateContent = res?.content;
+        //       this.templateSubject = res?.subject;
+        //       this.emailContent = await this.mapDataToTemplate();
+        //       this.isGenerating = false;
+        //       this.loadingTask = false;
+        //     },
+        //     (error) => {
+        //       this.isGenerating = false;
+        //       this.loadingTask = false;
+        //     }
+        //   );
       }
     } catch (err) {
       this.isGenerating = false;
@@ -607,81 +544,7 @@ export class SendEmailTaskNewComponent implements OnChanges {
 
     let lsDataMapping = listForMappingFinal.map((x) => {
       let obj: any = {};
-      obj.listTypeBedSelect = x.listTypeBedSelect;
-      obj.NoOfGuests =
-        this.listSelectService[0]?.noOfguests ||
-        this.listSelectService[0]?.lsPassenger?.length ||
-        this.TaskService?.ld_qty ||
-        this.TaskService?._PassengerName?.length ||
-        0;
-      // price OPE Input.
-      obj.roomRate = x.roomRate;
-      obj.note = x.note;
-      obj.share = x.isShare ? `[#share#]` : "[#Single#]";
-      // service Name
-      obj.supplierName = x.assigned?.serviceName || "";
-      obj.serviceTitle = x.assigned?.serviceName || "";
-      obj.serviceName = x.taskName || "";
-      obj.RoomingList = this.TaskService?._PassengerName || [];
-      // Name assign
-      obj.name = x.assigned.name ? x.assigned.name || x.taskName : "";
-      obj.hotelRoomCategory = x.assigned.hotelRoomCategory;
-      obj.txtbegindate = "From Date:";
-      obj.txtenddate = "To Date:";
-      obj.strbegindate = this.afac.localizeDate(x.strbegindate, this.languageCode);
-      obj.strenddate = this.afac.localizeDate(x.strenddate, this.languageCode);
-      obj.unit_sgl = x.assigned.unit_sgl;
-      obj.nights_sgl = x.assigned.nights_sgl;
-      obj.unit = x.assigned.unit || x.assigned.unit_NoRoom;
-      obj.nights = x.assigned.nights;
-      obj.Currency = this.user.currency;
-      obj.totalCost_unit_sgl = this.afac.NumberFormatStyles(x.assigned.totalCost_unit_sgl, this.user.currency, false);
-      obj.actualCost_unit = this.afac.NumberFormatStyles(x.assigned.actualCost_unit, this.user.currency, false);
-      obj.totalCost_unit_tws = this.afac.NumberFormatStyles(x.assigned.totalCost_unit_tws, this.user.currency, false);
-      obj.totalCost_unit = this.afac.NumberFormatStyles(x.assigned.totalCost_unit, this.user.currency, false);
-      obj.childPrices = x.assigned.childPrices;
-      // other services -> a array Data
-      obj.otherServices = x.assigned.otherServices;
-      // a array Data
-      obj.childPrices = x.assigned.childPrices;
-      // show and hide price to supplier "true || false"
-      obj.showPriceToSupplier = x.showPriceToSupplier;
-      obj.productCode = x.productCode;
-      obj.bookingName = x.bookingName;
-      // Transfers
-      obj.TranferFrom = x.TranferFrom || "";
-      obj.TranferTo = x.TranferTo || "";
-      if (this.TaskService?.vehicles && this.TaskService?.vehicles.length > 0)
-        obj.vehicleType = x.vehicleType || this.TaskService?.vehicles[0]?.vehicleType || "";
-      obj.pickupTime = x.pickupTime ? this.afac.convertISO_dateToTime(x.pickupTime) : "";
-      // obj.pickuptime = obj.pickupTime;
-      // Flights
-      if (x?.flights?.length) {
-        obj.flightType = x.flights[0]?.Flight || "";
-        obj.airlines = x.flights[0]?.Airlines || "";
-        obj.flightNumber = x.flights[0]?.info_note || "";
-        obj.departureTime = x.flights[0]?.FromtimeFlight
-          ? this.afac.convertISO_dateToTime(x.flights[0].FromtimeFlight)
-          : "";
-        obj.arrivalTime = x.flights[0]?.TotimeFlight ? this.afac.convertISO_dateToTime(x.flights[0]?.TotimeFlight) : "";
-        obj.pickupTime = x.flights[0]?.PickupTime_DateFlight
-          ? this.afac.convertISO_dateToTime(x.flights[0].PickupTime_DateFlight)
-          : "";
-        // obj.pickuptime = obj.pickupTime;
-      }
-      if (x.servicetypes === "Hotel") {
-        obj.serviceName = x.assigned.hotelName || x.taskName || "";
-        obj.txtbegindate = "Check In Date:";
-        obj.txtenddate = "Check Out Date:";
-      }
-      if (!this.showPriceToSupplier) {
-        obj.totalCost_unit_sgl = "[#perContract#]";
-        obj.actualCost_unit = "[#perContract#]";
-        obj.totalCost_unit_tws = "[#perContract#]";
-        obj.totalCost_unit = "[#perContract#]";
-        obj.showPriceToSupplier = false;
-      }
-
+      
       return obj;
     });
 
@@ -1000,40 +863,40 @@ export class SendEmailTaskNewComponent implements OnChanges {
           Ex.contentForSupplier = contentForSupplier;
           Ex.contentEmailForSupplier = contentEmailForSupplier;
         });
-        this.dbService
-          .SaveSendEmailTask({
-            sendEmailInfo: obj,
-            assignedServiceIds: this.lsEmails,
-            sendEmailToSupplier: this.sendEmailToSupplier
-          })
-          .subscribe((x) => {
-            if (x) {
-              const Emails: any = [];
-              this.Contacts.forEach((ct) => {
-                let lstCCEmail = this.emailCC
-                  ?.split(/[,;]/)
-                  .filter((e) => !!e?.trim() && e.trim() != ct.email?.trim())
-                  .map((e) => {
-                    return e.trim();
-                  })
-                lstCCEmail = lstCCEmail.filter(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
-                Emails.push({
-                  emailType: "Operation",
-                  nation: this.user.nation,
-                  Email: ct.email?.trim(),
-                  Subject: this.Subject,
-                  Content: contentEmailForSupplier,
-                  CcEmails: lstCCEmail,
-                });
-              });
-              this.dbService.notifyApiUrl(Emails).subscribe((rs) => {
-                if (rs) {
-                  this.out.emit({ action: "out", serviceId: this._idService });
-                  this.notifi("success", "Send Email successfully");
-                }
-              });
-            } else this.notifi("error", "Failed to send email", 7000);
-          });
+        // this.dbService
+        //   .SaveSendEmailTask({
+        //     sendEmailInfo: obj,
+        //     assignedServiceIds: this.lsEmails,
+        //     sendEmailToSupplier: this.sendEmailToSupplier
+        //   })
+        //   .subscribe((x) => {
+        //     if (x) {
+        //       const Emails: any = [];
+        //       this.Contacts.forEach((ct) => {
+        //         let lstCCEmail = this.emailCC
+        //           ?.split(/[,;]/)
+        //           .filter((e) => !!e?.trim() && e.trim() != ct.email?.trim())
+        //           .map((e) => {
+        //             return e.trim();
+        //           })
+        //         lstCCEmail = lstCCEmail.filter(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+        //         Emails.push({
+        //           emailType: "Operation",
+        //           nation: this.user.nation,
+        //           Email: ct.email?.trim(),
+        //           Subject: this.Subject,
+        //           Content: contentEmailForSupplier,
+        //           CcEmails: lstCCEmail,
+        //         });
+        //       });
+        //       this.dbService.notifyApiUrl(Emails).subscribe((rs) => {
+        //         if (rs) {
+        //           this.out.emit({ action: "out", serviceId: this._idService });
+        //           this.notifi("success", "Send Email successfully");
+        //         }
+        //       });
+        //     } else this.notifi("error", "Failed to send email", 7000);
+        //   });
         break;
       case "close":
         this.popupSubmitSendmail = false;
@@ -1071,339 +934,7 @@ export class SendEmailTaskNewComponent implements OnChanges {
   @Input() listAgency: any = [];
   templateContent: any = "";
 
-  async mapDataToTemplate() {
-    this.renderSubject();
 
-    let listForMappingFinal: any = this.lsEmails
-      .filter((x) => x.assigned && !x.isAddOn)
-      .map((x) => ({ ...x, isShare: false }));
-    if (listForMappingFinal?.length > 0)
-      listForMappingFinal.forEach((x) => {
-        if (x.assigned?.otherServices?.length && x.PriceType !== "ACCOMMODATIONFEE") {
-          x.assigned.otherServices.forEach((oth) => {
-            let temp = _.cloneDeep(x);
-            temp.assigned.unit = oth.unit;
-            temp.assigned.totalCost = oth.actualCost;
-            temp.assigned.totalCost_tws = oth.actualCost;
-            temp.assigned.totalCost_tws_local = oth.actualCost;
-            temp.assigned.totalCost_unit = oth.actualCost;
-            temp.assigned.totalCost_unit_tws = oth.actualCost;
-            listForMappingFinal.push(temp);
-          });
-        }
-      });
-    const lsDataMapping = await Promise.all(listForMappingFinal.map((x) => this.populateObject(x)));
-    if (
-      this.templateContent &&
-      (this.templateContent.includes('class="array"') ||
-        this.templateContent.includes('class="array-render"') ||
-        this.templateContent.includes('mapping-type="array"'))
-    ) {
-      // Handle div with class="array"
-      if (this.templateContent.includes('class="array"')) {
-        const lsArrays = this.templateContent.split('<div class="array">');
-        const lsByCat = lsDataMapping.reduce((p, c, i) => {
-          const getPassengers = (roomingList) =>
-            this.TaskService?.lsPassenger?.filter((pax) => roomingList.includes(pax.id));
-
-          if (i === 0) {
-            p.push({
-              info: { ...c, lsPassenger: getPassengers(c.RoomingList) },
-              items: [c],
-            });
-            return p;
-          }
-
-          const gI = p.findIndex((group) => group.items.some((e) => e.hotelRoomCategory === c.hotelRoomCategory));
-          if (gI < 0) {
-            p.push({
-              info: { ...c, lsPassenger: getPassengers(c.RoomingList) },
-              items: [c],
-            });
-          } else {
-            const group = p[gI];
-            group.items.push(c);
-            const combinedRoomingList = [...new Set([...group.info.RoomingList, ...c.RoomingList])];
-            const passengers = getPassengers(combinedRoomingList);
-            group.info = {
-              ...group.info,
-              RoomingList: combinedRoomingList,
-              unit: group.info.unit + c.unit,
-              NoOfGuests: combinedRoomingList.length,
-              lsPassenger: passengers,
-            };
-          }
-
-          return p;
-        }, []);
-        this.emailContentGen = lsArrays
-          .map((content, i) => {
-            if (i === 0) return this.generateContent(content, lsDataMapping);
-
-            const indexCont = content.indexOf("</div>");
-            const afterArrayContent = content.substring(indexCont + 6);
-            const arraySection = content.substring(0, indexCont);
-            const arrayContent = lsByCat
-              .map((d) => {
-                this.lsPassenger = d.info.lsPassenger;
-                return this.generateContent(arraySection, d.items, d.info);
-              })
-              .join("");
-
-            return arrayContent + this.generateContent(afterArrayContent, lsDataMapping);
-          })
-          .join("");
-      }
-
-      // Handle div with class="array-render"
-      if (this.templateContent.includes('class="array-render"')) {
-        try {
-          // Find all array-render divs in the template
-          const regex = /<div class="array-render">([\s\S]*?)<\/div>/g;
-          let match;
-          let lastIndex = 0;
-          let renderedContent = "";
-
-          // Process the template part by part
-          while ((match = regex.exec(this.templateContent)) !== null) {
-            // Add content before this array-render div
-            renderedContent += this.templateContent.substring(lastIndex, match.index);
-
-            // Get the inner content of the array-render div
-            const innerContent = match[1];
-
-            // Process each data item for this array-render div
-            lsDataMapping.forEach((item, index) => {
-              // Create a container for this item
-              let itemContent = innerContent;
-
-              let bestRate = ``;
-              if (item.bestRate && !item.skipRule) {
-                bestRate = `${item.bestRate.ruleName ?? ""}`;
-              }
-              if (item.selectOpeSelected) {
-                let ob = item.lsPrice?.find((x) => x.IsItem === item.selectOpeSelected);
-                if (ob) bestRate = `${ob.ruleName ?? ""}`;
-              }
-              // Create the mapped data object with all necessary fields
-              const mappedData = {
-                service_callIndex: (index + 1).toString(),
-                service_productCode: item.productCode || "",
-                service_BookingName: item.bookingName || "",
-                service_strbegindate: this.afac.localizeDate(item.strbegindate, this.languageCode) || "",
-                service_strenddate: this.afac.localizeDate(item.strenddate, this.languageCode) || "",
-                service_hotelRoomCategory: item.hotelRoomCategory || "",
-                service_noOfGuests: (item.NoOfGuests || 0).toString(),
-                service_noOfRooms: (item.totalRooms || item.unit || 0).toString(),
-                service_configuration: item.configuration || "",
-                service_statementSelect: item.showPriceToSupplier
-                  ? item.totalCost_unit
-                  : this.StatementSelected || "[#perContract#]",
-                service_note: item.note || "",
-                service_supplierName: item.supplierName || "",
-                service_serviceTitle: item.serviceTitle || "",
-                service_serviceName: item.serviceName || "",
-                service_condition: bestRate,
-                service_time: item.time || "",
-                service_PickUpPoint: item.PickUpPoint || "",
-                service_DropOffPoint: item.DropOffPoint || "",
-                service_vehicleType: item.vehicleType || "",
-                service_From: item.From || "",
-                service_To: item.To || "",
-                service_departureTime: item.departureTime || "",
-                service_arrivalTime: item.arrivalTime || "",
-                service_flightNumbers: item.flightNumbers || "",
-                service_airlines: item.airlines || "",
-                service_classes: item.classes || "",
-                service_luggageAllowance: item.luggageAllowance || "",
-
-                cutOffDate: item.cutOffDate ? this.afac.localizeDate(item.cutOffDate, this.languageCode) : "",
-                blockedUnits: (item.blockedUnits || 0).toString(),
-                confirmedStatusUpdate: (item.confirmedStatusUpdate || 0).toString(),
-                takenDate: item.takenDate ? this.afac.localizeDate(item.takenDate, this.languageCode) : "",
-                confirmedBy: item.confirmedBy || "",
-                remainBlockedUnits: (item.remainBlockedUnits || 0).toString(),
-              };
-
-              // Replace all placeholders in the content
-              Object.keys(mappedData).forEach((key) => {
-                const regex = new RegExp(`{{${key}}}`, "g");
-                itemContent = itemContent.replace(regex, mappedData[key]);
-              });
-              this.populatePaxmanifestUrls(itemContent, this._tourId, item.IsItem, this.Supplier.supplierID);
-              // Add the processed content to the rendered content
-              renderedContent += `<div class="array-render-item">${itemContent}</div>`;
-            });
-
-            // Update the last index to after this array-render div
-            lastIndex = match.index + match[0].length;
-          }
-
-          // Add any remaining content after the last array-render div
-          if (lastIndex < this.templateContent.length) {
-            renderedContent += this.templateContent.substring(lastIndex);
-          }
-
-          // Set the final email content
-          this.emailContentGen = renderedContent;
-        } catch (error) {
-          console.error("Error processing array-render:", error);
-          // Fallback to regular content generation if there's an error
-          this.emailContentGen = this.generateContent(this.templateContent, lsDataMapping);
-        }
-      }
-
-      // Handle tables with mapping-type="array"
-      if (this.templateContent.includes('mapping-type="array"')) {
-        // Parse the template to find tables with mapping-type="array"
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(this.templateContent, "text/html");
-        const arrayTables = doc.querySelectorAll('table[mapping-type="array"]');
-
-        // If no array tables found, just process the template normally
-        if (arrayTables.length === 0) {
-          this.emailContentGen = this.generateContent(this.templateContent, lsDataMapping);
-        } else {
-          // Group data by hotel room category for array tables
-          const lsByCat = lsDataMapping.reduce((p, c, i) => {
-            const getPassengers = (roomingList) =>
-              this.TaskService?.lsPassenger?.filter((pax) => roomingList.includes(pax.id));
-
-            if (i === 0) {
-              p.push({
-                info: {
-                  ...c,
-                  lsPassenger: getPassengers(c.RoomingList),
-                  bestRate: c.bestRate || null,
-                  skipRule: c.skipRule || false,
-                  travelPeriodOnlyMonth: c.travelPeriodOnlyMonth || null,
-                },
-                items: [c],
-              });
-              return p;
-            }
-
-            const gI = p.findIndex((group) => group.items.some((e) => e.hotelRoomCategory === c.hotelRoomCategory));
-            if (gI < 0) {
-              p.push({
-                info: {
-                  ...c,
-                  lsPassenger: getPassengers(c.RoomingList),
-                  bestRate: c.bestRate || null,
-                  skipRule: c.skipRule || false,
-                  travelPeriodOnlyMonth: c.travelPeriodOnlyMonth || null,
-                },
-                items: [c],
-              });
-            } else {
-              const group = p[gI];
-              group.items.push(c);
-              const combinedRoomingList = [...new Set([...group.info.RoomingList, ...c.RoomingList])];
-              const passengers = getPassengers(combinedRoomingList);
-
-              // Preserve bestRate and skipRule from the first item if they exist
-              const bestRate = group.info.bestRate || c.bestRate || null;
-              const skipRule = typeof group.info.skipRule !== "undefined" ? group.info.skipRule : c.skipRule || false;
-              const travelPeriodOnlyMonth = group.info.travelPeriodOnlyMonth || c.travelPeriodOnlyMonth || null;
-
-              group.info = {
-                ...group.info,
-                RoomingList: combinedRoomingList,
-                unit: group.info.unit + c.unit,
-                NoOfGuests: combinedRoomingList.length,
-                lsPassenger: passengers,
-                bestRate: bestRate,
-                skipRule: skipRule,
-                travelPeriodOnlyMonth: travelPeriodOnlyMonth,
-              };
-            }
-
-            return p;
-          }, []);
-          // Process each array table
-          arrayTables.forEach((table) => {
-            const tableHtml = table.outerHTML;
-            const tableContainer = document.createElement("div");
-
-            // Generate a table for each group in lsByCat
-            const tablesHtml = lsByCat
-              .map((group) => {
-                this.lsPassenger = group.info.lsPassenger;
-                group.items.forEach((x) => {
-                  x.condition = "";
-                  if (x.bestRate && !x.skipRule) {
-                    x.condition = `${x.bestRate.ruleName ?? ""}`;
-                  }
-                  if (x.selectOpeSelected) {
-                    let ob = x.lsPrice?.find((m) => m.IsItem === x.selectOpeSelected);
-                    if (ob) x.condition = `${ob.ruleName ?? ""}`;
-                  }
-                });
-                group.info.condition = ``;
-                try {
-                  if (group.info?.bestRate) {
-                    if (!group.info.skipRule) {
-                      // Check if ruleName exists and is not null/undefined
-                      if (group.info.bestRate.ruleName !== undefined && group.info.bestRate.ruleName !== null) {
-                        group.info.condition = `${group.info.bestRate.ruleName}`;
-                      } else if (group.info.bestRate.name) {
-                        // Fallback to name if ruleName doesn't exist
-                        group.info.condition = `${group.info.bestRate.name}`;
-                      }
-                      if (group.info.selectOpeSelected) {
-                        let ob = group.info.lsPrice?.find((m) => m.IsItem === group.info.selectOpeSelected);
-                        if (ob) group.info.condition = `${ob.ruleName ?? ""}`;
-                      }
-                    }
-                  }
-                } catch (error) {
-                  console.error("Error setting condition for group info:", error);
-                  // Keep the default empty string in case of error
-                }
-                return this.generateContent(tableHtml, group.items, group.info);
-              })
-              .join("");
-
-            tableContainer.innerHTML = tablesHtml;
-            table.replaceWith(tableContainer);
-          });
-          lsDataMapping.forEach((x) => {
-            x.condition = "";
-            if (x.bestRate && !x.skipRule) {
-              x.condition = `${x.bestRate.ruleName ?? ""}`;
-            }
-            if (x.selectOpeSelected) {
-              let ob = x.lsPrice?.find((m) => m.IsItem === x.selectOpeSelected);
-              if (ob) x.condition = `${ob.ruleName ?? ""}`;
-            }
-          });
-          // Generate the final content
-          this.emailContentGen = this.generateContent(doc.body.innerHTML, lsDataMapping);
-        }
-      }
-    } else {
-      lsDataMapping?.forEach((item, index) => {
-        // Create a container for this item
-        let bestRate = ``;
-        if (item.bestRate && !item.skipRule) {
-          bestRate = `${item?.bestRate?.ruleName ?? ""}`;
-        }
-        item.condition = bestRate;
-        if (item.selectOpeSelected) {
-          let ob = item.lsPrice?.find((m) => m.IsItem === item.selectOpeSelected);
-          if (ob) item.condition = `${ob.ruleName ?? ""}`;
-        }
-      });
-      this.emailContentGen = this.generateContent(this.templateContent, lsDataMapping);
-    }
-
-    this.emailContentGen = this
-      .translateContent(this.emailContentGen, this.dictByLang)
-      .replace(/<p[^>]*>(\&nbsp;)*<\/p>/g, "")
-      .replace(/\[#|#\]/g, "");
-
-    return this.emailContentGen;
-  }
 
     renderSubject() {
     let info = "";
@@ -1508,171 +1039,7 @@ if (obj && obj.servicetypes !== "Hotel") {
   }
   StatementSelected: any = "";
 
-   populateObject(item) {
-    let obj: any = {};
-    let listTypeBed =
-      item.listTypeBedSelect && item.listTypeBedSelect.length ? item.listTypeBedSelect.filter((ty) => ty.value) : [];
-    let strTypeBed = listTypeBed?.map((ty) => `${ty.value} ${ty.name}`).join(", ");
-    obj.listTypeBedSelect = item.listTypeBedSelect || [];
-    if (!item.assigned?.unit) {
-      obj.NoOfGuests = item.Items_Calculator?.lsAssignedService?.length
-        ? item.Items_Calculator.lsAssignedService[0].unit ?? ""
-        : "";
-    } else {
-      obj.NoOfGuests = item.assigned?.unit;
-    }
-    if (item.Connection?.length && item.Connection.length > 0) {
-      let connectionFlights: any = this.Flights(item.Connection);
-      // Populate flight information from the first connection if available
-      if (connectionFlights.length > 0) {
-        // Create formatted strings for all connection flights
-        obj.flightNumbers = connectionFlights.map((flight) => flight.flightNumber).join("<br>");
-        obj.airlines = connectionFlights.map((flight) => flight.airlines).join("<br>");
-        obj.routes = connectionFlights.map((flight) => flight.route).join("<br>");
-        obj.times = connectionFlights.map((flight) => flight.times).join("<br>");
-        obj.classes = connectionFlights.map((flight) => flight.class).join("<br>");
-        obj.luggageAllowance = connectionFlights.map((flight) => flight.luggageAllowance).join("<br>");
-        // Create a combined formatted string with all flight details
-        // obj.formattedFlights = connectionFlights.map(flight =>
-        //   `Flight: ${flight.flightNumber} | Route: ${flight.route} | Departure: ${flight.departureTime} | Arrival: ${flight.arrivalTime} | Class: ${flight.class}`
-        // ).join("<br>");
-      }
-      // Store the full array of connection flights for use in templates
-      // obj.connectionFlights = connectionFlights;
-    } else {
-      // Fallback to existing values if no connection flights
-      obj.flightTypes = item.Flight ?? "";
-      obj.airlines = item.Airlines ?? "";
-      obj.routeFlights = item.routeFlight ?? "";
-      obj.flightNumbers = item?.info_note ?? "";
-      obj.classes = item?.classFlight ?? "";
-      obj.luggageAllowance = item?.luggageAllowance ?? "";
-    }
-    let numberHotel = item.lsRoomAssigned?.filter((r) => r.Adults).length || 0;
-    obj.roomRate = item.roomRate;
-    obj.name = item.roomRate;
-    obj.bestRate = item.bestRate;
-    obj.lsPrice = item.lsPrice ?? [];
-    obj.selectOpeSelected = item.selectOpeSelected;
-    obj.skipRule = item.skipRule;
-    obj.arrayIndex = item.arrayIndex;
-    obj.PickUpTime = this.afac.convertISO_dateToTime(item.PickUpTime);
-    obj.DropOffTime = this.afac.convertISO_dateToTime(item.DropOffTime);
-    obj.time = (obj.PickUpTime ?? "") + (obj.DropOffTime ? ` - ${obj.DropOffTime}` : "");
-    obj.note = item.note;
-    obj.share = item.isShare ? `[#share#]` : "[#Single#]";
-    // service Name
-    obj.supplierName = item.assigned?.serviceName || "";
-    obj.serviceTitle = item.assigned?.serviceName || "";
-    obj.serviceName = item.taskName || "";
-    obj.serviceNameMulti = `${obj.serviceName}`;
-    // ACCOMMODATIONFEE
-    obj.hotelRoomCategoryMulti = `${item.assigned?.hotelRoomCategory || ""}`;
-    obj.configuration = listTypeBed?.map((ty) => `${ty.name}: ${ty.value}`).join("<br>");
-    obj.totalRooms = 0;
-    obj.nights = 0;
-    obj.nightsUnit = 0;
-    if (item.PriceType === "ACCOMMODATIONFEE") {
-      obj.serviceNameMulti = `${obj.serviceName} - ${item.assigned?.hotelRoomCategory || ""} | ${strTypeBed}`;
-      obj.hotelRoomCategoryMulti = `${item.assigned?.hotelRoomCategory || ""} | ${strTypeBed}`;
-      obj.NoOfGuests = numberHotel;
-      obj.roomRate = item.assigned.totalCost_unit_sgl;
-      obj.totalRooms = (item?.assigned?.unit ?? 0) + (item?.assigned?.unit_sgl ?? 0);
-      obj.nights =
-        (item?.assigned?.unit ? item?.assigned?.nights ?? 0 : 0) +
-        (item?.assigned?.unit_sgl ? item?.assigned?.nights_sgl ?? 0 : 0);
-      obj.nightsUnit = item?.assigned?.nights || (item?.assigned?.nights_sgl ?? 0);
-    }
-    obj.RoomingList = this.TaskService?._PassengerName || [];
-    // Name assign
-    obj.name = item.assigned.name ? item.assigned.name || item.taskName : "";
-    obj.hotelRoomCategory = item.assigned.hotelRoomCategory ?? "";
-    obj.txtbegindate = "From Date:";
-    obj.txtenddate = "To Date:";
-    obj.strbegindate = this.afac.localizeDate(item.strbegindate, this.languageCode);
-    obj.strenddate = this.afac.localizeDate(item.strenddate, this.languageCode);
-    obj.begindate = this.afac.localToUtc(item.strbegindate);
-    obj.enddate = this.afac.localToUtc(item.strenddate);
-    obj.serviceViewType = item.types || "";
-    obj.unit_sgl = item.assigned.unit_sgl;
-    // obj.nights_sgl = x.assigned.nights_sgl;
-    obj.unit = item.assigned.unit || item.assigned.unit_NoRoom;
-    // obj.nights = x.assigned.nights;
-    obj.Currency = this.user.currency;
-    obj.totalCost_unit_sgl = this.afac.NumberFormatStyles(item.assigned.totalCost_unit_sgl, this.user.currency, false);
-    obj.actualCost_unit = this.afac.NumberFormatStyles(item.assigned.actualCost_unit, this.user.currency, false);
-    obj.totalCost_unit_tws = this.afac.NumberFormatStyles(item.assigned.totalCost_unit_tws, this.user.currency, false);
-    obj.totalCost_unit = this.afac.NumberFormatStyles(item.assigned.totalCost_unit, this.user.currency, false);
-    if (!obj.totalCost_unit) obj.totalCost_unit = obj.totalCost_unit_tws;
-    obj.childPrices = item.assigned.childPrices;
-    // other services -> a array Data
-    obj.otherServices = item.assigned.otherServices;
-    // a array Data
-    obj.childPrices = item.assigned.childPrices;
-    // show and hide price to supplier "true || false"
-    obj.showPriceToSupplier = item.showPriceToSupplier;
-    obj.productCode = item.productCode;
-    obj.bookingName = item.bookingName;
-    // Transfers
-    obj.TranferFrom = item.TranferFrom ?? "";
-    obj.TranferTo = item.TranferTo ?? "";
-    if (this.TaskService?.vehicles && this.TaskService?.vehicles.length > 0) {
-      if (this.VehicleTypeSelected?.length) {
-        obj.vehicleType = this.VehicleTypeSelected.join(",");
-      } else {
-        obj.vehicleType = item.vehicleType ?? this.TaskService?.vehicles[0]?.vehicleType ?? "";
-      }
-    } else if (this.VehicleTypeSelected?.length) {
-      obj.vehicleType = this.VehicleTypeSelected.join(",");
-    } else {
-      // If no vehicle type is set, try to determine from passenger count
-      const paxCount = this.getTotalPassengerCount(item);
-      const vehicleInfo = this.getDefaultVehicleFromPaxCount(paxCount, item.listOrtherData || []);
-      obj.vehicleType = vehicleInfo.name || "";
-    }
-    // dropOffPoint = data.DropOffPoint ?? accom?.name ?? "";
-    // pickUpPoint = data.PickupPoint ?? accom?.name ?? "";
-
-    obj.PickUpPoint = item.PickupPoint ?? "";
-    obj.DropOffPoint = item.DropOffPoint ?? "";
-    // Flights
-    // if (x?.flights?.length) {
-    // const flight = x.flights[0] || {};
-    obj.From = item.From ?? "";
-    obj.To = item.To ?? "";
-    obj.departureTime = item.FromtimeFlight ? this.afac.convertISO_dateToTime(item.FromtimeFlight) : "";
-    obj.arrivalTime = item.TotimeFlight ? this.afac.convertISO_dateToTime(item.TotimeFlight) : "";
-    obj.pickupTime = item.PickupTime_DateFlight ? this.afac.convertISO_dateToTime(item.PickupTime_DateFlight) : "";
-    // }
-    // obj.Connection = x.Connection ?? [];
-    if (item.servicetypes === "Hotel") {
-      obj.serviceName = item.assigned.hotelName || item.taskName || "";
-      obj.txtbegindate = "Check In Date:";
-      obj.txtenddate = "Check Out Date:";
-    }
-    if (!this.showPriceToSupplier) {
-      if (this.StatementSelected) {
-        obj.totalCost_unit_sgl = this.StatementSelected;
-        obj.actualCost_unit = this.StatementSelected;
-        obj.totalCost_unit_tws = this.StatementSelected;
-        obj.totalCost_unit = this.StatementSelected;
-      } else {
-        obj.totalCost_unit_sgl = "[#perContract#]";
-        obj.actualCost_unit = "[#perContract#]";
-        obj.totalCost_unit_tws = "[#perContract#]";
-        obj.totalCost_unit = "[#perContract#]";
-      }
-
-      obj.showPriceToSupplier = false;
-    }
-    if (this.AllotmentSelected) {
-      obj.allotmentSelected = this.AllotmentSelected ?? "";
-    } else {
-      obj.allotmentSelected = "";
-    }
-
-    return obj;
-  }
+  
   AllotmentSelected: any = "";
 
    populatePaxmanifestUrls(template: string, tourId: any = "", _hotelId, supplierID) {
@@ -1889,15 +1256,7 @@ if (obj && obj.servicetypes !== "Hotel") {
           const connectionFlights = this.Flights(flightInfo.Connection);
           if (connectionFlights.length > 0) {
             // Create individual properties for backward compatibility
-            flightDetails = {
-              flightNumbers: connectionFlights.map((flight) => flight.flightNumber).join(", "),
-              airlines: connectionFlights.map((flight) => flight.airlines).join(", "),
-              routes: connectionFlights.map((flight) => flight.route).join(", "),
-              times: connectionFlights.map((flight) => flight.times).join(", "),
-              classes: connectionFlights.map((flight) => flight.class).join(", "),
-              luggageAllowance: connectionFlights.map((flight) => flight.luggageAllowance).join(", "),
-              Flight: connectionFlights.map((flight) => flight.Flight).join(", "),
-            };
+           
 
             // Add a new formatted string property that combines all flight information
             flightConnectionsString = connectionFlights
@@ -1906,7 +1265,7 @@ if (obj && obj.servicetypes !== "Hotel") {
                 // if (flight.airlines) parts.push(flight.airlines);
                 if (flight.flightNumber) parts.push(flight.flightNumber);
                 if (flight.route) parts.push(flight.route);
-                if (flight.times) parts.push(flight.times);
+                // if (flight.times) parts.push(flight.times);
                 return parts.join(" | ");
               })
               .join("<br>");
@@ -1925,11 +1284,6 @@ if (obj && obj.servicetypes !== "Hotel") {
           serviceGuidePhone: serviceGuideInfo?.serviceGuidePhone ?? "",
           flightDetails: flightConnectionsString ?? "",
           supplierName: data?.infoService?.supplier || "",
-          pickupTime: this.afac.convertISO_dateToTime(data?.PickUpTime) || "",
-          PickupTime: this.afac.convertISO_dateToTime(data?.PickUpTime) || "",
-          FromtimeMeals: this.afac.convertISO_dateToTime(data?.FromtimeMeals) || "",
-          TotimeMeals: this.afac.convertISO_dateToTime(data?.TotimeMeals) || "",
-          noteRequirements: data?.noteRequirements?.replaceAll("\n", "<br>"),
           Note: data?.Note || data?.note || "",
           menuType: data?.restaurantMenu || "",
           bookingStatus: data?.status || "",
@@ -1979,13 +1333,7 @@ if (obj && obj.servicetypes !== "Hotel") {
                         // flightNumber: x.flightNumber || x.info_note || "",
                         supplierName: x?.infoService?.supplier || "",
                         // NoOfGuests: x?.PriceType === "ACCOMMODATIONFEE" ? x?.numberPaxAdult : x?.ld_qty,
-                        pickupTime: this.afac.convertISO_dateToTime(data.PickUpTime),
-                        PickupTime: this.afac.convertISO_dateToTime(data.PickUpTime),
-                        // departureTime: this.afac.convertISO_dateToTime(x?.FromtimeFlight) || "",
-                        // arrivalTime: this.afac.convertISO_dateToTime(x?.TotimeFlight) || "",
-                        FromtimeMeals: this.afac.convertISO_dateToTime(data?.FromtimeMeals) || "",
-                        TotimeMeals: this.afac.convertISO_dateToTime(data?.TotimeMeals) || "",
-                        noteRequirements: x.noteRequirements?.replaceAll("\n", "<br>"),
+                              noteRequirements: x.noteRequirements?.replaceAll("\n", "<br>"),
                         bookingStatus: x.status || "",
                         Note: x.Note || x.note || "",
                         serviceType: x.types || "",
@@ -2133,8 +1481,6 @@ getBedTypes(list) {
         Flight: connection.Flight || "",
         route: `${connection.From || ""} - ${connection.To || ""}`,
         airlines: connection.Airlines || "",
-        times: `${this.afac.convertISO_dateToTime(connection.FromtimeFlight) || ""}  ${connection.TotimeFlight ? " - " + this.afac.convertISO_dateToTime(connection.TotimeFlight) : ""
-          }`,
         class: this.getFlightClassName(connection.class) || "",
         luggageAllowance: this.getFlightClassName(connection.luggageAllowance) || "",
         // Include original data for reference if needed
@@ -2282,19 +1628,19 @@ getBedTypes(list) {
  series: any = {}; // Add this property to store the series data
   isConvert: boolean = false;
   private loadRetailSalesSicData(): void {
-  this.dbService
-    .GetRetailSalesSicAsync({
-      idBooking: this.idBookingOrigin,
-      isConvert: this.isConvert,
-      currency: this.user.currency, // Using user.currency as fallback since this.info might not be available
-      nation: this.user.nation,
-    })
-    .subscribe((response) => {
-      this.series = response || {};
-       this.generateHotelTable();
-      // Add any additional logic you need after getting the series data
-      console.log('Retail Sales SIC data loaded:', this.series);
-    });
+  // this.dbService
+  //   .GetRetailSalesSicAsync({
+  //     idBooking: this.idBookingOrigin,
+  //     isConvert: this.isConvert,
+  //     currency: this.user.currency, // Using user.currency as fallback since this.info might not be available
+  //     nation: this.user.nation,
+  //   })
+  //   .subscribe((response) => {
+  //     this.series = response || {};
+  //      this.generateHotelTable();
+  //     // Add any additional logic you need after getting the series data
+  //     console.log('Retail Sales SIC data loaded:', this.series);
+  //   });
 }
 hotelTableHtml: string = '';
 private generateHotelTable(): void {
@@ -2422,9 +1768,9 @@ generateHotelTable1(): string {
 
   // Lặp qua tất cả hotels trong selectedHotel array
   hotels.forEach((hotel, index) => {
-    const checkInDate = hotel.begindate ? this.afac.localizeDate(hotel.begindate, this.languageCode) : '-';
-    const checkOutDate = hotel.enddate ? this.afac.localizeDate(hotel.enddate, this.languageCode) : '-';
-    const cutOffDate = hotel.cutOffDateSic ? this.afac.localizeDate(hotel.cutOffDateSic, this.languageCode) : '-';
+    const checkInDate = hotel.begindate ?? '-';
+    const checkOutDate = hotel.enddate ?? '-';
+    const cutOffDate = hotel.cutOffDateSic ?? '-';
     const available = (hotel.roomBlocked || 0) - (hotel.roomConfirmed || 0);
     
     // Thêm class để phân biệt các rows

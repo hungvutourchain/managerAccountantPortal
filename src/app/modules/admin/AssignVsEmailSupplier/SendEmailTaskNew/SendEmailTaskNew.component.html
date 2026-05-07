@@ -29,10 +29,7 @@
             <ejs-dropdownlist [fields]="{ text: 'nameEmail', value: '_id' }" [(ngModel)]="templateId"
               [dataSource]='lsTemplates' placeholder="Select template..." style="flex: 1;"
               (ngModelChange)="handleChangeTemplate($event)"></ejs-dropdownlist>
-            <button style="width: 32px; height: 32px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; color: #22c55e; cursor: pointer;" 
-              (click)="refreshTemplates()" id="btnRefresh" title="Refresh">
-              <i class="fa fa-refresh"></i>
-            </button>
+           
           </div>
         </div>
 

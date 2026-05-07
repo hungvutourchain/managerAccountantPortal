@@ -72,24 +72,6 @@ export class AuthService {
     return this._httpClient.post('api/auth/reset-password', password);
   }
 
-  /**
-   * Sign in
-   *
-   * @param credentials
-   */
-  checkTheUserIsUsing(username: string, pass: string, _nation: string): Observable<any> {
-    let nation = _nation ? _nation : undefined;
-    let valid2FA = localStorage.getItem('valid2FA');
-    return Observable.create(observer => {
-      this._httpClient.post(env.urlOperationApi + '/ManagerUser/checkTheUserIsUsing', {
-        username,
-        password: pass, nation, valid2FA
-      }).subscribe((rs: any) => {
-        localStorage.setItem('valid2FA', rs?.valid2FA || "");
-        observer.next(rs);
-      })
-    });
-  }
   userVerify(userId: string, numberVerify: string, isGoogle: boolean, numberGoogleVerify: any = ''): Observable<any> {
     return Observable.create(observer => {
       this._httpClient.get(env.urlOperationApi + `/ManagerUser/userVerify?userId=${userId}&numberVerify=${numberVerify}&isGoogle=${isGoogle}&numberGoogleVerify=${numberGoogleVerify}`).subscribe((rs: any) => {
@@ -111,33 +93,26 @@ export class AuthService {
       if (this._authenticated) {
         return throwError('User is already logged in.');
       }
-    credentials.userAgent = this.deviceInfo?.userAgent || ''
-    credentials.os_version = this.deviceInfo?.os_version || ''
-    credentials.device = this.deviceInfo?.device || ''
-    credentials.browser = this.deviceInfo?.browser || ''
-    credentials.os = this.deviceInfo?.os || ''
-    credentials.ip = ip?.ip || ''
-    credentials.changeNation = changeNation
-    credentials.country = ip?.country
-    credentials.region = ip?.region
-    credentials.latitude = ip?.latitude || 0.0
-    credentials.longitude = ip?.longitude || 0.0
-    credentials.reference = ip?.reference
-    credentials.TimeString = this.afac.ConvertDateTimeToString(new Date(), "dd MMM, yyyy, HH:mm:ss")
-    credentials.TimeDate = new Date();
+    const payload = {
+      username: credentials?.username || '',
+      password: credentials?.password || '',
+    };
 
-    return this._httpClient.post(env.urlOperationApi + '/ManagerUser/authenticateBackend', credentials).pipe(
+    return this._httpClient.post(`${env.urlOperationApi}/Authenticate/authenticate`, payload).pipe(
       switchMap((response: any) => {
         // Store the access token in the local storage
-        if (response && response.token) {
-          this.accessToken = response.token;
-          this.local.set('codeForOneUser', response.id || null);
+        const token = response?.token || response?.Token;
+        const idUser = response?.idUser || response?.IdUser || response?.id || response?.Id || null;
+
+        if (token) {
+          this.accessToken = token;
+          this.local.set('codeForOneUser', idUser);
           // Set the authenticated flag to true
           this._authenticated = true;
           // Store the user on the user service
-          this._userService.user = response.user;
+          this._userService.user = this._buildDocumentUser(token, undefined, idUser);
           // Return a new observable with the response
-          return of(response);
+          return of({ ...response, token, idUser });
         }
         else return of(response);
       })
@@ -153,10 +128,10 @@ export class AuthService {
     if (token) {
       const token = localStorage.getItem('AuthToken') ?? '';
       let objToken = AuthUtils.deCodeToken(token)
-      if (objToken.BackEnd) {
+      if (this._isSupportedToken(objToken)) {
         this.accessToken = token
         this._authenticated = true;
-        this._userService.user = {};
+        this._userService.user = this._buildDocumentUser(token, objToken?.Nation, objToken?.Id);
         return of(true);
       } else return of(false);
     } else {
@@ -231,7 +206,7 @@ export class AuthService {
           return of(false);
         }
         
-        if (!objToken.BackEnd) {
+        if (!this._isSupportedToken(objToken)) {
           this.logSecurityEvent(SecurityEventType.TOKEN_INVALID, { reason: 'not_backend_token' }, 'high');
           return of(false);
         }
@@ -284,5 +259,25 @@ export class AuthService {
   ): void {
     const securityLog = SecurityUtils.createSecurityLog(event, data, severity);
     SecurityUtils.logSecurityEvent(securityLog, this.securityConfig);
+  }
+
+  private _isSupportedToken(decodedToken: any): boolean {
+    return !!decodedToken && !!(decodedToken.BackEnd || decodedToken.Id || decodedToken.IdAgency || decodedToken.Nation);
+  }
+
+  private _buildDocumentUser(token: string, nation?: string, idUser?: string | null): any {
+    const decodedToken = AuthUtils.deCodeToken(token) || {};
+
+    return {
+      _id: idUser || decodedToken.Id || '',
+      id: idUser || decodedToken.Id || '',
+      idAgency: decodedToken.IdAgency || '',
+      nation: nation || decodedToken.Nation || '',
+      username: idUser || decodedToken.Id || 'document-user',
+      role: [],
+      licensed: true,
+      deactive: false,
+      isviewAdmin: false,
+    };
   }
 }

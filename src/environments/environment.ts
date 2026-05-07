@@ -23,7 +23,7 @@ export const environment = {
   RealtimeSignalR: 'http://localhost:61626',
   // urlApi: "https://ac.tourchain.net", // node server_api_nodejs api
   urlApi: "http://localhost:4040", // node server_api_nodejs api
-  urlOperationApi: "http://localhost:61626/api", // admin api
+  urlOperationApi: "http://localhost:44601/api", // admin api (ApiPlugin profile)
   urlAsiaconciergeApi: "http://localhost:61626/asiaconcierge", // admin api
   urlCrmApi: "http://localhost:61626/api/v1", // admin api
   urlRequestApi: "http://localhost:61626/api/v1", // admin api

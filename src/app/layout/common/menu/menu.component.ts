@@ -6,7 +6,7 @@ import { environment as env } from 'environments/environment';
 import { orderBy } from 'lodash';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { FeatureFlagManagerService } from 'app/layout/common/feature-flag-manager.service';
+// import { FeatureFlagManagerService } from 'app/layout/common/feature-flag-manager.service';
 import { MatDialog } from '@angular/material/dialog';
 import { FormSubmitDialogComponent } from './form-submit-dialog/form-submit-dialog.component';
 @Component({
@@ -19,7 +19,7 @@ import { FormSubmitDialogComponent } from './form-submit-dialog/form-submit-dial
   animations: fuseAnimations,
 })
 export class MenuComponent implements OnDestroy {
-  private _featureFlagService = inject(FeatureFlagManagerService);
+  // private _featureFlagService = inject(FeatureFlagManagerService);
   public listMenu: any = [];
   public menuUsers: any = [];
   public feature: any = {};
@@ -74,7 +74,7 @@ export class MenuComponent implements OnDestroy {
   ) {
     this._userService.user$.pipe(takeUntil(this._unsubscribeAll)).subscribe((user: any) => {
       if (user) {
-        this.loadFeatureFlags()
+        // this.loadFeatureFlags()
         this.user = user;
         let tempMenuSetting = orderBy(menuSetting, 'name', 'asc');
         this.menuUsers = orderBy(menuUsers, 'name', 'asc');
@@ -118,12 +118,12 @@ export class MenuComponent implements OnDestroy {
       .map(g => ({ ...g, items: g.items.filter((x: any) => x.name.toLowerCase().includes(kw)) }))
       .filter(g => g.items.length > 0);
   }
-  loadFeatureFlags() {
-    // Subscribe to feature flag changes
-    this._featureFlagService.featureFlags$.pipe(takeUntil(this._unsubscribeAll)).subscribe(async (flags: any) => {
-      this.feature = flags;
-    });
-  }
+  // loadFeatureFlags() {
+  //   // Subscribe to feature flag changes
+  //   this._featureFlagService.featureFlags$.pipe(takeUntil(this._unsubscribeAll)).subscribe(async (flags: any) => {
+  //     this.feature = flags;
+  //   });
+  // }
 
   openFormSubmitDialog(): void {
     const dialogRef = this.dialog.open(FormSubmitDialogComponent, {

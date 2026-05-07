@@ -84,17 +84,17 @@ export class AuthForgotPasswordComponent implements OnInit {
     const moduleConfigs = {
       hotel: {
         type: 'hotel',
-        name: 'ACCOMMODATION',
-        shortDesc: 'Hotel Management Platform',
+        name: 'PAYABLES / PAYROLL',
+        shortDesc: 'Accounting Operations Workspace',
         image: './assets/images/login/Hotel.jpg',
-        contnet: 'Hotel platform to manage the contracts from suppliers on the system for (B2B & B2C)',
+        contnet: 'Manage supplier bills, payroll cycles, and expense approvals in one accounting workspace.',
       },
       tour: {
         type: 'tour',
-        name: 'EXCURSION / BOOKINGS',
-        shortDesc: 'Tour Management Platform',
+        name: 'LEDGER / REPORTING',
+        shortDesc: 'Financial Control Workspace',
         image: './assets/images/login/Tour.jpg',
-        contnet: 'Excursion platform to maximize from contracting, product, quotation to operation.',
+        contnet: 'Control journal entries, reconciliations, and financial reporting from a unified dashboard.',
       }
     };
 
@@ -377,9 +377,9 @@ export class AuthForgotPasswordComponent implements OnInit {
                                               <tr>
                                                 <td class="text-center pb25" style="color:#666666;font-family:Arial,sans-serif;font-size:16px;line-height:30px;text-align: left;padding-bottom:25px;">
                                                   Dear <strong>${rs.user}</strong>,<br><br>
-                                                  We have received a request to reset your password for your Tour Chain account. For your security, we have generated a temporary password to help you regain access to your account.
+                                                  We have received a request to reset your password for your Accountant Portal account. For your security, we have generated a temporary password to help you regain access to your account.
                                                   <br><br>
-                                                  <strong style="color:#2c5aa0;">This is an official communication from Tour Chain.</strong>
+                                                  <strong style="color:#2c5aa0;">This is an official communication from Accountant Portal.</strong>
                                                 </td>
                                               </tr>
                                               <tr>
@@ -428,7 +428,7 @@ export class AuthForgotPasswordComponent implements OnInit {
                                                         <ul style="margin: 10px 0; padding-left: 20px;">
                                                           <li><strong>Change your password immediately</strong> after logging in through your Profile settings</li>
                                                           <li><strong>Keep this information confidential</strong> - never share your login credentials</li>
-                                                          <li><strong>Verify the sender</strong> - This email is sent from Tour Chain's official system</li>
+                                                          <li><strong>Verify the sender</strong> - This email is sent from Accountant Portal's official system</li>
                                                           <li><strong>Report suspicious activity</strong> - If you didn't request this reset, contact us immediately</li>
                                                           <li><strong>This link expires</strong> in 24 hours for security reasons</li>
                                                         </ul>
@@ -443,7 +443,7 @@ export class AuthForgotPasswordComponent implements OnInit {
                                                     <tr>
                                                       <td style="color:#155724; font-family:Arial,sans-serif; font-size:14px; line-height:20px;">
                                                         <strong>🛡️ Anti-Fraud Verification:</strong><br>
-                                                        • This email was sent from Tour Chain's secure server<br>
+                                                        • This email was sent from Accountant Portal's secure server<br>
                                                         • Request initiated from IP: [System Generated]<br>
                                                         • Request time: ${new Date().toLocaleString()}<br>
                                                         • This is an automated message - please do not reply
@@ -455,12 +455,12 @@ export class AuthForgotPasswordComponent implements OnInit {
                                               <tr>
                                                 <td class="text-center pb25" style="color:#666666;font-family:Arial,sans-serif;font-size:16px;line-height:24px;text-align: left;padding-bottom:25px;">
                                                   Best regards,<br>
-                                                  <strong>Tour Chain Security Team</strong><br>
+                                                  <strong>Accountant Portal Security Team</strong><br>
                                                   <em>Official Customer Support</em>
                                                   <br><br>
                                                   📞 <strong>Need Help?</strong> Contact our support team:<br>
-                                                  • Email: <a href="mailto:support@tourchain.net" style="color:#2c5aa0;">support@tourchain.net</a><br>
-                                                  • Website: <a href="https://tourchain.net" style="color:#2c5aa0;">tourchain.net</a>
+                                                  • Email: <a href="mailto:support@accountantportal.local" style="color:#2c5aa0;">support@accountantportal.local</a><br>
+                                                  • Website: <a href="${this.infoWeb.linkAdmin}" style="color:#2c5aa0;">${this.infoWeb.linkAdmin}</a>
                                                 </td>
                                               </tr>
                                             </tbody>
@@ -481,9 +481,9 @@ export class AuthForgotPasswordComponent implements OnInit {
                                     <tbody>
                                       <tr>
                                         <td class="text-footer1 pb10" style="color:#999999;font-family:Arial,sans-serif;font-size: 13px;line-height:20px;text-align:center;padding-bottom:10px;">
-                                          <img src="https://trial.tourchain.net/manager/assets/images/logo/TourChain.svg" style="width: 160px; margin: auto;" border="0" alt="Tour Chain Logo">
+                                          <img src="${this.infoWeb.imageLogo}" style="width: 160px; margin: auto;" border="0" alt="Accountant Portal Logo">
                                           <br><br>
-                                          <strong style="color:#2c5aa0;">OFFICIAL TOUR CHAIN COMMUNICATION</strong>
+                                          <strong style="color:#2c5aa0;">OFFICIAL ACCOUNTANT PORTAL COMMUNICATION</strong>
                                         </td>
                                       </tr>
                                       <tr>
@@ -492,9 +492,9 @@ export class AuthForgotPasswordComponent implements OnInit {
                                             <tr>
                                               <td style="color:#666; font-family:Arial,sans-serif; font-size: 12px; line-height:18px; text-align:center;">
                                                 <strong>Contact Information:</strong><br>
-                                                📧 Email: info@tourchain.net | support@tourchain.net<br>
-                                                🌐 Website: <a href="https://tourchain.net" style="color:#2c5aa0;">tourchain.net</a><br>
-                                                📍 Address: Tour Chain Travel Business Solutions<br>
+                                                📧 Email: support@accountantportal.local<br>
+                                                🌐 Website: <a href="${this.infoWeb.linkAdmin}" style="color:#2c5aa0;">${this.infoWeb.linkAdmin}</a><br>
+                                                📍 Address: Accountant Portal<br>
                                                 🕒 Business Hours: Mon-Fri 9AM-6PM (GMT+7)
                                               </td>
                                             </tr>
@@ -503,7 +503,7 @@ export class AuthForgotPasswordComponent implements OnInit {
                                       </tr>
                                       <tr>
                                         <td class="text-footer2" style="color:#999999;font-family:Arial,sans-serif;font-size: 11px;line-height:16px;text-align:center; padding-top: 15px; border-top: 1px solid #eee;">
-                                          <strong>© 2025 Tour Chain Travel Business Solutions</strong><br>
+                                          <strong>© 2026 Accountant Portal</strong><br>
                                           This email was sent from a secure, monitored system. Please do not reply to this automated message.<br>
                                           If you believe this email was sent in error, please contact our support team immediately.
                                         </td>
@@ -527,7 +527,7 @@ export class AuthForgotPasswordComponent implements OnInit {
       `
     var Emails = [{
       Email: Email,
-      Subject: '[Tour Chain Official] Password Reset - Action Required',
+      Subject: '[Accountant Portal Official] Password Reset - Action Required',
       Content: textEmail
     }]
     this.dbService.notifyApiUrl(Emails).subscribe(rs => {

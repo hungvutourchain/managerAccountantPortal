@@ -158,7 +158,7 @@ export class SecurityGuard implements CanActivate, CanActivateChild {
       queryParams.redirectURL = attemptedUrl;
     }
 
-    this.router.navigate(['/landing'], { queryParams });
+    this.router.navigate(['/sign-in'], { queryParams });
   }
 
   /**

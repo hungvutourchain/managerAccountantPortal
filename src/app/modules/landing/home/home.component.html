@@ -4,7 +4,7 @@
         <div class="header">
             <img class="company-logo" [src]="infoWeb.imageLogo" alt="Company Logo">
             <h1 class="company-name">{{infoWeb.nameCompany}}</h1>
-            <p class="subtitle">Choose Your Platform</p>
+            <p class="subtitle">Choose Your Accounting Workspace</p>
         </div>
 
         <!-- Platform Cards -->
@@ -21,10 +21,10 @@
                         <h4 class="card-title">{{module.name}}</h4>
                         <p class="card-desc">{{module.contnet}}</p>
                         <div class="card-tags">
-                            <span class="tag" *ngIf="module.type === 'hotel'">B2B & B2C</span>
-                            <span class="tag" *ngIf="module.type === 'hotel'">Contracts</span>
-                            <span class="tag" *ngIf="module.type === 'tour'">Operations</span>
-                            <span class="tag" *ngIf="module.type === 'tour'">Quotations</span>
+                            <span class="tag" *ngIf="module.type === 'hotel'">Payables</span>
+                            <span class="tag" *ngIf="module.type === 'hotel'">Payroll</span>
+                            <span class="tag" *ngIf="module.type === 'tour'">Ledger</span>
+                            <span class="tag" *ngIf="module.type === 'tour'">Reporting</span>
                         </div>
                         <div class="card-action">
                             <span>Access Platform</span>
@@ -37,8 +37,8 @@
 
         <!-- Footer -->
         <div class="footer">
-            <img class="footer-logo" [src]="'./assets/images/TourChain.svg'" alt="TourChain">
-            <span class="footer-text">© {{currentYear}} {{infoWeb.nameCompany}} · Powered by TourChain</span>
+            <img class="footer-logo" [src]="'./assets/images/logo/accountant-portal-logo.svg'" alt="Accountant Portal">
+            <span class="footer-text">© {{currentYear}} {{infoWeb.nameCompany}} · Powered by Accountant Portal</span>
         </div>
     </div>
 </div>

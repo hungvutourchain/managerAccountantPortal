@@ -29,7 +29,7 @@
                 placeholder="Enter your username" 
                 [(ngModel)]="signInForm.username" 
                 autocomplete="username"
-                (keydown.enter)="CheckTheUserIsUsing()" />
+                (keydown.enter)="submitSignIn()" />
               <div class="input-underline"></div>
             </div>
           </div>
@@ -49,7 +49,7 @@
                 placeholder="Enter your password" 
                 [(ngModel)]="signInForm.password" 
                 autocomplete="current-password"
-                (keydown.enter)="CheckTheUserIsUsing()" />
+                (keydown.enter)="submitSignIn()" />
               <button type="button" class="password-toggle" (click)="togglePassword()">
                 <span>{{typePassword === 'password' ? '●●●' : 'ABC'}}</span>
               </button>
@@ -57,54 +57,23 @@
             </div>
           </div>
 
-          <!-- Country Field -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fa-solid fa-globe form-icon"></i>
-              Country
-              <button type="button" class="refresh-btn" (click)="refreshCountrySource()" [matTooltip]="'Reload Data'">
-                <i class="fa-solid fa-rotate-right"></i>
-              </button>
-            </label>
-            <div class="dropdown-container">
-              <ejs-dropdownlist 
-                [ngModelOptions]="{ standalone: true }" 
-                [(ngModel)]="signInForm.nation"
-                [value]="signInForm.nation" 
-                [dataSource]="ls_Country" 
-                [fields]="{ text: 'name', value: 'nation' }"
-                [placeholder]="'Select Country'"
-                cssClass="modern-dropdown"
-                (keydown)="$event.key === 'Enter' ? CheckTheUserIsUsing() : null">
-              </ejs-dropdownlist>
-            </div>
-          </div>
-
           <!-- Actions -->
           <div class="form-actions">
             <div class="forgot-password">
-              <a class="forgot-link" [routerLink]="['/forgot-password']" [queryParams]="ObjectTypeParams">
-                <i class="fa-solid fa-key"></i>
-                Forgot password?
-              </a>
+              <span class="forgot-link">
+                <i class="fa-solid fa-circle-info"></i>
+                Use your account username and password
+              </span>
             </div>
             
             <button 
               type="button"
               class="signin-btn" 
-              (click)="CheckTheUserIsUsing()">
-              <span class="btn-text">Sign In</span>
+              (click)="submitSignIn()">
+              <span class="btn-text">Access Document</span>
               <i class="fa-solid fa-arrow-right btn-icon"></i>
               <div class="btn-ripple"></div>
             </button>
-
-            <!-- Back to Home Link -->
-            <div class="back-to-home">
-              <a class="home-link" [routerLink]="['/landing']">
-                <i class="fa-solid fa-home"></i>
-                Back to Home
-              </a>
-            </div>
           </div>
         </form>
       </div>
@@ -118,7 +87,7 @@
             <img [src]="infoWeb.imageLogo" [alt]="infoWeb.nameCompany" />
           </div>
           <h2 class="company-name">{{infoWeb.nameCompany}}</h2>
-          <p class="company-tagline">Professional Travel Management Platform</p>
+          <p class="company-tagline">Professional Accounting Management Platform</p>
         </div>
 
         <!-- Module Preview (if selected) -->
@@ -127,20 +96,15 @@
             <div class="preview-image">
               <img [src]="selectedModule.image" [alt]="selectedModule.name" />
               <div class="preview-overlay">
-                <i [ngClass]="{
-                  'fa-solid fa-hotel': selectedModule.type === 'hotel',
-                  'fa-solid fa-map-location-dot': selectedModule.type === 'tour'
-                }"></i>
+                <i class="fa-solid fa-file-invoice-dollar"></i>
               </div>
             </div>
             <div class="preview-info">
               <h3>{{selectedModule.name}}</h3>
               <p>{{selectedModule.contnet}}</p>
               <div class="preview-features">
-                <span class="feature-tag" *ngIf="selectedModule.type === 'hotel'">B2B & B2C</span>
-                <span class="feature-tag" *ngIf="selectedModule.type === 'hotel'">Contracts</span>
-                <span class="feature-tag" *ngIf="selectedModule.type === 'tour'">Operations</span>
-                <span class="feature-tag" *ngIf="selectedModule.type === 'tour'">Quotations</span>
+                <span class="feature-tag">Payables</span>
+                <span class="feature-tag">Payroll</span>
               </div>
             </div>
           </div>
@@ -178,7 +142,7 @@
               <small>Access reports and analytics</small>
             </div>
             <div class="role-description" *ngIf="x.code === 'Operation'">
-              <small>Handle operations and bookings</small>
+              <small>Handle accounting operations and processing</small>
             </div>
             <div class="role-description" *ngIf="x.code === 'Accounting'">
               <small>Manage financial operations</small>
@@ -340,7 +304,7 @@
         </div>
         <div style="font-size: 14px; color: #666; line-height: 1.4;">
           Open your authentication app and enter<br>
-          the 6-digit code for <strong style="color: #2c5aa0;">TourChain</strong>
+          the 6-digit code for <strong style="color: #2c5aa0;">Accountant Portal</strong>
         </div>
       </div>
 
@@ -407,7 +371,7 @@
       <!-- Help text -->
       <div class="text-center mt-2">
         <small style="color: #666; font-size: 11px;">
-          Having trouble? Make sure your device's time is synchronized and the app shows the current TourChain code.
+          Having trouble? Make sure your device's time is synchronized and the app shows the current Accountant Portal code.
         </small>
       </div>
     </div>

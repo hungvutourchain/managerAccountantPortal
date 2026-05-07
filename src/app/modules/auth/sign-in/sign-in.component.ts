@@ -21,11 +21,9 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
   signInForm: any = {
     username: '',
     password: '',
-    nation: '',
   };
   typePassword = 'password';
   showAlert: boolean = false;
-  ls_Country: any = [];
   infoWeb: any = {};
   selectedModule: any = null;
   private dialogObj: any;
@@ -62,29 +60,25 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
    * On init
    */
   ObjectTypeParams: any;
-  async refreshCountrySource() {
-    this.ls_Country = await this.dbService.getCountries().toPromise();
-  }
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     // Create the form
     // this.generateQRCode();
-    this.ls_Country = await this.dbService.getCountries().toPromise();
-    this.activatedRoute.queryParams.subscribe(async (params: Params) => {
-      try {
-        this.ObjectTypeParams = params;
-        this.infoWeb = await this.dbService.getAdminImage(document.location.origin).toPromise();
-        let nationFirst = this.infoWeb.defaultCountry ? this.infoWeb.defaultCountry : this.ls_Country[0]?.nation;
-        this.signInForm = {
-          username: '',
-          password: '',
-          nation: nationFirst,
-        };
-        
-        // Determine selected module from query params
-        this.setSelectedModule(params.type);
-      } catch (err) {
-        console.log('Load data fail!', err);
-      }
+    this.infoWeb = {
+      defaultCountry: 'vn',
+      nameCompany: 'Accountant Portal',
+      imageLogo: './assets/images/logo/accountant-portal-logo.svg',
+      linkAdmin: document.location.origin,
+    };
+
+    this.activatedRoute.queryParams.subscribe((params: Params) => {
+      this.ObjectTypeParams = params;
+      this.signInForm = {
+        username: '',
+        password: '',
+      };
+
+      // Determine selected module from query params
+      this.setSelectedModule(params.type);
     });
   }
 
@@ -100,28 +94,14 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
    * Set selected module based on type from landing page
    */
   setSelectedModule(type: string): void {
-    const moduleConfigs = {
-      hotel: {
-        type: 'hotel',
-        name: 'ACCOMMODATION',
-        shortDesc: 'Hotel Management Platform',
-        image: './assets/images/login/Hotel.jpg',
-        contnet: 'Hotel platform to manage the contracts from suppliers on the system for (B2B & B2C)',
-      },
-      tour: {
-        type: 'tour',
-        name: 'EXCURSION / BOOKINGS',
-        shortDesc: 'Tour Management Platform',
-        image: './assets/images/login/Tour.jpg',
-        contnet: 'Excursion platform to maximize from contracting, product, quotation to operation.',
-      }
+    const moduleConfig = {
+      name: 'PAYABLES / PAYROLL',
+      shortDesc: 'Accounting Operations Workspace',
+      image: './assets/images/login/Hotel.jpg',
+      contnet: 'Manage supplier bills, payroll cycles, and expense approvals in one accounting workspace.',
     };
 
-    if (type && moduleConfigs[type]) {
-      this.selectedModule = moduleConfigs[type];
-    } else {
-      this.selectedModule = null;
-    }
+    this.selectedModule = moduleConfig;
   }
 
   /**
@@ -135,18 +115,18 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
    * Sign in
    */
 
-  CheckTheUserIsUsing() {
+  submitSignIn() {
     if (!this.signInForm.username) {
       this.dialogObj = DialogUtility.alert({
         title: 'Authentication Required',
         content: `
           <div class="modern-alert-dialog">
             <div class="alert-icon">
-              <i class="fa-solid fa-user-xmark"></i>
+              <i class="fa-solid fa-user"></i>
             </div>
             <div class="alert-content">
               <h3>Username Required</h3>
-              <p>Please enter your username to continue with the authentication process.</p>
+              <p>Please enter your username to continue.</p>
             </div>
           </div>
         `,
@@ -167,28 +147,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
             </div>
             <div class="alert-content">
               <h3>Password Required</h3>
-              <p>Please enter your password to complete the authentication process.</p>
-            </div>
-          </div>
-        `,
-        position: { X: 'center', Y: 'center' },
-        closeOnEscape: true,
-        cssClass: 'modern-alert-dialog-container',
-        width: '400px'
-      });
-      return;
-    }
-    if (!this.signInForm.nation) {
-      this.dialogObj = DialogUtility.alert({
-        title: 'Location Required',
-        content: `
-          <div class="modern-alert-dialog">
-            <div class="alert-icon">
-              <i class="fa-solid fa-globe"></i>
-            </div>
-            <div class="alert-content">
-              <h3>Country Selection Required</h3>
-              <p>Please select your country to proceed with regional authentication settings.</p>
+              <p>Please enter your password to continue.</p>
             </div>
           </div>
         `,
@@ -200,29 +159,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this._authService
-      .checkTheUserIsUsing(this.signInForm.username, this.signInForm.password, this.signInForm.nation)
-      .subscribe((x) => {
-        if (x.twoFAGoogle) {
-          this.twoFAGoogle = true;
-          this.otpUser = x.userId;
-          this.otpUserName = x.userName;
-          this.otpEmail = x.emailVerify;
-        } else {
-          if (!x.twoFA) {
-            this.signIn();
-          } else {
-            this.notifyText = `Please verify your 2FA code sent to ${x.emailVerify}! You'll receive an email`;
-            // Password reset sent! You'll receive an email if you are registered on our system.
-            this.openOTPModal = true;
-            this.otpUser = x.userId;
-            this.otpUserName = x.userName;
-            this.otpEmail = x.emailVerify;
-            this.SendEmailVerify();
-            //  verify the otp
-          }
-        }
-      });
+    this.signIn();
   }
   user: any = {};
   PopupSwitchRoles: boolean = false;
@@ -263,158 +200,34 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
   SubmitLogin(ip) {
     this._authService.signIn(this.signInForm, false, ip).subscribe(
       (rs) => {
-        // const redirectURL = this.activatedRoute.snapshot.queryParamMap.get('redirectURL') || '/signed-in-redirect';
-        // this._router.navigateByUrl(redirectURL);
         if (rs && rs.token) {
-          this._userService.get().subscribe(
-            async (user: any) => {
-              if (user && user?._id) {
-                this.user = user;
-                if (this.user.isviewAdmin) {
-                  if (this.ObjectTypeParams && this.ObjectTypeParams.type == 'tour') {
-                    let lsRoles = this.user.role.filter((x) => x.code !== 'Leader');
-                    if (lsRoles.length > 1) {
-                      this.PopupSwitchRoles = true;
-                    } else {
-                      if (this.user.IsOperation || this.user.IsAccounting) {
-                        location.href = '/ope/tours?country=' + this.user.nation + '&user=' + this.user.username;
-                      } else if (this.user.IsReport) {
-                        location.href =
-                          'tours/report-booking?country=' + this.user.nation + '&user=' + this.user.username;
-                      } else
-                        this._router.navigate(['tours'], {
-                          queryParams: {
-                            country: this.user.nation,
-                            user: this.user.username,
-                          },
-                        });
-                    }
-                  } else {
-                    let temp = this.user.role.find((x) => x.code == 'Product');
-                    if (this.user.IsAdmin || this.user.IsProduct || (temp && temp.code == 'Product')) {
-                      this._router.navigate(['hotel'], {
-                        queryParams: {
-                          country: this.user.nation,
-                          user: this.user.username,
-                        },
-                      });
-                    } else {
-                      this.dialogObj = DialogUtility.alert({
-                        title: 'Access Restricted',
-                        content: `
-                          <div class="modern-alert-dialog">
-                            <div class="alert-icon error">
-                              <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <div class="alert-content">
-                              <h3>Insufficient Permissions</h3>
-                              <p>You don't have the required permissions to access the Product Teams platform.</p>
-                              <div class="alert-footer">
-                                <small>Contact your administrator if you believe this is an error.</small>
-                              </div>
-                            </div>
-                          </div>
-                        `,
-                        position: { X: 'center', Y: 'center' },
-                        closeOnEscape: true,
-                        cssClass: 'modern-alert-dialog-container',
-                        width: '450px'
-                      });
-                    }
-                  }
-                } else if (_.head<any>(_.get(this.user, 'role')).code === 'Report') {
-                  this._router.navigate(['tours/report-booking'], {
-                    queryParams: {
-                      country: this.user.nation,
-                      user: this.user.username,
-                    },
-                  });
-                } else {
-                  this._router.navigate(['']);
-                }
-              }
-            },
-            (error) => {
-              this._router.navigate(['maintenace']);
-            }
-          );
+          const requestedRedirect = this.activatedRoute.snapshot.queryParamMap.get('redirectURL') || '/configuration';
+          const redirectURL = requestedRedirect === '/form' || requestedRedirect === '/configuration'
+            ? requestedRedirect
+            : '/configuration';
+          this._router.navigateByUrl(redirectURL);
         } else {
-          if (rs?.deviceLimit) {
-            this.dialogObj = DialogUtility.confirm({
-              title: 'Device Limit Reached',
-              content: `
-                <div class="modern-dialog-content">
-                  <div class="dialog-icon">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                  </div>
-                  <div class="dialog-header">
-                    <h3>Maximum Device Limit Exceeded</h3>
-                  </div>
-                  <div class="dialog-message">
-                    <p>You have reached the maximum of <span class="device-count">${rs?.mes || 'allowed'}</span> active devices for your account.</p>
-                  </div>
-                  <div class="dialog-options">
-                    <h4>To continue, you can either:</h4>
-                    <div class="options-list">
-                      <div class="option-item">
-                        <i class="fa-solid fa-power-off"></i>
-                        <span>Sign out from all other devices and continue here</span>
-                      </div>
-                      <div class="option-item">
-                        <i class="fa-solid fa-xmark"></i>
-                        <span>Cancel and manually sign out from another device</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="dialog-footer">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <span>This helps keep your account secure by limiting concurrent sessions.</span>
+          this.dialogObj = DialogUtility.alert({
+            title: 'Authentication Failed',
+            content: `
+              <div class="modern-alert-dialog">
+                <div class="alert-icon error">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="alert-content">
+                  <h3>Login Unsuccessful</h3>
+                  <p>${rs?.mes || 'Authentication failed. Please check your username and password.'}</p>
+                  <div class="alert-footer">
+                    <small>Ensure your username and password are correct.</small>
                   </div>
                 </div>
-              `,
-              okButton: {
-                text: 'Sign Out All & Continue',
-                click: () => {
-                  this.logoutAllDevicesAndLogin(rs?.idUser);
-                  this.CheckTheUserIsUsing();
-                  this.dialogObj.hide();
-                },
-              },
-              cancelButton: {
-                text: 'Cancel',
-                click: () => {
-                  this.dialogObj.hide();
-                },
-              },
-              position: { X: 'center', Y: 'center' },
-              closeOnEscape: true,
-              width: '500px',
-              cssClass: 'modern-device-limit-dialog',
-            });
-            return;
-          } else {
-            this.dialogObj = DialogUtility.alert({
-              title: 'Authentication Failed',
-              content: `
-                <div class="modern-alert-dialog">
-                  <div class="alert-icon error">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                  </div>
-                  <div class="alert-content">
-                    <h3>Login Unsuccessful</h3>
-                    <p>${rs?.mes || 'Authentication failed. Please check your credentials and try again.'}</p>
-                    <div class="alert-footer">
-                      <small>Ensure your username, password, and country are correct.</small>
-                    </div>
-                  </div>
-                </div>
-              `,
-              position: { X: 'center', Y: 'center' },
-              closeOnEscape: true,
-              cssClass: 'modern-alert-dialog-container',
-              width: '450px'
-            });
-          }
+              </div>
+            `,
+            position: { X: 'center', Y: 'center' },
+            closeOnEscape: true,
+            cssClass: 'modern-alert-dialog-container',
+            width: '450px'
+          });
         }
       },
       (response) => {
@@ -775,9 +588,9 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                                               <tr>
                                                 <td class="text-center pb25" style="color:#666666;font-family:Arial,sans-serif;font-size:16px;line-height:30px;text-align: left;padding-bottom:25px;">
                                                   Dear <strong>${this.otpUserName}</strong>,<br><br>
-                                                  We detected a sign-in attempt to your Tour Chain account. To ensure your account security, please use the verification code below to complete your login process.
+                                                  We detected a sign-in attempt to your Accountant Portal account. To ensure your account security, please use the verification code below to complete your login process.
                                                   <br><br>
-                                                  <strong style="color:#2c5aa0;">This is an official security verification from Tour Chain.</strong>
+                                                  <strong style="color:#2c5aa0;">This is an official security verification from Accountant Portal.</strong>
                                                 </td>
                                               </tr>
                                               <tr>
@@ -806,8 +619,8 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                                                       <td style="color:#856404; font-family:Arial,sans-serif; font-size:16px; line-height:24px;">
                                                         <strong>⚠️ Security Instructions:</strong>
                                                         <ul style="margin: 10px 0; padding-left: 20px;">
-                                                          <li><strong>Do not share this code</strong> with anyone, including Tour Chain staff</li>
-                                                          <li><strong>Use this code only</strong> in the official Tour Chain login page</li>
+                                                          <li><strong>Do not share this code</strong> with anyone, including Accountant Portal staff</li>
+                                                          <li><strong>Use this code only</strong> in the official Accountant Portal login page</li>
                                                           <li><strong>Code is valid for 10 minutes</strong> from the time it was sent</li>
                                                           <li><strong>If you didn't request this</strong> - your account may be compromised</li>
                                                           <li><strong>Contact support immediately</strong> if you suspect unauthorized access</li>
@@ -826,7 +639,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                                                         • Login attempt detected at: ${new Date().toLocaleString()}<br>
                                                         • This verification was requested for account: <strong>${this.otpUserName}</strong><br>
                                                         • Email sent to: <strong>${this.otpEmail}</strong><br>
-                                                        • This is an automated security message from Tour Chain
+                                                        • This is an automated security message from Accountant Portal
                                                       </td>
                                                     </tr>
                                                   </table>
@@ -837,13 +650,13 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                                                   If you have any questions or concerns, please don't hesitate to contact our security team.
                                                   <br><br>
                                                   Best regards,<br>
-                                                  <strong>Tour Chain Security Team</strong><br>
+                                                  <strong>Accountant Portal Security Team</strong><br>
                                                   <em>Official Authentication Services</em>
                                                   <br><br>
                                                   📞 <strong>Need Help?</strong> Contact us:<br>
-                                                  • Security Email: <a href="mailto:security@tourchain.net" style="color:#2c5aa0;">security@tourchain.net</a><br>
-                                                  • Support: <a href="mailto:support@tourchain.net" style="color:#2c5aa0;">support@tourchain.net</a><br>
-                                                  • Website: <a href="https://tourchain.net" style="color:#2c5aa0;">tourchain.net</a>
+                                                  • Security Email: <a href="mailto:security@accountantportal.local" style="color:#2c5aa0;">security@accountantportal.local</a><br>
+                                                  • Support: <a href="mailto:support@accountantportal.local" style="color:#2c5aa0;">support@accountantportal.local</a><br>
+                                                  • Website: <a href="${this.infoWeb.linkAdmin}" style="color:#2c5aa0;">${this.infoWeb.linkAdmin}</a>
                                                 </td>
                                               </tr>
                                             </tbody>
@@ -864,9 +677,9 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                                     <tbody>
                                       <tr>
                                         <td class="text-footer1 pb10" style="color:#999999;font-family:Arial,sans-serif;font-size: 13px;line-height:20px;text-align:center;padding-bottom:10px;">
-                                          <img src="https://trial.tourchain.net/manager/assets/images/logo/TourChain.svg" style="width: 160px; margin: auto;" border="0" alt="Tour Chain Logo">
+                                          <img src="${this.infoWeb.imageLogo}" style="width: 160px; margin: auto;" border="0" alt="Accountant Portal Logo">
                                           <br><br>
-                                          <strong style="color:#2c5aa0;">OFFICIAL TOUR CHAIN SECURITY VERIFICATION</strong>
+                                          <strong style="color:#2c5aa0;">OFFICIAL ACCOUNTANT PORTAL SECURITY VERIFICATION</strong>
                                         </td>
                                       </tr>
                                       <tr>
@@ -875,10 +688,10 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                                             <tr>
                                               <td style="color:#666; font-family:Arial,sans-serif; font-size: 12px; line-height:18px; text-align:center;">
                                                 <strong>Security & Support:</strong><br>
-                                                🔒 Security Team: <a href="mailto:security@tourchain.net" style="color:#2c5aa0;">security@tourchain.net</a><br>
-                                                📧 General Support: <a href="mailto:info@tourchain.net" style="color:#2c5aa0;">info@tourchain.net</a><br>
-                                                🌐 Website: <a href="https://tourchain.net" style="color:#2c5aa0;">tourchain.net</a><br>
-                                                📍 Tour Chain Travel Business Solutions<br>
+                                                🔒 Security Team: <a href="mailto:security@accountantportal.local" style="color:#2c5aa0;">security@accountantportal.local</a><br>
+                                                📧 General Support: <a href="mailto:support@accountantportal.local" style="color:#2c5aa0;">support@accountantportal.local</a><br>
+                                                🌐 Website: <a href="${this.infoWeb.linkAdmin}" style="color:#2c5aa0;">${this.infoWeb.linkAdmin}</a><br>
+                                                📍 Accountant Portal<br>
                                                 🕒 Support Hours: Mon-Fri 9AM-6PM (GMT+7)
                                               </td>
                                             </tr>
@@ -887,7 +700,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                                       </tr>
                                       <tr>
                                         <td class="text-footer2" style="color:#999999;font-family:Arial,sans-serif;font-size: 11px;line-height:16px;text-align:center; padding-top: 15px; border-top: 1px solid #eee;">
-                                          <strong>© 2025 Tour Chain Travel Business Solutions</strong><br>
+                                          <strong>© 2026 Accountant Portal</strong><br>
                                           This verification email was sent from a secure, monitored system.<br>
                                           <strong style="color:#d73527;">⚠️ SECURITY ALERT:</strong> Never share verification codes with others.<br>
                                           If you didn't request this code, please contact our security team immediately.
@@ -924,7 +737,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
     this.isGeneratingQR = true;
     // Generate unique session ID for this QR login attempt
     this.qrSessionId = this.generateSessionId();
-    const qrEmail = `qr-login-${this.qrSessionId}@tourchain.com`;
+    const qrEmail = `qr-login-${this.qrSessionId}@accountantportal.local`;
 
     this.dbService.generateQrCode(qrEmail).subscribe({
       next: (response: any) => {
@@ -982,7 +795,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
     this.showQRLogin = false;
 
     // Continue with existing login flow
-    this.CheckTheUserIsUsing();
+                  this.submitSignIn();
   }
 
   // Toggle between form login and QR login

@@ -60,22 +60,22 @@ export class AssignVsEmailSupplierListComponent implements OnInit {
       if (user && user?._id) {
         this.user = user
         try {
-          let [lsSupplier, seviceTypes] = await Promise.all([
-            this.dbService.getSupplier(this.user.nation).toPromise(),
-            this.dbService.getServiceTypes(this.user.nation).toPromise(),
-          ])
-          this.lsSupplier = lsSupplier
-          this.seviceTypes = seviceTypes
-          this._firstloading = false
-          let isNew: any = this.afac._getUrlParameter("newcompose")
-          if (isNew === 'true') {
-            this._activatedRoute.queryParams.subscribe(async (params: Params) => {
-              this._router.navigate([], { queryParams: { ...params, tab: 4, newcompose: false } });
-            });
-            this.AssignVsEmails('new', null, true)
-            this.loading = false
-            this.loadData()
-          } else this.loadData()
+          // // let [lsSupplier, seviceTypes] = await Promise.all([
+          // //   this.dbService.getSupplier(this.user.nation).toPromise(),
+          // //   this.dbService.getServiceTypes(this.user.nation).toPromise(),
+          // // ])
+          // // this.lsSupplier = lsSupplier
+          // // this.seviceTypes = seviceTypes
+          // // this._firstloading = false
+          // // let isNew: any = this.afac._getUrlParameter("newcompose")
+          // if (isNew === 'true') {
+          //   this._activatedRoute.queryParams.subscribe(async (params: Params) => {
+          //     this._router.navigate([], { queryParams: { ...params, tab: 4, newcompose: false } });
+          //   });
+          //   this.AssignVsEmails('new', null, true)
+          //   this.loading = false
+          //   this.loadData()
+          // } else this.loadData()
         }
         catch (err) {
           this.notifi("error", "Load data fail !", 7000)
@@ -100,15 +100,15 @@ export class AssignVsEmailSupplierListComponent implements OnInit {
     this.filter.nation = this.user.nation
     this.filter._pageNumber = this.pageEvent.pageIndex + 1
     this.filter._pageSize = this.pageEvent.pageSize
-    let rs = await this.dbService.GetAssignVsEmails(this.filter).toPromise()
-    this.totalitems = rs.total ?? 0
-    this.LsDetail = rs.items ?? []
-    if (this.LsDetail.length > 0) {
-      this.LsDetail.forEach(item => {
-        let object = this.lsSupplier.find(x => x._idService == item._idService)
-        if (object) item.supplier = `${object.name || ''} | ${object.serviceName || ''}`
-      })
-    }
+    // let rs = await this.dbService.GetAssignVsEmails(this.filter).toPromise()
+    // this.totalitems = rs.total ?? 0
+    // this.LsDetail = rs.items ?? []
+    // if (this.LsDetail.length > 0) {
+    //   this.LsDetail.forEach(item => {
+    //     let object = this.lsSupplier.find(x => x._idService == item._idService)
+    //     if (object) item.supplier = `${object.name || ''} | ${object.serviceName || ''}`
+    //   })
+    // }
     this.loading = false;
   }
 

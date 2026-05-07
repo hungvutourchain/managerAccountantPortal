@@ -14,8 +14,8 @@ export class LandingHomeComponent {
      */
     currentYear = new Date().getFullYear();
     listMenu = [
-        { "url": 'sign-in?type=hotel&redirectURL=%2Fhotel', 'type': 'hotel', "name": "ACCOMMODATION", "show": true, image: './assets/images/login/Hotel.jpg', contnet: 'Hotel platform to manage the  contracts from suppliers  on the system for (B2B & B2C)' },
-        { "url": 'sign-in?type=tour&redirectURL=%2Ftours', 'type': 'tour', "name": "EXCURSION / BOOKINGS", "show": true, image: './assets/images/login/Tour.jpg', contnet: 'Excursion platform to maximize from contracting, product, quotation to operation.' },
+        { "url": 'sign-in?type=hotel&redirectURL=%2Fconfiguration', 'type': 'hotel', "name": "PAYABLES / PAYROLL", "show": true, image: './assets/images/login/Hotel.jpg', contnet: 'Manage supplier bills, payroll cycles, and expense approvals in one accounting workspace.' },
+        { "url": 'sign-in?type=tour&redirectURL=%2Fconfiguration', 'type': 'tour', "name": "LEDGER / REPORTING", "show": true, image: './assets/images/login/Tour.jpg', contnet: 'Control journal entries, reconciliations, and financial reporting from a unified dashboard.' },
     ]
     constructor(
         private _router: Router,

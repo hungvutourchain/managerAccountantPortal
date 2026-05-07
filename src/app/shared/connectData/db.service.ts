@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Observable, of, timer, throwError } from "rxjs";
-import { catchError, switchMap, map, shareReplay, takeWhile, filter, take } from "rxjs/operators";
+import { catchError, switchMap, map, shareReplay, takeWhile, filter, take, tap } from "rxjs/operators";
 import { environment as env } from "environments/environment";
 import md5 from "md5";
 import * as _ from "lodash";
@@ -10,6 +10,22 @@ import * as _ from "lodash";
 export class DbService {
   constructor(private http: HttpClient) {}
   private cache = new Map<string, any>();
+
+  private getDocumentConfig(origin: string = document.location.origin): Observable<any> {
+    const cacheKey = `document-config:${origin}`;
+
+    if (this.cache.has(cacheKey)) {
+      return of(this.cache.get(cacheKey));
+    }
+
+    return this.http
+      .get<any>(`${env.urlOperationApi}/Document/configPage?domain=${encodeURIComponent(origin)}`)
+      .pipe(
+        tap((config) => this.cache.set(cacheKey, config)),
+        shareReplay(1)
+      );
+  }
+
   checkQRLoginStatus(qrData: string): Observable<any> {
     return this.http.get(
       `${env.urlOperationApi}/ManagerUser/CheckQRLoginStatus?qrData=${qrData}`,
@@ -36,11 +52,36 @@ export class DbService {
 
   // Lookup/Configuration Methods
   getCountries(): Observable<any> {
-    return of([]);
+    return this.http.get<any[]>(`${env.urlOperationApi}/Document/countries`).pipe(
+      map((countries) =>
+        (countries || []).map((country: any) => ({
+          ...country,
+          nation: country?.nation || country?.code || "",
+        }))
+      ),
+      catchError(() =>
+        this.getDocumentConfig().pipe(
+          map((config) => {
+            const defaultCountry = config?.defaultCountry || "vn";
+            return [
+              {
+                name: (config?.countryName || defaultCountry || "VN").toUpperCase(),
+                nation: defaultCountry,
+              },
+            ];
+          })
+        )
+      )
+    );
   }
 
   getAdminImage(origin: string): Observable<any> {
-    return of({});
+    return of({
+      defaultCountry: "vn",
+      nameCompany: "Accountant Portal",
+      imageLogo: "./assets/images/logo/accountant-portal-logo.svg",
+      linkAdmin: origin || document.location.origin,
+    });
   }
 
   getLanguageCodes(): Observable<any> {
@@ -252,6 +293,10 @@ export class DbService {
   }
 
   // System Operations
+  getFeatureFlag(setting: string): Observable<any> {
+    return of({});
+  }
+
   getSettingView(setting: string): Observable<any> {
     return of({});
   }

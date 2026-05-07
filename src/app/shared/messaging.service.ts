@@ -325,7 +325,7 @@ export class MessagingService {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Tour Chain - Email Configuration Test</title>
+                <title>Accountant Portal - Email Configuration Test</title>
             </head>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
@@ -342,9 +342,9 @@ export class MessagingService {
                         
                         <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #2c5aa0; margin: 20px 0;">
                             <h3 style="color: #2c5aa0; margin-top: 0;">Contact Information</h3>
-                            <p style="margin: 5px 0;"><strong>Company:</strong> Tour Chain</p>
-                            <p style="margin: 5px 0;"><strong>Email:</strong> info@tourchain.com</p>
-                            <p style="margin: 5px 0;"><strong>Website:</strong> <a href="https://tourchain.com" style="color: #2c5aa0; text-decoration: none;">https://tourchain.com</a></p>
+                            <p style="margin: 5px 0;"><strong>Company:</strong> Accountant Portal</p>
+                            <p style="margin: 5px 0;"><strong>Email:</strong> support@accountantportal.local</p>
+                            <p style="margin: 5px 0;"><strong>Website:</strong> <a href="${document.location.origin}" style="color: #2c5aa0; text-decoration: none;">${document.location.origin}</a></p>
                             <p style="margin: 5px 0;"><strong>Business Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM</p>
                         </div>
     
@@ -354,14 +354,14 @@ export class MessagingService {
     
                         <p style="margin-bottom: 15px;">
                             Best regards,<br>
-                            <strong>Tour Chain Team</strong>
+                            <strong>Accountant Portal Team</strong>
                         </p>
                     </main>
     
                     <!-- Footer bắt buộc -->
                     <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center;">
                         <div style="margin-bottom: 15px;">
-                            <strong style="color: #2c5aa0;">Tour Chain Company</strong><br>
+                            <strong style="color: #2c5aa0;">Accountant Portal</strong><br>
                             [Complete Company Address]<br>
                             [City, Country]<br>
                             Phone: [Phone Number] | Fax: [Fax Number]
@@ -371,8 +371,8 @@ export class MessagingService {
                         <div style="margin-bottom: 15px;">
                             <a href="{{unsubscribe}}" style="color: #2c5aa0; text-decoration: none; margin: 0 10px;">Unsubscribe</a> |
                             <a href="{{update_profile}}" style="color: #2c5aa0; text-decoration: none; margin: 0 10px;">Update Profile</a> |
-                            <a href="https://tourchain.com/privacy-policy" style="color: #2c5aa0; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
-                            <a href="https://tourchain.com/terms" style="color: #2c5aa0; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+                            <a href="${document.location.origin}" style="color: #2c5aa0; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
+                            <a href="${document.location.origin}" style="color: #2c5aa0; text-decoration: none; margin: 0 10px;">Terms of Service</a>
                         </div>
                         
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
@@ -381,7 +381,7 @@ export class MessagingService {
                                 This is an automated message from a legitimate business email system.
                             </p>
                             <p style="margin: 5px 0 0 0; font-size: 11px;">
-                                © ${new Date().getFullYear()} Tour Chain. All rights reserved.
+                                © ${new Date().getFullYear()} Accountant Portal. All rights reserved.
                             </p>
                         </div>
                     </footer>
@@ -392,10 +392,10 @@ export class MessagingService {
     
         let emailMsg: IEmail = {
             Email: email,
-            Subject: "Tour Chain - Email Configuration Test Successful",
+            Subject: "Accountant Portal - Email Configuration Test Successful",
             Content: safeEmailTemplate,
             ReplyToEmail: '',
-            ReplyToName: 'Tour Chain Support',
+            ReplyToName: 'Accountant Portal Support',
             CcEmails: []
         };
     

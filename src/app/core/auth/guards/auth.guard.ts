@@ -92,7 +92,7 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad
                                SecurityUtils.logSecurityEvent(securityLog, DEFAULT_SECURITY_CONFIG);
 
                                // Redirect to the sign-in page
-                               this._router.navigate(['landing'], {queryParams: {redirectURL}});
+                               this._router.navigate(['sign-in'], {queryParams: {redirectURL}});
 
                                // Prevent the access
                                return of(false);
@@ -113,8 +113,8 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad
                            );
                            SecurityUtils.logSecurityEvent(securityLog, DEFAULT_SECURITY_CONFIG);
 
-                           // Redirect to landing on error
-                           this._router.navigate(['landing']);
+                           // Redirect to sign-in on error
+                           this._router.navigate(['sign-in']);
                            return of(false);
                        })
                    );

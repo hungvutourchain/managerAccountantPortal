@@ -3,8 +3,6 @@ import { Router } from '@angular/router';
 import { Subject, timer } from 'rxjs';
 import { finalize, takeUntil, takeWhile, tap } from 'rxjs/operators';
 import { AuthService } from 'app/core/auth/auth.service';
-import { HttpClient } from '@angular/common/http';
-import { environment as env } from 'environments/environment';
 import { LocalStorageService } from 'angular-web-storage';
 @Component({
   standalone: false,
@@ -25,7 +23,7 @@ export class AuthSignOutComponent implements OnInit, OnDestroy {
   /**
    * Constructor
    */
-  constructor(private _authService: AuthService, private _httpClient: HttpClient, private _router: Router) {}
+  constructor(private _authService: AuthService, private _router: Router) {}
 
   // -----------------------------------------------------------------------------------------------------
   // @ Lifecycle hooks
@@ -35,23 +33,20 @@ export class AuthSignOutComponent implements OnInit, OnDestroy {
    * On init
    */
   ngOnInit(): void {
-    let codeForOneUser = this.local.get('codeForOneUser');
-    // Sign out
-    // Remove the access token from the local storage
-    this._httpClient.get(env.urlOperationApi + `/ManagerUser/authenticateBackend_logout?reason=${codeForOneUser}`).subscribe((rs) => {
-      this._authService.signOut();
-      // Redirect after the countdown
-      timer(1000, 1000)
-        .pipe(
-          finalize(() => {
-            this._router.navigate(['landing']);
-          }),
-          takeWhile(() => this.countdown > 0),
-          takeUntil(this._unsubscribeAll),
-          tap(() => this.countdown--)
-        )
-        .subscribe();
-    });
+    this.local.remove('codeForOneUser');
+    this._authService.signOut();
+
+    // Redirect after the countdown
+    timer(1000, 1000)
+      .pipe(
+        finalize(() => {
+          this._router.navigate(['sign-in']);
+        }),
+        takeWhile(() => this.countdown > 0),
+        takeUntil(this._unsubscribeAll),
+        tap(() => this.countdown--)
+      )
+      .subscribe();
   }
 
   /**

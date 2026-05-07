@@ -1,10 +1,11 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, ReplaySubject, pipe, EMPTY } from 'rxjs';
+import { Observable, ReplaySubject, pipe, EMPTY, of } from 'rxjs';
 import { map, takeUntil, tap, catchError } from 'rxjs/operators';
 import { User } from 'app/core/user/user.types';
 import { environment as env } from 'environments/environment';
 import { DbService } from 'app/shared/connectData/db.service';
+import { AuthUtils } from 'app/core/auth/auth.utils';
 import { 
   DEFAULT_SECURITY_CONFIG, 
   SecurityConfig, 
@@ -96,6 +97,28 @@ export class UserService implements OnDestroy {
         user.IsReport = false;
         this.Checkrole(user.role, user);
         this._user.next(user);
+      }),
+      catchError(() => {
+        const token = localStorage.getItem('AuthToken') ?? '';
+        const decodedToken = token ? AuthUtils.deCodeToken(token) : null;
+
+        if (decodedToken?.Id || decodedToken?.IdAgency || decodedToken?.Nation) {
+          const user = {
+            _id: decodedToken.Id || '',
+            id: decodedToken.Id || '',
+            idAgency: decodedToken.IdAgency || '',
+            nation: decodedToken.Nation || '',
+            username: decodedToken.Id || 'document-user',
+            role: [],
+            licensed: true,
+            deactive: false,
+            isviewAdmin: false,
+          };
+          this._user.next(user);
+          return of(user);
+        }
+
+        return EMPTY;
       })
     );
   }
