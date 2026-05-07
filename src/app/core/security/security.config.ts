@@ -176,7 +176,7 @@ export class SecurityUtils {
   static validateUserSession(user: any): boolean {
     if (!user) return false;
     if (user.deactive) return false;
-    if (!user.licensed) return false;
+    if (user.licensed === false) return false;
     return true;
   }
 

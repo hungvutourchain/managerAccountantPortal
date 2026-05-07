@@ -191,7 +191,6 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
   }
   signIn(): void {
     localStorage.removeItem('AuthToken');
-    localStorage.removeItem('codeForOneUser');
 
     this.getClientInfo((ip) => {
       this.SubmitLogin(ip);

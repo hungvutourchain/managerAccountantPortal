@@ -63,10 +63,10 @@ export class UserService implements OnDestroy {
    * Get the current logged in user data
    */
   get(): Observable<any> {
-    return this._httpClient.get(`${env.urlOperationApi}/ManagerUser/BackendInfo`).pipe(
+    return this._httpClient.get(`${env.urlOperationApi}/Authenticate/info`).pipe(
       tap(async (user: any) => {
-        // Tăng cường an ninh: logout nếu user deactive hoặc không có licensed
-        if (!user || user.deactive || !user.licensed) {
+        // Tăng cường an ninh: chỉ logout khi deactive hoặc licensed bị revoke rõ ràng
+        if (!user || user.deactive || user.licensed === false) {
           const eventType = !user ? SecurityEventType.UNAUTHORIZED_ACCESS : 
                            user.deactive ? SecurityEventType.USER_DEACTIVATED : 
                            SecurityEventType.LICENSE_REVOKED;
@@ -139,7 +139,7 @@ export class UserService implements OnDestroy {
     if (this.securityConfig.CLEAR_STORAGE_ON_LOGOUT) {
       if (!SecurityUtils.clearAllStorage()) {
         // Fallback to individual item removal
-        SecurityUtils.removeStorageItems(['AuthToken', 'codeForOneUser', 'localConfig']);
+        SecurityUtils.removeStorageItems(['AuthToken', 'localConfig']);
       }
     }
     
@@ -147,7 +147,7 @@ export class UserService implements OnDestroy {
     this.notifyServerLogout(reason);
     
     // Redirect về login
-    window.location.href = '/login';
+    window.location.href = '/sign-in';
   }
   sendMessageGlobal(object): Observable<any> {
     return this._httpClient.post(`${env.urlOperationApi}/ManagerUser/sendMessageGlobal`, object);
@@ -279,17 +279,16 @@ export class UserService implements OnDestroy {
 
     // Chỉ chạy security check khi user đã login
     this._securityCheckTimer = setInterval(() => {
-      this.user$.subscribe(user => {
-        if (user && user.id) {
-          this.performSecurityCheck();
-        }
-      });
+      const token = localStorage.getItem('AuthToken');
+      if (token) {
+        this.performSecurityCheck();
+      }
     }, this.securityConfig.SECURITY_CHECK_INTERVAL);
   }
 
   // Thực hiện security check định kỳ
   private performSecurityCheck(): void {
-    this._httpClient.get(`${env.urlOperationApi}/ManagerUser/BackendInfo`)
+    this._httpClient.get(`${env.urlOperationApi}/Authenticate/info`)
       .pipe(
         catchError((error) => {
           console.error('Periodic security check failed:', error);
@@ -309,6 +308,9 @@ export class UserService implements OnDestroy {
                         'periodic_check_license_revoked';
           this.logout(reason);
         } else {
+          if (typeof user.licensed === 'undefined') {
+            user.licensed = true;
+          }
           // Update user info nếu còn valid
           this._user.next(user);
         }

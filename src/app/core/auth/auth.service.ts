@@ -106,7 +106,6 @@ export class AuthService {
 
         if (token) {
           this.accessToken = token;
-          this.local.set('codeForOneUser', idUser);
           // Set the authenticated flag to true
           this._authenticated = true;
           // Store the user on the user service
@@ -152,7 +151,6 @@ export class AuthService {
     // Remove the access token from the local storage
     try {
       localStorage.removeItem('AuthToken');
-      this.local.remove('codeForOneUser');
       
       // Clear additional sensitive data
       localStorage.removeItem('userSession');

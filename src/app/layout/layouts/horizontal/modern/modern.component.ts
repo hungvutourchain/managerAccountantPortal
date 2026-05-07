@@ -131,7 +131,6 @@ export class ModernLayoutComponent implements OnInit, OnDestroy {
         this.isScreenSmall = !matchingAliases.includes('md');
       });
   }
-  valueCheckUser: any = {};
   internetResult: any = {};
   internetQuality: string = 'Checking...';
   internetSpeed: number = 0;
@@ -216,7 +215,6 @@ export class ModernLayoutComponent implements OnInit, OnDestroy {
   SystemNotification: boolean = false;
   SystemNotificationMessage: any;
   InitSignalR(): void {
-    this.CheckUser();
     let connection = new signalR.HubConnectionBuilder()
       .withUrl(env.RealtimeSignalR + '/messageHub', {
         skipNegotiation: true,
@@ -226,7 +224,7 @@ export class ModernLayoutComponent implements OnInit, OnDestroy {
     connection.on('checkuserlogin', async (rs) => {
       if (!rs?.notify) {
         if (rs?.userId && rs?.userId === this.user._id) {
-          this.CheckUser();
+          // User login check removed
         }
       } else {
         this.SystemNotificationMessage = this.afac.safeHtml(rs.message || '');
@@ -266,35 +264,7 @@ export class ModernLayoutComponent implements OnInit, OnDestroy {
         }
       );
   }
-  CheckUser() {
-    let codeForOneUser = this.local.get('codeForOneUser');
-    if (codeForOneUser) {
-      this.getClientInfo((ip) => {
-        this.dbService
-          .UserCheckLoginBackendWidget({
-            idUser: this.user?._id,
-            codeForOneUser: codeForOneUser,
-            ip: ip,
-          })
-          .subscribe(
-            (result) => {
-              this.valueCheckUser = result;
-              if (this.valueCheckUser?.isActive) {
-                // console.log('login this user')
-              } else {
-                this.router.navigate(['/sign-out']);
-              }
-            },
-            (error) => {
-              console.error('Error checking user:', error);
-              this.router.navigate(['/sign-out']);
-            }
-          );
-      });
-    } else {
-      this.router.navigate(['/sign-out']);
-    }
-  }
+
   private checkAndReloadData(): void {
     const lastReloadDate = localStorage.getItem('lastReloadDate');
     const today = new Date().toDateString();

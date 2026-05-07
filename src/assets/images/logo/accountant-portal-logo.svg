@@ -1,17 +1,28 @@
-<svg width="512" height="128" viewBox="0 0 512 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Accountant Portal logo">
+<svg width="320" height="320" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Accountant Portal mark">
   <defs>
-    <linearGradient id="apGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0f4c81"/>
-      <stop offset="100%" stop-color="#1b7fb3"/>
+    <linearGradient id="leftWing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d8dff"/>
+      <stop offset="100%" stop-color="#0e5fd0"/>
     </linearGradient>
+    <linearGradient id="rightWing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3fb1ff"/>
+      <stop offset="100%" stop-color="#1d8dff"/>
+    </linearGradient>
+    <linearGradient id="coreWing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#585f6d"/>
+      <stop offset="100%" stop-color="#2f3440"/>
+    </linearGradient>
+    <filter id="logoShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0c1420" flood-opacity="0.35"/>
+    </filter>
   </defs>
-  <rect width="512" height="128" fill="none"/>
-  <g transform="translate(12 16)">
-    <rect x="0" y="0" width="96" height="96" rx="18" fill="url(#apGrad)"/>
-    <path d="M22 68h52M22 50h52M22 32h52" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
-    <circle cx="72" cy="74" r="10" fill="#ffd166"/>
-    <path d="M66 74l4 4 8-8" fill="none" stroke="#0f4c81" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect width="320" height="320" fill="none"/>
+
+  <g transform="translate(22 18)" filter="url(#logoShadow)">
+    <path d="M62 254 L148 72 L178 112 L110 254 Z" fill="url(#leftWing)"/>
+    <path d="M186 196 L246 254 L286 254 L224 132 Z" fill="url(#rightWing)"/>
+    <path d="M104 254 L168 254 L224 132 L186 112 L138 206 Z" fill="url(#coreWing)"/>
+    <path d="M170 156 L182 136 L194 156 L182 176 Z" fill="#404754"/>
   </g>
-  <text x="126" y="58" fill="#0f4c81" font-family="Montserrat, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="1.2">ACCOUNTANT</text>
-  <text x="126" y="92" fill="#1b7fb3" font-family="Montserrat, Arial, sans-serif" font-size="24" font-weight="600" letter-spacing="3">PORTAL</text>
 </svg>
