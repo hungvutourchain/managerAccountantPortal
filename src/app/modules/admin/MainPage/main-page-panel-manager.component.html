@@ -1,0 +1,26 @@
+<div class="manager-wrapper">
+  <h3>Quan ly page con</h3>
+  <p>
+    Danh sach page hien tai dang duoc dieu khien boi panel phai. Ban co the mo
+    rong route moi tai MainPage-routing.module.ts.
+  </p>
+
+  <table class="page-table">
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Ten page</th>
+        <th>Trang thai</th>
+        <th>Quan ly</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let page of pages">
+        <td>{{ page.key }}</td>
+        <td>{{ page.title }}</td>
+        <td><span class="badge">{{ page.status }}</span></td>
+        <td>{{ page.owner }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

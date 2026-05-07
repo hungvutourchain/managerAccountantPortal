@@ -1,0 +1,46 @@
+.manager-wrapper h3 {
+  margin: 0;
+  font-size: 24px;
+  color: #1d3558;
+}
+
+.manager-wrapper > p {
+  margin: 8px 0 20px;
+  color: #5a6f95;
+}
+
+.page-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid #dbe6f7;
+}
+
+.page-table th,
+.page-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e6eefb;
+}
+
+.page-table th {
+  background: #f2f7ff;
+  color: #32507f;
+  font-size: 13px;
+}
+
+.page-table td {
+  color: #36507d;
+  font-size: 14px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #e8f6ed;
+  color: #1f7a45;
+}

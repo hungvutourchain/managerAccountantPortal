@@ -1,46 +1,52 @@
-import { Component, OnInit, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router, Params } from '@angular/router';
-import { fuseAnimations } from '@fuse/animations';
-import { AuthService } from 'app/core/auth/auth.service';
-import { DbService } from 'app/shared/connectData/db.service';
-import { UserService } from 'app/core/user/user.service';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import * as _ from 'lodash';
-import { environment as env } from 'environments/environment';
-import { DialogUtility } from '@syncfusion/ej2-angular-popups';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+  OnDestroy,
+} from "@angular/core";
+import { ActivatedRoute, Router, Params } from "@angular/router";
+import { fuseAnimations } from "@fuse/animations";
+import { AuthService } from "app/core/auth/auth.service";
+import { DbService } from "app/shared/connectData/db.service";
+import { UserService } from "app/core/user/user.service";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import * as _ from "lodash";
+import { environment as env } from "environments/environment";
+import { DialogUtility } from "@syncfusion/ej2-angular-popups";
 
 @Component({
   standalone: false,
-  selector: 'auth-sign-in',
-  templateUrl: './sign-in.component.html',
-  styleUrls: ['./sign-in.component.scss'],
+  selector: "auth-sign-in",
+  templateUrl: "./sign-in.component.html",
+  styleUrls: ["./sign-in.component.scss"],
   encapsulation: ViewEncapsulation.None,
   animations: fuseAnimations,
 })
 export class AuthSignInComponent implements OnInit, OnDestroy {
   signInForm: any = {
-    username: '',
-    password: '',
+    username: "",
+    password: "",
   };
-  typePassword = 'password';
+  typePassword = "password";
   showAlert: boolean = false;
   infoWeb: any = {};
   selectedModule: any = null;
   private dialogObj: any;
-  otpDigits: string = '';
-  otpUser: string = ''; 
-  otpEmail: string = '';
-  otpUserName: string = '';
+  otpDigits: string = "";
+  otpUser: string = "";
+  otpEmail: string = "";
+  otpUserName: string = "";
   openOTPModal: boolean = false;
   twoFAGoogle: boolean = false;
-  notifyText: any = '';
+  notifyText: any = "";
 
   showQRLogin = false;
   isGeneratingQR = false;
-  qrCodeBase64: string = '';
-  secretKey: string = '';
+  qrCodeBase64: string = "";
+  secretKey: string = "";
   qrLoginPolling: any = null;
-  qrSessionId: string = '';
+  qrSessionId: string = "";
   /**
    * Constructor
    */
@@ -50,7 +56,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private _router: Router,
     private http: HttpClient,
-    private dbService: DbService
+    private dbService: DbService,
   ) {}
 
   // -----------------------------------------------------------------------------------------------------
@@ -64,17 +70,17 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
     // Create the form
     // this.generateQRCode();
     this.infoWeb = {
-      defaultCountry: 'vn',
-      nameCompany: 'Accountant Portal',
-      imageLogo: './assets/images/logo/accountant-portal-logo.svg',
+      defaultCountry: "vn",
+      nameCompany: "Accountant Portal",
+      imageLogo: "./assets/images/logo/accountant-portal-logo.svg",
       linkAdmin: document.location.origin,
     };
 
     this.activatedRoute.queryParams.subscribe((params: Params) => {
       this.ObjectTypeParams = params;
       this.signInForm = {
-        username: '',
-        password: '',
+        username: "",
+        password: "",
       };
 
       // Determine selected module from query params
@@ -95,10 +101,11 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
    */
   setSelectedModule(type: string): void {
     const moduleConfig = {
-      name: 'PAYABLES / PAYROLL',
-      shortDesc: 'Accounting Operations Workspace',
-      image: './assets/images/login/Hotel.jpg',
-      contnet: 'Manage supplier bills, payroll cycles, and expense approvals in one accounting workspace.',
+      name: "PAYABLES / PAYROLL",
+      shortDesc: "Accounting Operations Workspace",
+      image: "./assets/images/login/Hotel.jpg",
+      contnet:
+        "Manage supplier bills, payroll cycles, and expense approvals in one accounting workspace.",
     };
 
     this.selectedModule = moduleConfig;
@@ -108,7 +115,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
    * Toggle password visibility
    */
   togglePassword(): void {
-    this.typePassword = this.typePassword === 'password' ? 'text' : 'password';
+    this.typePassword = this.typePassword === "password" ? "text" : "password";
   }
 
   /**
@@ -118,7 +125,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
   submitSignIn() {
     if (!this.signInForm.username) {
       this.dialogObj = DialogUtility.alert({
-        title: 'Authentication Required',
+        title: "Authentication Required",
         content: `
           <div class="modern-alert-dialog">
             <div class="alert-icon">
@@ -130,16 +137,16 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
             </div>
           </div>
         `,
-        position: { X: 'center', Y: 'center' },
+        position: { X: "center", Y: "center" },
         closeOnEscape: true,
-        cssClass: 'modern-alert-dialog-container',
-        width: '400px'
+        cssClass: "modern-alert-dialog-container",
+        width: "400px",
       });
       return;
     }
     if (!this.signInForm.password) {
       this.dialogObj = DialogUtility.alert({
-        title: 'Authentication Required',
+        title: "Authentication Required",
         content: `
           <div class="modern-alert-dialog">
             <div class="alert-icon">
@@ -151,10 +158,10 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
             </div>
           </div>
         `,
-        position: { X: 'center', Y: 'center' },
+        position: { X: "center", Y: "center" },
         closeOnEscape: true,
-        cssClass: 'modern-alert-dialog-container',
-        width: '400px'
+        cssClass: "modern-alert-dialog-container",
+        width: "400px",
       });
       return;
     }
@@ -163,33 +170,38 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
   }
   user: any = {};
   getClientInfo(callback: (clientInfo: string) => void) {
-    const headers = new HttpHeaders().delete('Authorization');
-    this.http.get('https://www.cloudflare.com/cdn-cgi/trace', { responseType: 'text', headers }).subscribe(
-      (response: string) => {
-        const lines = response.split('\n');
-        const data = {};
-        lines.forEach((line) => {
-          const [key, value] = line.split('=');
-          if (key && value) {
-            data[key.trim()] = value.trim();
-          }
-        });
+    const headers = new HttpHeaders().delete("Authorization");
+    this.http
+      .get("https://www.cloudflare.com/cdn-cgi/trace", {
+        responseType: "text",
+        headers,
+      })
+      .subscribe(
+        (response: string) => {
+          const lines = response.split("\n");
+          const data = {};
+          lines.forEach((line) => {
+            const [key, value] = line.split("=");
+            if (key && value) {
+              data[key.trim()] = value.trim();
+            }
+          });
 
-        const ip = data['ip'] || 'Unknown';
-        const userAgent = navigator.userAgent;
-        const screenResolution = `${window.screen.width}x${window.screen.height}`;
-        const clientInfo = `IP: ${ip}, UserAgent: ${userAgent}, Screen: ${screenResolution}`;
-        callback(clientInfo);
-      },
-      (error) => {
-        console.error('Error fetching client info:', error);
-        const fallbackInfo = `UserAgent: ${navigator.userAgent}, Screen: ${window.screen.width}x${window.screen.height}`;
-        callback(fallbackInfo);
-      }
-    );
+          const ip = data["ip"] || "Unknown";
+          const userAgent = navigator.userAgent;
+          const screenResolution = `${window.screen.width}x${window.screen.height}`;
+          const clientInfo = `IP: ${ip}, UserAgent: ${userAgent}, Screen: ${screenResolution}`;
+          callback(clientInfo);
+        },
+        (error) => {
+          console.error("Error fetching client info:", error);
+          const fallbackInfo = `UserAgent: ${navigator.userAgent}, Screen: ${window.screen.width}x${window.screen.height}`;
+          callback(fallbackInfo);
+        },
+      );
   }
   signIn(): void {
-    localStorage.removeItem('AuthToken');
+    localStorage.removeItem("AuthToken");
 
     this.getClientInfo((ip) => {
       this.SubmitLogin(ip);
@@ -199,14 +211,15 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
     this._authService.signIn(this.signInForm, false, ip).subscribe(
       (rs) => {
         if (rs && rs.token) {
-          const requestedRedirect = this.activatedRoute.snapshot.queryParamMap.get('redirectURL') || '/configuration';
-          const redirectURL = requestedRedirect === '/form' || requestedRedirect === '/configuration'
-            ? requestedRedirect
-            : '/configuration';
+          const requestedRedirect =
+            this.activatedRoute.snapshot.queryParamMap.get("redirectURL") ||  "/main-page";
+            const redirectURL = requestedRedirect === '/main-page'
+              ? requestedRedirect
+              : '/main-page';
           this._router.navigateByUrl(redirectURL);
         } else {
           this.dialogObj = DialogUtility.alert({
-            title: 'Authentication Failed',
+            title: "Authentication Failed",
             content: `
               <div class="modern-alert-dialog">
                 <div class="alert-icon error">
@@ -214,35 +227,40 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                 </div>
                 <div class="alert-content">
                   <h3>Login Unsuccessful</h3>
-                  <p>${rs?.mes || 'Authentication failed. Please check your username and password.'}</p>
+                  <p>${rs?.mes || "Authentication failed. Please check your username and password."}</p>
                   <div class="alert-footer">
                     <small>Ensure your username and password are correct.</small>
                   </div>
                 </div>
               </div>
             `,
-            position: { X: 'center', Y: 'center' },
+            position: { X: "center", Y: "center" },
             closeOnEscape: true,
-            cssClass: 'modern-alert-dialog-container',
-            width: '450px'
+            cssClass: "modern-alert-dialog-container",
+            width: "450px",
           });
         }
       },
       (response) => {
         this.showAlert = true;
-      }
+      },
     );
   }
   logoutAllDevicesAndLogin(idUser) {
     if (idUser) {
-      this.http.get(env.urlOperationApi + `/ManagerUser/authenticateBackend_logout_all?idUser=${idUser}`).subscribe(
-        (rs: any) => {},
-        (error) => {
-          // Handle error case
-          console.error('Error logging out all devices:', error);
-          this.dialogObj = DialogUtility.alert({
-            title: 'Operation Failed',
-            content: `
+      this.http
+        .get(
+          env.urlOperationApi +
+            `/ManagerUser/authenticateBackend_logout_all?idUser=${idUser}`,
+        )
+        .subscribe(
+          (rs: any) => {},
+          (error) => {
+            // Handle error case
+            console.error("Error logging out all devices:", error);
+            this.dialogObj = DialogUtility.alert({
+              title: "Operation Failed",
+              content: `
               <div class="modern-alert-dialog">
                 <div class="alert-icon error">
                   <i class="fa-solid fa-exclamation-triangle"></i>
@@ -256,45 +274,61 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                 </div>
               </div>
             `,
-            position: { X: 'center', Y: 'center' },
-            closeOnEscape: true,
-            cssClass: 'modern-alert-dialog-container',
-            width: '450px'
-          });
-        }
-      );
+              position: { X: "center", Y: "center" },
+              closeOnEscape: true,
+              cssClass: "modern-alert-dialog-container",
+              width: "450px",
+            });
+          },
+        );
     }
   }
   ActionRole(action) {
     if (action) {
       let role = this.user.role.find((x) => x.active);
       if (role) {
-        this.http.get(env.urlOperationApi + '/SettingUser/GetUsersByID?id=' + this.user._id).subscribe((rs: any) => {
-          rs.role = this.user.role;
-          this.http.put(env.urlOperationApi + '/SettingUser/UpdateUsersSeting', rs).subscribe((rs: any) => {
-            if (this.user.IsView)
-              this._router.navigate(['tours/view'], {
-                queryParams: {
-                  country: this.user.nation,
-                  user: this.user.username,
-                },
-              });
-            else if (this.user.IsOperation || this.user.IsAccounting) {
-              location.href = '/ope/tours?country=' + this.user.nation + '&user=' + this.user.username;
-            } else if (this.user.IsReport) {
-              location.href = 'tours/report-booking?country=' + this.user.nation + '&user=' + this.user.username;
-            } else
-              this._router.navigate(['tours'], {
-                queryParams: {
-                  country: this.user.nation,
-                  user: this.user.username,
-                },
+        this.http
+          .get(
+            env.urlOperationApi +
+              "/SettingUser/GetUsersByID?id=" +
+              this.user._id,
+          )
+          .subscribe((rs: any) => {
+            rs.role = this.user.role;
+            this.http
+              .put(env.urlOperationApi + "/SettingUser/UpdateUsersSeting", rs)
+              .subscribe((rs: any) => {
+                if (this.user.IsView)
+                  this._router.navigate(["tours/view"], {
+                    queryParams: {
+                      country: this.user.nation,
+                      user: this.user.username,
+                    },
+                  });
+                else if (this.user.IsOperation || this.user.IsAccounting) {
+                  location.href =
+                    "/ope/tours?country=" +
+                    this.user.nation +
+                    "&user=" +
+                    this.user.username;
+                } else if (this.user.IsReport) {
+                  location.href =
+                    "tours/report-booking?country=" +
+                    this.user.nation +
+                    "&user=" +
+                    this.user.username;
+                } else
+                  this._router.navigate(["tours"], {
+                    queryParams: {
+                      country: this.user.nation,
+                      user: this.user.username,
+                    },
+                  });
               });
           });
-        });
       } else {
         this.dialogObj = DialogUtility.alert({
-          title: 'Role Selection Required',
+          title: "Role Selection Required",
           content: `
             <div class="modern-alert-dialog">
               <div class="alert-icon warning">
@@ -309,10 +343,10 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
               </div>
             </div>
           `,
-          position: { X: 'center', Y: 'center' },
+          position: { X: "center", Y: "center" },
           closeOnEscape: true,
-          cssClass: 'modern-alert-dialog-container',
-          width: '400px'
+          cssClass: "modern-alert-dialog-container",
+          width: "400px",
         });
       }
     }
@@ -320,7 +354,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
   disableduserVerify: boolean = true;
   onOtpChange(event) {
     // Handle both string (from ejs-otpinput) and event object (from ng-otp-input)
-    const value = typeof event === 'string' ? event : event;
+    const value = typeof event === "string" ? event : event;
     this.otpDigits = value;
     if (value && value.length == 4) {
       this.disableduserVerify = false;
@@ -328,31 +362,35 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
       this.disableduserVerify = true;
     }
   }
-  alertTextVerify: string = '';
+  alertTextVerify: string = "";
   userVerify() {
-    this.alertTextVerify = '';
-    this._authService.userVerify(this.otpUser, this.otpDigits, false).subscribe((x) => {
-      if (x) {
-        this.openOTPModal = false;
-        this.signIn();
-      } else this.alertTextVerify = 'Invalid OTP';
-    });
+    this.alertTextVerify = "";
+    this._authService
+      .userVerify(this.otpUser, this.otpDigits, false)
+      .subscribe((x) => {
+        if (x) {
+          this.openOTPModal = false;
+          this.signIn();
+        } else this.alertTextVerify = "Invalid OTP";
+      });
   }
-  public placeHolder: string = 'X';
-  public separatorVal: string = '-';
-  public otpCssClass: string = '';
+  public placeHolder: string = "X";
+  public separatorVal: string = "-";
+  public otpCssClass: string = "";
   public lengthVal: number = 6;
   public disabledVal: boolean = false;
-  public styleMode: string = 'Underlined';
-  numberGoogleVerify: any = '';
+  public styleMode: string = "Underlined";
+  numberGoogleVerify: any = "";
   userVerifyGoogle() {
-    this.alertTextVerify = '';
-    this._authService.userVerify(this.otpUser, this.otpDigits, true, this.numberGoogleVerify).subscribe((x) => {
-      if (x) {
-        this.twoFAGoogle = false;
-        this.signIn();
-      } else this.alertTextVerify = 'Invalid OTP';
-    });
+    this.alertTextVerify = "";
+    this._authService
+      .userVerify(this.otpUser, this.otpDigits, true, this.numberGoogleVerify)
+      .subscribe((x) => {
+        if (x) {
+          this.twoFAGoogle = false;
+          this.signIn();
+        } else this.alertTextVerify = "Invalid OTP";
+      });
   }
   async SendEmailVerify() {
     // let image = this.infoWeb.imageLogo
@@ -736,7 +774,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
         this.startQRPolling();
       },
       error: (error) => {
-        console.error('Error generating QR code:', error);
+        console.error("Error generating QR code:", error);
         this.isGeneratingQR = false;
         this.showAlert = true;
       },
@@ -773,7 +811,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error checking QR login status:', error);
+        console.error("Error checking QR login status:", error);
       },
     });
   }
@@ -784,7 +822,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
     this.showQRLogin = false;
 
     // Continue with existing login flow
-                  this.submitSignIn();
+    this.submitSignIn();
   }
 
   // Toggle between form login and QR login

@@ -1,0 +1,83 @@
+:host {
+  display: block;
+}
+
+.main-page-layout {
+  min-height: calc(100vh - 110px);
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+.left-menu {
+  background: linear-gradient(160deg, #f5f8ff 0%, #eaf1ff 100%);
+  border: 1px solid #d7e3ff;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.menu-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #23355a;
+}
+
+.menu-header p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #5d6f96;
+}
+
+.menu-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  background: #ffffff;
+}
+
+.menu-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #26385f;
+}
+
+.menu-description {
+  font-size: 12px;
+  color: #7182a8;
+}
+
+.menu-item.active {
+  border-color: #2c5aa0;
+  background: #eef5ff;
+}
+
+.content-panel {
+  background: #ffffff;
+  border: 1px solid #e3e8f5;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+@media (max-width: 1024px) {
+  .main-page-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .left-menu {
+    position: sticky;
+    top: 8px;
+    z-index: 2;
+  }
+}

@@ -1,0 +1,15 @@
+<div class="dashboard-wrapper">
+  <h3>Dashboard Main Page</h3>
+  <p>
+    Day la khu vuc tong quan. Ban co the theo doi nhanh trang thai va bo tri
+    cac page con tu thanh menu ben trai.
+  </p>
+
+  <div class="card-grid">
+    <article class="dashboard-card" *ngFor="let card of cards">
+      <h4>{{ card.title }}</h4>
+      <strong>{{ card.value }}</strong>
+      <span>{{ card.note }}</span>
+    </article>
+  </div>
+</div>

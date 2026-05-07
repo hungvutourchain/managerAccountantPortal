@@ -1,28 +1,31 @@
 import { NgModule, NO_ERRORS_SCHEMA, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AppFactory } from 'app/shared/lib/common.service';
-import { AssignVsEmailSupplierRoutes } from 'app/modules/admin/AssignVsEmailSupplier/AssignVsEmailSupplier-routing.module';
+import { MainPageRoutes } from 'app/modules/admin/MainPage/MainPage-routing.module';
 import { SpreadsheetAllModule } from '@syncfusion/ej2-angular-spreadsheet';
 import { SharedModule } from 'app/shared/shared.module';
 import { TabAllModule } from '@syncfusion/ej2-angular-navigations';
 import { TextBoxModule, NumericTextBoxModule } from '@syncfusion/ej2-angular-inputs';
 import { CheckBoxModule, SwitchModule } from '@syncfusion/ej2-angular-buttons';
 import { DialogModule } from '@syncfusion/ej2-angular-popups';
-import { AssignVsEmailSupplierListComponent } from './list/list.component';
-import { AssignVsEmailSupplierDetailComponent } from './detail/detail.component';
 import { GridAllModule } from '@syncfusion/ej2-angular-grids';
-import { SendEmailTaskNewComponent } from './SendEmailTaskNew/SendEmailTaskNew.component';
 import { RichTextEditorAllModule } from "@syncfusion/ej2-angular-richtexteditor";
-import { ViewLsAssignedServiceComponent } from './detail/ViewLsAssignedService';
+import { MainPageComponent } from './main-page.component';
+import { MainPageDashboardComponent } from './main-page-dashboard.component';
+import { MainPagePanelManagerComponent } from './main-page-panel-manager.component';
+
 @NgModule({
   declarations: [
-    AssignVsEmailSupplierListComponent,
-    AssignVsEmailSupplierDetailComponent,
-    ViewLsAssignedServiceComponent,
-    SendEmailTaskNewComponent
+    MainPageComponent,
+    MainPageDashboardComponent,
+    MainPagePanelManagerComponent,
   ],
   imports: [
-    RouterModule.forChild(AssignVsEmailSupplierRoutes),
+    CommonModule,
+    FormsModule,
+    RouterModule.forChild(MainPageRoutes),
     SharedModule,
     SpreadsheetAllModule,
     RichTextEditorAllModule,
@@ -30,8 +33,8 @@ import { ViewLsAssignedServiceComponent } from './detail/ViewLsAssignedService';
     NumericTextBoxModule, CheckBoxModule, SwitchModule,
     DialogModule, GridAllModule
   ],
-   exports: [
-    SendEmailTaskNewComponent // Export here
+  exports: [
+    
   ],
   providers: [
     AppFactory
@@ -41,4 +44,4 @@ import { ViewLsAssignedServiceComponent } from './detail/ViewLsAssignedService';
     NO_ERRORS_SCHEMA
   ]
 })
-export class AssignVsEmailSupplierModule { }
+export class MainPageModule { }

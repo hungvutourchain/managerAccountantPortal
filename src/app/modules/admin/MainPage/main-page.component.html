@@ -1,0 +1,24 @@
+<section class="main-page-layout">
+  <aside class="left-menu">
+    <div class="menu-header">
+      <h2>Main Page</h2>
+      <p>Trung tam dieu huong cac page con</p>
+    </div>
+
+    <nav class="menu-list">
+      <a
+        *ngFor="let item of menuItems"
+        [routerLink]="[item.route]"
+        routerLinkActive="active"
+        class="menu-item"
+      >
+        <span class="menu-title">{{ item.label }}</span>
+        <span class="menu-description">{{ item.description }}</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="content-panel">
+    <router-outlet></router-outlet>
+  </main>
+</section>
