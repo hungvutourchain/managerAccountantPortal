@@ -38,6 +38,7 @@ export class DebtManagementComponent implements OnInit {
   // Cart – selected transactions for Excel view/export
   cartItems: DebtTransactionItem[] = [];
   cartLockedCustomerId: string | null = null;
+  cartExpanded = false;
 
   overview: DebtOverviewResponse = {
     totalReceivable: 0,
@@ -530,6 +531,11 @@ export class DebtManagementComponent implements OnInit {
   clearCart(): void {
     this.cartItems = [];
     this.cartLockedCustomerId = null;
+    this.cartExpanded = false;
+  }
+
+  toggleCartExpanded(): void {
+    this.cartExpanded = !this.cartExpanded;
   }
 
   openCartExcelView(): void {

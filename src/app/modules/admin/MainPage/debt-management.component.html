@@ -181,28 +181,49 @@
       </header>
 
       <div class="cart-banner" *ngIf="cartItems.length > 0">
-        <span class="cart-info bilingual">
-          <span class="en-text">{{ cartItems.length }} transaction(s) selected</span>
-          <span class="vi-text">Đã chọn {{ cartItems.length }} giao dịch</span>
-        </span>
-        <span class="cart-lock bilingual" *ngIf="cartLockedCustomerId">
-          <i class="bi bi-lock-fill" aria-hidden="true"></i>
-          <span class="en-text">Locked to 1 customer</span>
-          <span class="vi-text">Đã khóa 1 khách hàng</span>
-        </span>
-        <div class="cart-actions">
-          <button class="btn-primary" (click)="openCartExcelView()">
-            <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
-            <span class="bilingual"><span class="en-text">View Excel</span><span class="vi-text">Xem sổ</span></span>
-          </button>
-          <button class="btn-secondary" (click)="exportCartExcel()">
-            <i class="bi bi-download" aria-hidden="true"></i>
-            <span class="bilingual"><span class="en-text">Export Excel</span><span class="vi-text">Xuất Excel</span></span>
-          </button>
-          <button class="btn-ghost" (click)="clearCart()">
-            <span class="bilingual"><span class="en-text">Clear Cart</span><span class="vi-text">Bỏ chọn tất cả</span></span>
-          </button>
+        <div class="cart-banner-top">
+          <span class="cart-info bilingual">
+            <span class="en-text">{{ cartItems.length }} transaction(s) selected</span>
+            <span class="vi-text">Đã chọn {{ cartItems.length }} giao dịch</span>
+          </span>
+          <span class="cart-lock bilingual" *ngIf="cartLockedCustomerId">
+            <i class="bi bi-lock-fill" aria-hidden="true"></i>
+            <span class="en-text">Locked to 1 customer</span>
+            <span class="vi-text">Đã khóa 1 khách hàng</span>
+          </span>
+          <div class="cart-actions">
+            <button class="btn-ghost cart-toggle-btn" (click)="toggleCartExpanded()">
+              <i class="bi" [class.bi-chevron-down]="!cartExpanded" [class.bi-chevron-up]="cartExpanded" aria-hidden="true"></i>
+              <span class="bilingual">
+                <span class="en-text">{{ cartExpanded ? 'Hide list' : 'Show list' }}</span>
+                <span class="vi-text">{{ cartExpanded ? 'Ẩn danh sách' : 'Xem danh sách' }}</span>
+              </span>
+            </button>
+            <button class="btn-primary" (click)="openCartExcelView()">
+              <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
+              <span class="bilingual"><span class="en-text">View Excel</span><span class="vi-text">Xem sổ</span></span>
+            </button>
+            <button class="btn-secondary" (click)="exportCartExcel()">
+              <i class="bi bi-download" aria-hidden="true"></i>
+              <span class="bilingual"><span class="en-text">Export Excel</span><span class="vi-text">Xuất Excel</span></span>
+            </button>
+            <button class="btn-ghost" (click)="clearCart()">
+              <span class="bilingual"><span class="en-text">Clear all</span><span class="vi-text">Bỏ chọn tất cả</span></span>
+            </button>
+          </div>
         </div>
+
+        <ul class="cart-item-list" *ngIf="cartExpanded">
+          <li class="cart-item-row" *ngFor="let item of cartItems">
+            <span class="cart-item-customer">{{ item.customerCode }} - {{ item.customerName }}</span>
+            <span class="cart-item-type" [class.payable]="item.transactionType === 'credit'">{{ getTransactionTypeLabel(item.transactionType) }}</span>
+            <span class="cart-item-amount" [class.debt]="item.transactionType === 'debt'" [class.credit]="item.transactionType === 'credit'">{{ formatCurrency(item.amount) }}</span>
+            <span class="cart-item-date">{{ formatDate(item.transactionAt) }}</span>
+            <button type="button" class="cart-item-remove" title="Remove / Bỏ chọn" (click)="toggleCartItem(item)">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </li>
+        </ul>
       </div>
 
       <div class="transaction-filter-bar">
