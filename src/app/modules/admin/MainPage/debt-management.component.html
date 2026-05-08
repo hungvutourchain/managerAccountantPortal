@@ -556,19 +556,25 @@
   >
     <ng-template #content>
       <section class="audit-panel" *ngIf="selectedTransaction as tx">
-        <div class="audit-meta-grid">
-          <article class="audit-meta-card">
-            <h4 class="bilingual"><span class="en-text">Customer</span><span class="vi-text">Khách hàng</span></h4>
-            <strong>{{ tx.customerCode }} - {{ tx.customerName }}</strong>
-          </article>
-          <article class="audit-meta-card">
-            <h4 class="bilingual"><span class="en-text">Type</span><span class="vi-text">Loại giao dịch</span></h4>
+        <!-- Compact meta bar -->
+        <div class="audit-meta-bar">
+          <span class="audit-meta-item">
+            <i class="bi bi-person"></i>
+            <span class="audit-meta-label">KH</span>
+            <strong>{{ tx.customerCode }} – {{ tx.customerName }}</strong>
+          </span>
+          <span class="audit-meta-sep"></span>
+          <span class="audit-meta-item">
+            <i class="bi bi-arrow-left-right"></i>
+            <span class="audit-meta-label">Loại</span>
             <strong>{{ getTransactionTypeLabel(tx.transactionType) }}</strong>
-          </article>
-          <article class="audit-meta-card">
-            <h4 class="bilingual"><span class="en-text">Amount</span><span class="vi-text">Số tiền</span></h4>
-            <strong>{{ formatCurrency(tx.amount) }}</strong>
-          </article>
+          </span>
+          <span class="audit-meta-sep"></span>
+          <span class="audit-meta-item">
+            <i class="bi bi-currency-exchange"></i>
+            <span class="audit-meta-label">Số tiền</span>
+            <strong class="audit-meta-amount">{{ formatCurrency(tx.amount) }}</strong>
+          </span>
         </div>
 
         <div class="audit-error-banner" *ngIf="transactionAuditErrorMessage">
@@ -579,13 +585,12 @@
           <table class="audit-table">
             <thead>
               <tr>
-                <th class="col-when"><span class="bilingual"><span class="en-text">When</span><span class="vi-text">Thời điểm</span></span></th>
-                <th class="col-by"><span class="bilingual"><span class="en-text">By</span><span class="vi-text">Người đổi</span></span></th>
-                <th class="col-action"><span class="bilingual"><span class="en-text">Action</span><span class="vi-text">Hành động</span></span></th>
-                <th class="col-field"><span class="bilingual"><span class="en-text">Field</span><span class="vi-text">Trường</span></span></th>
-                <th class="col-from"><span class="bilingual"><span class="en-text">From</span><span class="vi-text">Từ giá trị</span></span></th>
-                <th class="col-to"><span class="bilingual"><span class="en-text">To</span><span class="vi-text">Sang giá trị</span></span></th>
-                <th class="col-note"><span class="bilingual"><span class="en-text">Note</span><span class="vi-text">Ghi chú</span></span></th>
+                <th class="col-when">When / Thời điểm</th>
+                <th class="col-by">By / Người đổi</th>
+                <th class="col-action">Action / Hành động</th>
+                <th class="col-field">Field / Trường</th>
+                <th class="col-change">Change / Thay đổi</th>
+                <th class="col-note">Note / Ghi chú</th>
               </tr>
             </thead>
             <tbody>
@@ -594,12 +599,17 @@
                 <td class="col-by audit-user">{{ log.changedBy || 'system' }}</td>
                 <td class="col-action"><span class="audit-action">{{ formatTransactionAuditAction(log.action) }}</span></td>
                 <td class="col-field"><span class="audit-field">{{ formatTransactionAuditField(log.field) }}</span></td>
-                <td class="col-from"><div class="audit-cell audit-cell--from" [title]="formatTransactionAuditValue(log.oldValue)">{{ formatTransactionAuditValue(log.oldValue) }}</div></td>
-                <td class="col-to"><div class="audit-cell audit-cell--to" [title]="formatTransactionAuditValue(log.newValue)">{{ formatTransactionAuditValue(log.newValue) }}</div></td>
+                <td class="col-change">
+                  <div class="audit-change-cell">
+                    <div class="audit-cell audit-cell--from" [title]="formatTransactionAuditValue(log.oldValue)">{{ formatTransactionAuditValue(log.oldValue) }}</div>
+                    <i class="bi bi-arrow-right audit-change-arrow"></i>
+                    <div class="audit-cell audit-cell--to" [title]="formatTransactionAuditValue(log.newValue)">{{ formatTransactionAuditValue(log.newValue) }}</div>
+                  </div>
+                </td>
                 <td class="col-note"><div class="audit-cell audit-note" [title]="log.note || '-'">{{ log.note || '-' }}</div></td>
               </tr>
               <tr *ngIf="!transactionAuditLoading && transactionAuditLogs.length === 0">
-                <td colspan="7" class="empty-row">
+                <td colspan="6" class="empty-row">
                   <span class="bilingual"><span class="en-text">No transaction audit logs found.</span><span class="vi-text">Không có lịch sử thay đổi cho giao dịch này.</span></span>
                 </td>
               </tr>

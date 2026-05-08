@@ -867,35 +867,59 @@ tr.cart-locked {
 }
 
 .audit-panel {
-  padding-top: 8px;
+  padding-top: 4px;
   display: grid;
-  gap: 14px;
-}
-
-.audit-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
-.audit-meta-card {
+// Compact inline meta bar
+.audit-meta-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 10px 14px;
+  background: #f3f7ff;
   border: 1px solid #dce7f7;
-  border-radius: 12px;
-  padding: 12px;
-  background: #f8fbff;
-  display: grid;
-  gap: 4px;
+  border-radius: 10px;
+  font-size: 13px;
 }
 
-.audit-meta-card h4 {
-  margin: 0;
-  font-size: 12px;
-  color: #4e678f;
+.audit-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+
+  &:first-child { padding-left: 0; }
+
+  i {
+    color: #6e82a7;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
 }
 
-.audit-meta-card strong {
+.audit-meta-label {
+  color: #6e82a7;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.audit-meta-item strong {
   color: #1f3a66;
-  font-size: 15px;
+  font-size: 13px;
+}
+
+.audit-meta-amount {
+  color: #1e7a4c;
+}
+
+.audit-meta-sep {
+  width: 1px;
+  height: 24px;
+  background: #dce7f7;
+  flex-shrink: 0;
 }
 
 .audit-table-panel {
@@ -917,18 +941,18 @@ tr.cart-locked {
 
 .audit-table {
   width: 100%;
-  min-width: 1180px;
+  min-width: 820px;
   border-collapse: separate;
   border-spacing: 0;
 }
 
 .audit-table th,
 .audit-table td {
-  padding: 10px 12px;
+  padding: 7px 10px;
   border-bottom: 1px solid #e5edf9;
   text-align: left;
-  font-size: 13px;
-  vertical-align: top;
+  font-size: 12px;
+  vertical-align: middle;
 }
 
 .audit-table th {
@@ -938,6 +962,9 @@ tr.cart-locked {
   background: #f3f7ff;
   color: #355282;
   white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .audit-table tbody tr:nth-child(even) {
@@ -949,28 +976,27 @@ tr.cart-locked {
 }
 
 .audit-table .col-when {
-  width: 182px;
+  width: 148px;
 }
 
 .audit-table .col-by {
-  width: 114px;
+  width: 96px;
 }
 
 .audit-table .col-action {
-  width: 170px;
+  width: 130px;
 }
 
 .audit-table .col-field {
-  width: 250px;
+  width: 180px;
 }
 
-.audit-table .col-from,
-.audit-table .col-to {
-  width: 260px;
+.audit-table .col-change {
+  min-width: 260px;
 }
 
 .audit-table .col-note {
-  width: 280px;
+  min-width: 160px;
 }
 
 .audit-table td.col-when,
@@ -1013,8 +1039,26 @@ tr.cart-locked {
 
 .audit-cell--from,
 .audit-cell--to {
-  border-radius: 8px;
-  padding: 6px 8px;
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 12px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.audit-change-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.audit-change-arrow {
+  color: #9ab0cc;
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
 .audit-cell--from {
