@@ -161,13 +161,23 @@
             <label class="editor-label bilingual"><span class="en-text">Customer Code</span><span class="vi-text">Mã khách hàng</span></label>
             <ejs-textbox [(ngModel)]="formModel.code"></ejs-textbox>
           </div>
-          <div class="editor-field">
+          <div class="editor-field editor-wide">
             <label class="editor-label bilingual"><span class="en-text">Customer Name</span><span class="vi-text">Tên khách hàng</span></label>
             <ejs-textbox [(ngModel)]="formModel.name"></ejs-textbox>
           </div>
-          <div class="editor-field">
-            <label class="editor-label bilingual"><span class="en-text">Type (131/331)</span><span class="vi-text">Loại (131/331)</span></label>
-            <ejs-textbox [(ngModel)]="formModel.category"></ejs-textbox>
+          <div class="editor-field editor-full">
+            <label class="editor-label bilingual"><span class="en-text">Account Type</span><span class="vi-text">Loại tài khoản</span></label>
+            <ejs-dropdownlist
+              cssClass="account-type-ddl"
+              [dataSource]="accountTypeOptions"
+              [fields]="optionFields"
+              [allowFiltering]="true"
+              [width]="'100%'"
+              [popupWidth]="'760px'"
+              [popupHeight]="'360px'"
+              [(ngModel)]="formModel.category"
+              [placeholder]="'Select account type / Chọn loại tài khoản'"
+            ></ejs-dropdownlist>
           </div>
           <div class="editor-field">
             <label class="editor-label bilingual"><span class="en-text">Tax Code</span><span class="vi-text">Mã số thuế</span></label>

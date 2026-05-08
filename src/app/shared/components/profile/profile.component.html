@@ -41,12 +41,6 @@
         Change Password
       </button>
     </div>
-    <div>
-      <button (click)="activeTab = 3" class="cls_button {{activeTab === 3 ?'active': ''}}">
-        <i class="far fa-check-circle"></i>
-        Signature
-      </button>
-    </div>
   </div>
 </div>
 @if(activeTab == 1){
@@ -72,49 +66,8 @@
   </div>
   <div class="col-md-6">
     <label class="k-form-field">
-      <span>User Code</span>
-      <input style="width: 100%" class="k-textbox" [(ngModel)]="_user.usercode" placeholder="text" />
-    </label>
-  </div>
-  <div class="col-md-6">
-    <label class="k-form-field">
       <span>Email</span>
       <input class="k-textbox" [(ngModel)]="_user.email" placeholder="text" />
-    </label>
-  </div>
-  <div class="col-md-6">
-    <label class="k-form-field">
-      <span>Company name</span>
-      <input class="k-textbox" [(ngModel)]="_user.company" placeholder="text" />
-    </label>
-  </div>
-  <div class="col-md-6">
-    <label class="k-form-field">
-      <span>Default Currency Booking</span>
-      <kendo-dropdownlist [(ngModel)]="_user.defaultcurrency" [data]="CurrencySelected">
-      </kendo-dropdownlist>
-    </label>
-  </div>
-  <div class="col-md-6">
-    <label class="k-form-field">
-      <span>SELLPRICE ROUND OPTION</span>
-      <kendo-dropdownlist [data]="roundTypes" [(ngModel)]="_user.roundOption" [valueField]="'type'" [textField]="'type'"
-        style="width: 100%">
-      </kendo-dropdownlist>
-    </label>
-  </div>
-  <div class="col-md-12">
-    Master Data in Last "
-    <input type="number" class="editMaster" [(ngModel)]="_user.lastMonth" />
-    " months
-  </div>
-  <div class="col-md-12">
-    <label class="k-form-field">
-      <span>Role:
-        <span *ngFor="let r of _user.role; let _id = index">{{
-          r.name + (_id == _user.role.length - 1 ? "" : ",")
-          }}</span>
-      </span>
     </label>
   </div>
   <div class="col-md-12 mb-3">
@@ -161,18 +114,6 @@
   </button>
 </div>
 }
-@if(activeTab == 3){
-<ejs-richtexteditor [toolbarSettings]="toolbarset" [insertImageSettings]="insertImageSettings"
-  [fileManagerSettings]="fileManagerSettings" [(ngModel)]="_user.signature">
-</ejs-richtexteditor>
-<!-- <personal-results-user class="mt-3" [user]="user"></personal-results-user> -->
-<div class="col-md-12 p-0" style="margin: 10px 0">
-  <button type="button" class="btn btn-primary" style="font-size: 12px; padding: 4px 6px"
-    (click)="funProfile('save', _user)">
-    Save changes
-  </button>
-</div>
-}
 @if(activeTab == 4 && !loadinggenerateQrCode) {
 @if(!_user.twoFAGoogle) {
 <div class="col-md-12 mt-3">
@@ -185,7 +126,10 @@
       <label for="totp">Enter 6-digit code:</label>
       <input type="text" id="totp" class="k-textbox" (keydown)="$event.key === 'Enter' ? validateTotp() : null"
         [(ngModel)]="totp" placeholder="Enter OTP" />
-      <button type="button" class="btn btn-primary mt-3" (click)="validateTotp()">Validate OTP</button>
+      <button type="button" class="btn btn-primary mt-3" (click)="validateTotp()"
+        [disabled]="isVerifyingTotp || isUpdatingTwoFactor">
+        {{ isVerifyingTotp ? 'Validating... / Đang xác thực...' : 'Validate OTP' }}
+      </button>
       <div *ngIf="totpInvalid" class="text-danger mt-2">OTP is invalid</div>
     </div>
   </div>
@@ -241,7 +185,9 @@
 }@else {
 <div class="col-md-12 mt-3" style="text-align: center;">
   <p class="text-success">You have enabled Google Authenticator for 2FA.</p>
-  <button type="button" class="btn btn-danger mt-3" (click)="disable2FA()">Disable 2FA</button>
+  <button type="button" class="btn btn-danger mt-3" (click)="disable2FA()" [disabled]="isUpdatingTwoFactor">
+    {{ isUpdatingTwoFactor ? 'Updating... / Đang cập nhật...' : 'Disable 2FA' }}
+  </button>
 </div>
 }
 }
@@ -273,16 +219,6 @@
         <span>Password</span>
       </button>
 
-      <button (click)="activeTab = 3" class="nav-tab {{activeTab === 3 ? 'active' : ''}}"
-        [attr.aria-selected]="activeTab === 3">
-        <i class="fas fa-signature"></i>
-        <span>Signature</span>
-      </button>
-      <button (click)="changeTab(5)" class="nav-tab {{activeTab === 5 ? 'active' : ''}}"
-        [attr.aria-selected]="activeTab === 5">
-        <i class="fas fa-cogs"></i>
-        <span>Configure</span>
-      </button>
     </div>
   </div>
 
@@ -330,14 +266,6 @@
 
           <div class="form-group">
             <label class="form-label">
-              <i class="fas fa-code"></i>
-              <span>User Code</span>
-            </label>
-            <input class="form-input" [(ngModel)]="_user.usercode" placeholder="Enter user code" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
               <i class="fas fa-envelope"></i>
               <span>Email</span>
             </label>
@@ -352,56 +280,6 @@
             <input class="form-input" [(ngModel)]="_user.phone" placeholder="Enter phone address" />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-building"></i>
-              <span>Company Name</span>
-            </label>
-            <input class="form-input" [(ngModel)]="_user.company" placeholder="Enter company name" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-money-bill"></i>
-              <span>Default Currency</span>
-            </label>
-            <kendo-dropdownlist class="form-dropdown" [(ngModel)]="_user.defaultcurrency" [data]="CurrencySelected">
-            </kendo-dropdownlist>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fas fa-calculator"></i>
-              <span>Price Round Option</span>
-            </label>
-            <kendo-dropdownlist class="form-dropdown" [data]="roundTypes" [(ngModel)]="_user.roundOption"
-              [valueField]="'type'" [textField]="'type'">
-            </kendo-dropdownlist>
-          </div>
-
-          <div class="form-group full-width">
-            <label class="form-label">
-              <i class="fas fa-calendar"></i>
-              <span>Master Data Period</span>
-            </label>
-            <div class="input-with-text">
-              <span>Show data from last</span>
-              <input type="number" class="form-input inline" [(ngModel)]="_user.lastMonth" min="1" max="24" />
-              <span>months</span>
-            </div>
-          </div>
-
-          <div class="form-group full-width">
-            <label class="form-label">
-              <i class="fas fa-user-tag"></i>
-              <span>Assigned Roles</span>
-            </label>
-            <div class="role-tags">
-              <span *ngFor="let r of _user.role" class="role-tag">
-                {{r.name}}
-              </span>
-            </div>
-          </div>
         </div>
 
         <div class="form-actions">
@@ -469,31 +347,6 @@
     </div>
     }
 
-    <!-- Signature Tab -->
-    @if(activeTab == 3) {
-    <div class="tab-panel fade-in">
-      <div class="panel-header">
-        <h3><i class="fas fa-signature"></i> Digital Signature</h3>
-        <p class="text-muted">Create and manage your digital signature</p>
-      </div>
-
-      <div class="form-container">
-        <div class="signature-editor">
-          <ejs-richtexteditor [toolbarSettings]="toolbarset" [insertImageSettings]="insertImageSettings"
-            [fileManagerSettings]="fileManagerSettings" [(ngModel)]="_user.signature">
-          </ejs-richtexteditor>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn btn-primary" (click)="funProfile('save', _user)">
-            <i class="fas fa-save"></i>
-            Save Signature
-          </button>
-        </div>
-      </div>
-    </div>
-    }
-
     <!-- 2FA Security Tab -->
     @if(activeTab == 4 && !loadinggenerateQrCode) {
     <div class="tab-panel fade-in">
@@ -521,9 +374,10 @@
               </label>
               <input type="text" id="totp" class="form-input otp-input" [(ngModel)]="totp"
                 (keydown)="$event.key === 'Enter' ? validateTotp() : null" placeholder="000000" maxlength="6" />
-              <button type="button" class="btn btn-primary" (click)="validateTotp()">
+              <button type="button" class="btn btn-primary" (click)="validateTotp()"
+                [disabled]="isVerifyingTotp || isUpdatingTwoFactor">
                 <i class="fas fa-check"></i>
-                Verify Code
+                {{ isVerifyingTotp ? 'Validating...' : 'Verify Code' }}
               </button>
             </div>
             <div *ngIf="totpInvalid" class="error-message">
@@ -606,99 +460,12 @@
           <h4>Two-Factor Authentication Enabled</h4>
           <p>Your account is now protected with 2FA</p>
         </div>
-        <button type="button" class="btn btn-danger" (click)="disable2FA()">
+        <button type="button" class="btn btn-danger" (click)="disable2FA()" [disabled]="isUpdatingTwoFactor">
           <i class="fas fa-times"></i>
-          Disable 2FA
+          {{ isUpdatingTwoFactor ? 'Updating...' : 'Disable 2FA' }}
         </button>
       </div>
       }
-    </div>
-    }
-    <!-- Configure -->
-    @if(activeTab == 5) {
-    <div class="tab-panel fade-in">
-      <div class="panel-header">
-        <h3><i class="fas fa-cogs"></i> Configure</h3>
-        <p class="text-muted">Customize your account settings</p>
-      </div>
-    </div>
-    <div class="tab-panel fade-in">
-      <div class="form-container">
-        <div class="form-container">
-          <div class="form-grid">
-            <div class="form-group full-width mb-4">
-              <label class="form-label">
-                <i class="fas fa-language"></i>
-                <span>Default Language</span>
-              </label>
-              <ejs-dropdownlist [(ngModel)]="_user.defaultLanguage" [allowFiltering]="true"
-                [fields]="{value: '_id', text: 'fullName'}" [dataSource]="lsLanguageCodes"
-                [placeholder]="loadingLanguages ? 'Loading languages...' : 'Select language'"
-                [enabled]="!loadingLanguages && lsLanguageCodes?.length > 0">
-                <ng-template #noRecordsTemplate>
-                  <div style="padding: 10px; text-align: center;">
-                    <i class="fas fa-spinner fa-spin"></i> Loading languages...
-                  </div>
-                </ng-template>
-              </ejs-dropdownlist>
-            </div>
-            <div class="form-group full-width">
-              <label class="form-label">
-                <i class="fas fa-file-invoice"></i>
-                <span>Invoice Export File Name Template</span>
-              </label>
-              <input class="form-input" [(ngModel)]="_user.settingExportInvoice"
-                [placeholder]="'e.g., ' + defaultInvoiceTemplate" />
-              <small class="form-help">
-                <i class="fas fa-info-circle"></i>
-                Available keywords: {{ keyWordInvoiceExport.join(', ') }}
-              </small>
-            </div>
-
-            <div class="form-group full-width">
-              <label class="form-label">
-                <i class="fas fa-file-alt"></i>
-                <span>Document Export File Name Template</span>
-              </label>
-              <input class="form-input" [(ngModel)]="_user.settingExportDocument"
-                [placeholder]="'e.g., ' + defaultDocumentTemplate" />
-              <small class="form-help">
-                <i class="fas fa-info-circle"></i>
-                Available keywords: {{ keyWordDocumentExport.join(', ') }}
-              </small>
-            </div>
-
-            <div class="form-group full-width">
-              <label class="form-label">
-                <i class="fas fa-eye"></i>
-                <span>Preview</span>
-              </label>
-              <div class="preview-container">
-                <div class="preview-item">
-                  <strong>
-                    <i class="fas fa-file-invoice" style="color: #28a745;"></i>
-                    Invoice:
-                  </strong>
-                  <span class="preview-text">{{ getPreviewFileName('invoice') }}</span>
-                </div>
-                <div class="preview-item">
-                  <strong>
-                    <i class="fas fa-file-alt" style="color: #007bff;"></i>
-                    Document:
-                  </strong>
-                  <span class="preview-text">{{ getPreviewFileName('document') }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn btn-primary" (click)="funProfile('save', _user)">
-            <i class="fas fa-save"></i>
-            Save Configure
-          </button>
-        </div>
-      </div>
     </div>
     }
   </div>

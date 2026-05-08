@@ -139,6 +139,15 @@
   grid-column: span 4;
 }
 
+.editor-field.editor-wide {
+  grid-column: span 3;
+}
+
+:host ::ng-deep .account-type-ddl.e-ddl .e-input-value,
+:host ::ng-deep .account-type-ddl.e-ddl .e-list-item {
+  font-size: 14px;
+}
+
 .editor-actions {
   margin-top: 10px;
   display: flex;
@@ -420,6 +429,12 @@ th {
   min-width: 980px;
 }
 
+.audit-table th:first-child,
+.audit-table td:first-child {
+  min-width: 170px;
+  white-space: nowrap;
+}
+
 .audit-value {
   max-width: 220px;
   color: #3a527e;
@@ -668,6 +683,10 @@ th {
   }
 
   .editor-field.editor-full {
+    grid-column: span 1;
+  }
+
+  .editor-field.editor-wide {
     grid-column: span 1;
   }
 

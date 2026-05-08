@@ -52,25 +52,23 @@ export class DbService {
 
   // Lookup/Configuration Methods
   getCountries(): Observable<any> {
-    return this.http.get<any[]>(`${env.urlOperationApi}/Document/countries`).pipe(
-      map((countries) =>
-        (countries || []).map((country: any) => ({
-          ...country,
-          nation: country?.nation || country?.code || "",
-        }))
-      ),
+    return this.getDocumentConfig().pipe(
+      map((config) => {
+        const defaultCountry = (config?.defaultCountry || "vn").toString().toLowerCase();
+        return [
+          {
+            name: (config?.countryName || defaultCountry || "VN").toString().toUpperCase(),
+            nation: defaultCountry,
+          },
+        ];
+      }),
       catchError(() =>
-        this.getDocumentConfig().pipe(
-          map((config) => {
-            const defaultCountry = config?.defaultCountry || "vn";
-            return [
-              {
-                name: (config?.countryName || defaultCountry || "VN").toUpperCase(),
-                nation: defaultCountry,
-              },
-            ];
-          })
-        )
+        of([
+          {
+            name: "VN",
+            nation: "vn",
+          },
+        ])
       )
     );
   }
@@ -263,11 +261,17 @@ export class DbService {
 
   // Email & Verification
   CheckEmailUser(email: string, nation: string): Observable<any> {
-    return of(false);
+    return this.http.get<any>(
+      `${env.urlOperationApi}/ManagerUser/CheckEmailUser?email=${encodeURIComponent(email)}&nation=${encodeURIComponent(nation || "")}`
+    );
   }
 
   SendEmailVerify(object: any): Observable<any> {
-    return of({});
+    return this.http.post<any>(`${env.urlOperationApi}/ManagerUser/SendEmailVerify`, object).pipe(
+      catchError(() =>
+        this.http.post<any>(`${env.urlOperationApi}/Authenticate/send-email-verify`, object)
+      )
+    );
   }
 
   notifyApiUrl(emails: any): Observable<any> {
@@ -276,11 +280,29 @@ export class DbService {
 
   // QR & TOTP
   generateQrCode(email: string): Observable<any> {
-    return of({});
+    const payload = { email };
+    return this.http.post<any>(`${env.urlOperationApi}/AuthServiceGoogle/generateQrCode`, payload).pipe(
+      catchError(() => this.http.post<any>(`${env.urlOperationApi}/ManagerUser/generateQrCode`, payload)),
+      catchError(() => this.http.get<any>(`${env.urlOperationApi}/AuthServiceGoogle/generateQrCode?email=${encodeURIComponent(email)}`))
+    );
   }
 
   validateTotp(secret: string, totp: string): Observable<any> {
-    return of(false);
+    const payload = { secret, otp: totp };
+    return this.http.post<any>(`${env.urlOperationApi}/AuthServiceGoogle/validateTotp`, payload).pipe(
+      catchError(() => this.http.post<any>(`${env.urlOperationApi}/AuthServiceGoogle/userVerify`, { Key: secret, otp: totp })),
+      catchError(() => this.http.get<any>(
+        `${env.urlOperationApi}/ManagerUser/validateTotp?secret=${encodeURIComponent(secret)}&totp=${encodeURIComponent(totp)}`
+      ))
+    );
+  }
+
+  bindUserTwoFactorSecret(userId: string, secret: string, enabled: boolean): Observable<any> {
+    return this.http.post<any>(`${env.urlOperationApi}/AuthServiceGoogle/bind-user-secret`, {
+      userId,
+      secret,
+      enabled,
+    });
   }
 
   // User Management

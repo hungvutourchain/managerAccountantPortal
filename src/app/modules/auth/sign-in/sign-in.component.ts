@@ -47,6 +47,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
   secretKey: string = "";
   qrLoginPolling: any = null;
   qrSessionId: string = "";
+  isSubmitting = false;
   /**
    * Constructor
    */
@@ -208,15 +209,28 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
     });
   }
   SubmitLogin(ip) {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.isSubmitting = true;
     this._authService.signIn(this.signInForm, false, ip).subscribe(
       (rs) => {
+        if (this.requiresTwoFactor(rs)) {
+          this.prepareTwoFactorFlow(rs);
+          this.isSubmitting = false;
+          return;
+        }
+
         if (rs && rs.token) {
+          this.resetTwoFactorState();
           const requestedRedirect =
             this.activatedRoute.snapshot.queryParamMap.get("redirectURL") ||  "/main-page";
             const redirectURL = requestedRedirect === '/main-page'
               ? requestedRedirect
               : '/main-page';
           this._router.navigateByUrl(redirectURL);
+          this.isSubmitting = false;
         } else {
           this.dialogObj = DialogUtility.alert({
             title: "Authentication Failed",
@@ -239,10 +253,12 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
             cssClass: "modern-alert-dialog-container",
             width: "450px",
           });
+          this.isSubmitting = false;
         }
       },
       (response) => {
         this.showAlert = true;
+        this.isSubmitting = false;
       },
     );
   }
@@ -370,6 +386,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
       .subscribe((x) => {
         if (x) {
           this.openOTPModal = false;
+          this.otpDigits = "";
           this.signIn();
         } else this.alertTextVerify = "Invalid OTP";
       });
@@ -388,6 +405,7 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
       .subscribe((x) => {
         if (x) {
           this.twoFAGoogle = false;
+          this.numberGoogleVerify = "";
           this.signIn();
         } else this.alertTextVerify = "Invalid OTP";
       });
@@ -750,13 +768,80 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
         </body>
       </html>
     `;
-    await this.dbService
-      .SendEmailVerify({
-        content: data,
-        userId: this.otpUser,
-        email: this.otpEmail,
-      })
-      .toPromise();
+    try {
+      await this.dbService
+        .SendEmailVerify({
+          content: data,
+          userId: this.otpUser,
+          email: this.otpEmail,
+        })
+        .toPromise();
+
+      this.notifyText = "Verification email sent successfully.";
+    } catch (error) {
+      this.alertTextVerify = "Unable to send verification email. Please try again.";
+    }
+  }
+
+  private requiresTwoFactor(response: any): boolean {
+    if (!response || response.token) {
+      return false;
+    }
+
+    return !!(
+      response.requires2FA
+      || response.require2FA
+      || response.requiresTwoFactor
+      || response.Require2FA
+      || response.RequireTwoFactor
+      || response.twoFAGoogle
+      || response.TwoFAGoogle
+      || response.requireGoogle2FA
+      || response.RequireGoogle2FA
+      || response.enableGoogle2FA
+      || response.EnableGoogle2FA
+      || response.otpRequired
+      || response.OtpRequired
+      || response.userId
+      || response.idUser
+      || response.IdUser
+    );
+  }
+
+  private prepareTwoFactorFlow(response: any): void {
+    this.alertTextVerify = "";
+    this.notifyText = "";
+
+    this.otpUser = response?.userId || response?.idUser || response?.IdUser || response?.id || response?.Id || "";
+    this.otpEmail = response?.email || response?.Email || this.signInForm.username || "";
+    this.otpUserName = response?.userName || response?.username || response?.UserName || this.signInForm.username || "";
+
+    const requiresGoogle = !!(
+      response?.twoFAGoogle
+      || response?.TwoFAGoogle
+      || response?.requireGoogle2FA
+      || response?.RequireGoogle2FA
+      || response?.enableGoogle2FA
+      || response?.EnableGoogle2FA
+      || response?.twoFactorType === "google"
+      || response?.twoFactorType === "app"
+    );
+
+    this.openOTPModal = !requiresGoogle;
+    this.twoFAGoogle = requiresGoogle;
+
+    if (!requiresGoogle) {
+      this.SendEmailVerify();
+    }
+  }
+
+  private resetTwoFactorState(): void {
+    this.openOTPModal = false;
+    this.twoFAGoogle = false;
+    this.alertTextVerify = "";
+    this.notifyText = "";
+    this.otpDigits = "";
+    this.numberGoogleVerify = "";
   }
 
   // Generate QR code for login

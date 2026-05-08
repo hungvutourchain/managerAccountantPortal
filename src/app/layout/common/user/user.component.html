@@ -1,13 +1,21 @@
 <!-- Button -->
 <button mat-icon-button [matMenuTriggerFor]="userActions">
   <span class="relative">
-    <img class="w-7 h-7 rounded-full" *ngIf="showAvatar && user && user.avatar" [src]="user.avatar" />
-    <img style=" width: 27px; height: 21px; " class="rounded-full" *ngIf="showAvatar && user && !user.avatar"
-      [src]="'assets/images/logo/Tour_Chain.png'" />
+    <img
+      class="w-7 h-7 rounded-full object-cover"
+      *ngIf="showAvatar && avatarUrl"
+      [src]="avatarUrl"
+      (error)="onAvatarError()"
+      alt="User avatar" />
+    <span
+      *ngIf="showAvatar && !avatarUrl"
+      class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-semibold uppercase">
+      {{ avatarInitial }}
+    </span>
 
     <!-- <mat-icon *ngIf="!showAvatar || !user?.avatar" [svgIcon]="'heroicons_outline:user-circle'"></mat-icon> -->
     <span class="absolute right-0 bottom-0 w-2 h-2 rounded-full" [ngClass]="{
-        'mr-px mb-px': !showAvatar || !user?.avatar,
+        'mr-px mb-px': !showAvatar || !avatarUrl,
         'bg-green-500': !user?.status,
         'bg-gray-500': user?.status === 'online',
         'bg-amber-500': user?.status === 'away',
@@ -27,23 +35,6 @@
   <button mat-menu-item (click)="openProfile()">
     <mat-icon [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
     <span>Profile</span>
-  </button>
-  @if(showDoashboard) {
-  <button mat-menu-item (click)="gotoDashboard()">
-    <mat-icon [svgIcon]="'heroicons_outline:chart-bar'"></mat-icon>
-    <span>Dashboard</span>
-  </button>
-  }
-  <mat-divider class="my-2"></mat-divider>
-  @if(user.globalsSendMessage) {
-  <button mat-menu-item (click)="globalsSendMessage = true">
-    <mat-icon [svgIcon]="'heroicons_outline:mail'"></mat-icon>
-    <span>Send Message For All</span>
-  </button>
-  }
-  <button mat-menu-item (click)="PopupSwitchRoles = true">
-    <mat-icon [svgIcon]="'heroicons_outline:cog'"></mat-icon>
-    <span>Switch Role</span>
   </button>
   <button mat-menu-item (click)="PopupConfig = true">
     <mat-icon [svgIcon]="'heroicons_outline:adjustments'" class="rotate-90"></mat-icon>
@@ -82,7 +73,7 @@
 <ejs-dialog *ngIf="popup_profile" [isModal]="true" [visible]="true" [header]="'Profile'" [showCloseIcon]="true"
   (close)="popup_profile = !popup_profile" style="max-width: 60%" [width]="'900px'">
   <ng-template #content>
-    <profile-dialog [dateTimeFormat]="'dd MMM, yyyy'" (refresh)="user = user" (out)="popup_profile = false"
+    <profile-dialog [dateTimeFormat]="'dd MMM, yyyy HH:mm'" (refresh)="refreshUserInfo()" (out)="popup_profile = false"
       [user]="user"></profile-dialog>
   </ng-template>
 </ejs-dialog>

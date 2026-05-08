@@ -85,7 +85,7 @@ export class UserService implements OnDestroy {
           this.logout(reason);
           return;
         }
-        this._user.next(user);
+        this._user.next(this.normalizeUserPayload(user));
       }),
       catchError(() => {
         const token = localStorage.getItem('AuthToken') ?? '';
@@ -103,7 +103,7 @@ export class UserService implements OnDestroy {
             deactive: false,
             isviewAdmin: false,
           };
-          this._user.next(user);
+          this._user.next(this.normalizeUserPayload(user));
           return of(user);
         }
 
@@ -225,9 +225,43 @@ export class UserService implements OnDestroy {
             user.licensed = true;
           }
           // Update user info nếu còn valid
-          this._user.next(user);
+          this._user.next(this.normalizeUserPayload(user));
         }
       });
+  }
+
+  private normalizeUserPayload(user: any): any {
+    if (!user || typeof user !== 'object') {
+      return user;
+    }
+
+    const pick = (...keys: string[]): any => {
+      for (const key of keys) {
+        const value = user[key];
+        if (value !== undefined && value !== null && value !== '') {
+          return value;
+        }
+      }
+      return undefined;
+    };
+
+    const normalized = { ...user };
+    normalized._id = pick('_id', 'id', 'Id', 'userId');
+    normalized.id = pick('id', '_id', 'Id', 'userId');
+    normalized.Id = pick('Id', 'id', '_id', 'userId');
+    normalized.username = pick('username', 'Username', 'userName', 'UserName', 'email', 'Email');
+    normalized.fullname = pick('fullname', 'FullName', 'name', 'Name', 'displayName', 'DisplayName');
+    normalized.email = pick('email', 'Email', 'mail', 'Mail');
+    normalized.phone = pick('phone', 'Phone', 'phoneNumber', 'PhoneNumber');
+    normalized.usercode = pick('usercode', 'UserCode', 'code', 'Code');
+    normalized.company = pick('company', 'Company', 'companyName', 'CompanyName');
+    normalized.nation = pick('nation', 'Nation', 'country', 'Country');
+    normalized.currency = pick('currency', 'Currency', 'defaultcurrency', 'defaultCurrency', 'DefaultCurrency');
+    normalized.defaultcurrency = pick('defaultcurrency', 'defaultCurrency', 'DefaultCurrency', 'currency', 'Currency');
+    normalized.avatar = pick('avatar', 'Avatar', 'profileImage', 'ProfileImage');
+    normalized.role = Array.isArray(pick('role', 'Role', 'roles', 'Roles')) ? pick('role', 'Role', 'roles', 'Roles') : [];
+
+    return normalized;
   }
 
   // Clean up timer khi destroy service

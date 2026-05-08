@@ -74,7 +74,12 @@ export class AuthService {
 
   userVerify(userId: string, numberVerify: string, isGoogle: boolean, numberGoogleVerify: any = ''): Observable<any> {
     return Observable.create(observer => {
-      this._httpClient.get(env.urlOperationApi + `/ManagerUser/userVerify?userId=${userId}&numberVerify=${numberVerify}&isGoogle=${isGoogle}&numberGoogleVerify=${numberGoogleVerify}`).subscribe((rs: any) => {
+      this._httpClient.post(env.urlOperationApi + `/ManagerUser/userVerify`, {
+        userId,
+        numberVerify,
+        isGoogle,
+        numberGoogleVerify,
+      }).subscribe((rs: any) => {
         observer.next(rs);
       })
     });

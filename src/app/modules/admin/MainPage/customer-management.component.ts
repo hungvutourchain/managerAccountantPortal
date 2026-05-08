@@ -19,6 +19,13 @@ import { TransactionManagementService } from "./transaction-management.service";
 })
 export class CustomerManagementComponent implements OnInit {
   readonly optionFields = { text: "label", value: "value" };
+  accountTypeOptions: Array<{
+    value: string;
+    label: string;
+    accountType?: string;
+    accountName?: string;
+    accountNameLocal?: string;
+  }> = [];
 
   loading = false;
   saving = false;
@@ -102,8 +109,25 @@ export class CustomerManagementComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadAccountTypeOptions();
     this.loadSummary();
     this.loadCustomers();
+  }
+
+  loadAccountTypeOptions(): void {
+    this.customerService.getAccountTypes("", true, 500).subscribe({
+      next: (items) => {
+        this.accountTypeOptions = Array.isArray(items) && items.length > 0
+          ? items.map((item) => ({
+            ...item,
+            label: this.buildAccountTypeBilingualLabel(item),
+          }))
+          : [];
+      },
+      error: () => {
+        this.accountTypeOptions = [];
+      },
+    });
   }
 
   loadSummary(): void {
@@ -191,6 +215,7 @@ export class CustomerManagementComponent implements OnInit {
       id: itemId || undefined,
       Id: itemId || undefined,
     };
+    this.ensureAccountTypeOption(this.formModel.category);
     this.showEditor = true;
   }
 
@@ -512,7 +537,7 @@ export class CustomerManagementComponent implements OnInit {
       return "N/A";
     }
 
-    return this.formatToDdMmmYyyy(parsedDate);
+    return this.formatToDdMmmYyyy(parsedDate, true);
   }
 
   formatAuditValue(value?: string): string {
@@ -538,7 +563,7 @@ export class CustomerManagementComponent implements OnInit {
       return value;
     }
 
-    return this.formatToDdMmmYyyy(parsedDate);
+    return this.formatToDdMmmYyyy(parsedDate, true);
   }
 
   getAuditFieldLabel(field?: string): string {
@@ -608,11 +633,21 @@ export class CustomerManagementComponent implements OnInit {
     return parsed;
   }
 
-  private formatToDdMmmYyyy(date: Date): string {
+  private formatToDdMmmYyyy(date: Date, includeTime = false): string {
     const day = date.toLocaleDateString("en-GB", { day: "2-digit" });
     const month = date.toLocaleDateString("en-GB", { month: "short" });
     const year = date.toLocaleDateString("en-GB", { year: "numeric" });
-    return `${day} ${month}, ${year}`;
+
+    if (!includeTime) {
+      return `${day} ${month}, ${year}`;
+    }
+
+    const time = date.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    return `${day} ${month}, ${year} ${time}`;
   }
 
   private getItemId(item: CustomerAccount): string | null {
@@ -670,7 +705,7 @@ export class CustomerManagementComponent implements OnInit {
     return {
       code: "",
       name: "",
-      category: "331",
+      category: "",
       taxCode: "",
       bankAccount: "",
       bankName: "",
@@ -684,6 +719,74 @@ export class CustomerManagementComponent implements OnInit {
       owner: "",
       tags: [],
     };
+  }
+
+  private ensureAccountTypeOption(accountType?: string): void {
+    const normalized = (accountType || "").trim();
+    if (!normalized) {
+      return;
+    }
+
+    const exists = this.accountTypeOptions.some((x) => (x.value || "").trim() === normalized);
+    if (exists) {
+      return;
+    }
+
+    this.accountTypeOptions = [
+      ...this.accountTypeOptions,
+      {
+        value: normalized,
+        label: this.buildAccountTypeBilingualLabel({
+          value: normalized,
+          accountType: normalized,
+        }),
+        accountType: normalized,
+      },
+    ];
+  }
+
+  private buildAccountTypeBilingualLabel(item: {
+    value?: string;
+    accountType?: string;
+    accountName?: string;
+    accountNameLocal?: string;
+    label?: string;
+  }): string {
+    const type = (item.accountType || item.value || "").trim();
+    const englishRaw = (item.accountName || "").trim();
+    const vietnameseRaw = (item.accountNameLocal || "").trim();
+
+    const english = englishRaw;
+    const vietnamese = vietnameseRaw || this.extractVietnameseFromLabel(item.label || "");
+
+    if (english && vietnamese) {
+      return `${type} - ${english} (${vietnamese})`;
+    }
+
+    if (english) {
+      return type ? `${type} - ${english}` : english;
+    }
+
+    if (vietnamese) {
+      return type ? `${type} - ${vietnamese}` : vietnamese;
+    }
+
+    return type || (item.label || "");
+  }
+
+  private extractVietnameseFromLabel(label: string): string {
+    const normalized = String(label || "").trim();
+    if (!normalized) {
+      return "";
+    }
+
+    const removedPrefix = normalized.replace(/^\d+\s*-\s*/, "").trim();
+    const viInParens = removedPrefix.match(/\(([^)]+)\)\s*$/);
+    if (viInParens?.[1]) {
+      return viInParens[1].trim();
+    }
+
+    return removedPrefix;
   }
 
   private extractFileName(contentDisposition: string | null): string {

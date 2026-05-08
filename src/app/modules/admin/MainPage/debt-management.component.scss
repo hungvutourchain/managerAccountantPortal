@@ -769,6 +769,11 @@
   grid-column: span 3;
 }
 
+:host ::ng-deep .transaction-account-type-ddl.e-ddl .e-input-value,
+:host ::ng-deep .transaction-account-type-ddl.e-ddl .e-list-item {
+  font-size: 14px;
+}
+
 .editor-actions {
   margin-top: 12px;
   display: flex;

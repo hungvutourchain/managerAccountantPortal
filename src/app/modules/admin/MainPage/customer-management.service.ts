@@ -51,6 +51,30 @@ export class CustomerManagementService {
     return this.http.get<CustomerSummaryResponse>(`${this.baseUrl}/summary`);
   }
 
+  getAccountTypes(search = "", includeAll = false, maxItems = 200): Observable<Array<{
+    value: string;
+    label: string;
+    accountType?: string;
+    accountName?: string;
+    accountNameLocal?: string;
+  }>> {
+    let params = new HttpParams()
+      .set("includeAll", String(includeAll))
+      .set("maxItems", String(maxItems));
+
+    if (search && search.trim()) {
+      params = params.set("search", search.trim());
+    }
+
+    return this.http.get<Array<{
+      value: string;
+      label: string;
+      accountType?: string;
+      accountName?: string;
+      accountNameLocal?: string;
+    }>>(`${this.baseUrl}/account-types`, { params });
+  }
+
   upsertCustomer(payload: CustomerAccount): Observable<CustomerAccount> {
     return this.http.post<CustomerAccount>(`${this.baseUrl}/customers`, payload);
   }

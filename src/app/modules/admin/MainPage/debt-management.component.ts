@@ -91,6 +91,7 @@ export class DebtManagementComponent implements OnInit {
 
   transactionForm = {
     customerId: "",
+    accountType: "",
     transactionType: "debt" as "debt" | "credit",
     amount: 0,
     transactionAt: this.getCurrentDateTime(),
@@ -132,6 +133,14 @@ export class DebtManagementComponent implements OnInit {
     { label: "Increase payable (Tăng phải trả)", value: "credit" },
   ];
 
+  transactionAccountTypeOptions: Array<{
+    value: string;
+    label: string;
+    accountType?: string;
+    accountName?: string;
+    accountNameLocal?: string;
+  }> = [];
+
   transactionLedgerTypeOptions = [
     { label: "All types (Tất cả loại)", value: "all" },
     { label: "Receivable (Phải thu)", value: "debt" },
@@ -151,10 +160,27 @@ export class DebtManagementComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadTransactionAccountTypeOptions();
     this.loadCustomerOptions();
     this.loadOverview();
     this.loadDebtList();
     this.loadTransactions();
+  }
+
+  loadTransactionAccountTypeOptions(): void {
+    this.customerManagementService.getAccountTypes("", true, 500).subscribe({
+      next: (items) => {
+        this.transactionAccountTypeOptions = Array.isArray(items) && items.length > 0
+          ? items.map((item) => ({
+            ...item,
+            label: this.buildTransactionAccountTypeLabel(item),
+          }))
+          : [];
+      },
+      error: () => {
+        this.transactionAccountTypeOptions = [];
+      },
+    });
   }
 
   loadCustomerOptions(): void {
@@ -255,25 +281,38 @@ export class DebtManagementComponent implements OnInit {
 
     const existingTransaction = this.isDebtTransactionItem(item) ? item : null;
     if (existingTransaction) {
+      const customerId = this.normalizeCustomerId(existingTransaction.customerId);
+      const accountTypeByCustomer = this.getAccountTypeByCustomerId(customerId);
+      const accountType = accountTypeByCustomer || this.getAccountTypeByTransactionType(existingTransaction.transactionType);
       this.editingTransactionId = existingTransaction.id;
       this.transactionForm = {
-        customerId: this.normalizeCustomerId(existingTransaction.customerId),
+        customerId,
+        accountType,
         transactionType: existingTransaction.transactionType,
         amount: Number(existingTransaction.amount || 0),
         transactionAt: this.parseDateValue(existingTransaction.transactionAt) || this.getCurrentDateTime(),
         note: existingTransaction.note || "",
       };
+
+      this.ensureTransactionAccountTypeOption(accountType);
       this.showTransactionEditor = true;
       return;
     }
 
+    const customerId = this.normalizeCustomerId(item?.id) || this.normalizeCustomerId(this.transactionForm.customerId) || "";
+    const accountType = this.getAccountTypeByCustomerId(customerId) || "";
+
     this.transactionForm = {
-      customerId: this.normalizeCustomerId(item?.id) || this.normalizeCustomerId(this.transactionForm.customerId) || "",
-      transactionType: "debt",
+      customerId,
+      accountType,
+      transactionType: this.getTransactionTypeByAccountType(accountType, "debt"),
       amount: 0,
       transactionAt: this.getCurrentDateTime(),
       note: "",
     };
+
+    this.ensureTransactionAccountTypeOption(accountType);
+    this.onTransactionCustomerChanged();
     this.showTransactionEditor = true;
   }
 
@@ -289,8 +328,12 @@ export class DebtManagementComponent implements OnInit {
       return;
     }
 
+    const transactionType = this.getTransactionTypeByAccountType(this.transactionForm.accountType, this.transactionForm.transactionType);
+    this.transactionForm.transactionType = transactionType;
+
     const basePayload = {
-      transactionType: this.transactionForm.transactionType,
+      customerId,
+      transactionType,
       amount: Number(this.transactionForm.amount),
       transactionAt: this.toApiDateTime(this.transactionForm.transactionAt),
       note: this.transactionForm.note?.trim(),
@@ -298,7 +341,10 @@ export class DebtManagementComponent implements OnInit {
 
     const payload: CreateDebtTransactionPayload = {
       customerId,
-      ...basePayload,
+      transactionType: basePayload.transactionType,
+      amount: basePayload.amount,
+      transactionAt: basePayload.transactionAt,
+      note: basePayload.note,
     };
 
     this.savingTransaction = true;
@@ -321,6 +367,17 @@ export class DebtManagementComponent implements OnInit {
         this.savingTransaction = false;
       },
     });
+  }
+
+  onTransactionCustomerChanged(): void {
+    const accountType = this.getAccountTypeByCustomerId(this.transactionForm.customerId);
+    if (!accountType) {
+      return;
+    }
+
+    this.transactionForm.accountType = accountType;
+    this.ensureTransactionAccountTypeOption(accountType);
+    this.transactionForm.transactionType = this.getTransactionTypeByAccountType(accountType, this.transactionForm.transactionType);
   }
 
   openTransactionAuditLogs(tx: DebtTransactionItem): void {
@@ -805,6 +862,88 @@ export class DebtManagementComponent implements OnInit {
 
   getCustomerOptionId(customer: CustomerAccount): string {
     return this.normalizeCustomerId(customer?._id) || this.normalizeCustomerId(customer?.Id) || this.normalizeCustomerId(customer?.id) || "";
+  }
+
+  private getAccountTypeByTransactionType(transactionType: "debt" | "credit"): string {
+    return transactionType === "credit" ? "331" : "131";
+  }
+
+  private getTransactionTypeByAccountType(accountType: string, fallback: "debt" | "credit" = "debt"): "debt" | "credit" {
+    const normalized = String(accountType || "").trim().toLowerCase();
+    if (!normalized) {
+      return fallback;
+    }
+
+    if (normalized.startsWith("1") || normalized.includes("131")) {
+      return "debt";
+    }
+
+    if (normalized.startsWith("3") || normalized.includes("331")) {
+      return "credit";
+    }
+
+    return fallback;
+  }
+
+  private getAccountTypeByCustomerId(customerId: string): string | null {
+    const normalizedId = this.normalizeCustomerId(customerId);
+    if (!normalizedId) {
+      return null;
+    }
+
+    const customer = this.customerOptions.find((x) => this.getCustomerOptionId(x) === normalizedId);
+    const rawCategory = String(customer?.category || "").trim();
+    return rawCategory || null;
+  }
+
+  private ensureTransactionAccountTypeOption(accountType?: string): void {
+    const normalized = String(accountType || "").trim();
+    if (!normalized) {
+      return;
+    }
+
+    const exists = this.transactionAccountTypeOptions.some((x) => String(x.value || "").trim() === normalized);
+    if (exists) {
+      return;
+    }
+
+    this.transactionAccountTypeOptions = [
+      ...this.transactionAccountTypeOptions,
+      {
+        value: normalized,
+        label: this.buildTransactionAccountTypeLabel({
+          value: normalized,
+          accountType: normalized,
+        }),
+        accountType: normalized,
+      },
+    ];
+  }
+
+  private buildTransactionAccountTypeLabel(item: {
+    value?: string;
+    accountType?: string;
+    accountName?: string;
+    accountNameLocal?: string;
+    label?: string;
+  }): string {
+    const type = (item.accountType || item.value || "").trim();
+    const english = (item.accountName || "").trim();
+    const vietnamese = (item.accountNameLocal || "").trim();
+
+    if (english && vietnamese) {
+      return `${type} - ${english} (${vietnamese})`;
+    }
+
+    if (english) {
+      return type ? `${type} - ${english}` : english;
+    }
+
+    if (vietnamese) {
+      return type ? `${type} - ${vietnamese}` : vietnamese;
+    }
+
+    return type || (item.label || "");
   }
 
   private normalizeTransactionId(value?: unknown): string {

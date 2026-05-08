@@ -305,24 +305,28 @@
               [fields]="{ text: 'text', value: 'value' }"
               [width]="'100%'"
               [allowFiltering]="true"
-              [enabled]="!editingTransactionId"
               [ignoreAccent]="true"
               [popupHeight]="'280px'"
               [popupWidth]="'100%'"
               [filterBarPlaceholder]="'Filter customer list... / Lọc danh sách khách hàng...'"
               [placeholder]="'Select customer / Chọn khách hàng'"
               [(ngModel)]="transactionForm.customerId"
+              (change)="onTransactionCustomerChanged()"
             ></ejs-dropdownlist>
           </div>
 
-          <div class="editor-field">
-            <label class="editor-label bilingual"><span class="en-text">Transaction Type</span><span class="vi-text">Loại giao dịch</span></label>
+          <div class="editor-field editor-full">
+            <label class="editor-label bilingual"><span class="en-text">Account Type</span><span class="vi-text">Loại tài khoản</span></label>
             <ejs-dropdownlist
-              [dataSource]="transactionTypeOptions"
+              cssClass="transaction-account-type-ddl"
+              [dataSource]="transactionAccountTypeOptions"
               [fields]="optionFields"
               [allowFiltering]="true"
               [width]="'100%'"
-              [(ngModel)]="transactionForm.transactionType"
+              [popupWidth]="'820px'"
+              [popupHeight]="'360px'"
+              [placeholder]="'Select account type / Chọn loại tài khoản'"
+              [(ngModel)]="transactionForm.accountType"
             ></ejs-dropdownlist>
           </div>
 

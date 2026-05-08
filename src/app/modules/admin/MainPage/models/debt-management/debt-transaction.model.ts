@@ -38,6 +38,7 @@ export interface CreateDebtTransactionPayload {
 }
 
 export interface UpdateDebtTransactionPayload {
+  customerId?: string;
   transactionType: "debt" | "credit";
   amount: number;
   transactionAt: string;

@@ -37,6 +37,7 @@ export class UserComponent implements OnInit, OnDestroy {
   PopupConfig: boolean = false;
   @Input() showAvatar: boolean = true;
   user: any;
+  avatarLoadFailed: boolean = false;
   localConfig: any = {};
   dialogObj: any;
   showDoashboard: boolean = false;
@@ -120,7 +121,8 @@ export class UserComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Subscribe to user changes
     this._userService.user$.pipe(takeUntil(this._unsubscribeAll)).subscribe((user: any) => {
-      this.user = user;
+      this.avatarLoadFailed = false;
+      this.user = this.normalizeUser(user);
       // Mark for check
       this._changeDetectorRef.markForCheck();
     });
@@ -189,6 +191,56 @@ export class UserComponent implements OnInit, OnDestroy {
 
   openProfile() {
     this.popup_profile = true;
+  }
+
+  refreshUserInfo(): void {
+    this._userService.get().subscribe({
+      next: (user: any) => {
+        this.avatarLoadFailed = false;
+        this.user = this.normalizeUser(user);
+        this._changeDetectorRef.markForCheck();
+      },
+    });
+  }
+
+  onAvatarError(): void {
+    this.avatarLoadFailed = true;
+    this._changeDetectorRef.markForCheck();
+  }
+
+  get avatarUrl(): string {
+    if (!this.showAvatar || !this.user || this.avatarLoadFailed) {
+      return '';
+    }
+
+    const avatar = (this.user.avatar || '').toString().trim();
+    if (!avatar || avatar.toLowerCase() === 'null' || avatar.toLowerCase() === 'undefined') {
+      return '';
+    }
+
+    return avatar;
+  }
+
+  get avatarInitial(): string {
+    const displayName =
+      (this.user?.fullname || this.user?.username || this.user?.email || '').toString().trim();
+
+    return displayName ? displayName.charAt(0) : 'U';
+  }
+
+  private normalizeUser(user: any): any {
+    if (!user || typeof user !== 'object') {
+      return user;
+    }
+
+    return {
+      ...user,
+      fullname: user.fullname || user.FullName || user.name || user.Name || '',
+      email: user.email || user.Email || user.mail || '',
+      username: user.username || user.Username || user.userName || '',
+      avatar: user.avatar || user.Avatar || user.profileImage || '',
+      status: user.status || user.Status || user.activityStatus || '',
+    };
   }
 
   gotoDashboard() {
