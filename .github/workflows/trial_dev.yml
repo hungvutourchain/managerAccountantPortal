@@ -6,7 +6,8 @@ on:
 # ghcr.io/hungvutourchain/tourchain-net/hoteltourportal:latest
 env:
   RESISTRY: ghcr.io
-  IMAGE_NAME: hungvutourchain/hoteltourportal:latest
+  IMAGE_NAME: hungvutourchain/accountantportal:latest
+  GHCR_USERNAME: hungvutourchain
   IP: 159.89.193.175
   # IP: 178.128.86.194
   PAT: ${{secrets.PAT}}
@@ -41,6 +42,6 @@ jobs:
           ssh-keyscan -H ${{ env.IP }} > ~/.ssh/known_hosts
       - name: Connect and pull docker image
         run: |
-          ssh root@${{ env.IP }} "echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin &&cd .. && cd /host/tourchain/develop && docker stack deploy --compose-file docker-compose-accountant.yml tourchain --with-registry-auth"
+          ssh root@${{ env.IP }} "echo '${{ env.PAT }}' | docker login ghcr.io -u '${{ env.GHCR_USERNAME }}' --password-stdin && cd /host/tourchain/develop && docker stack deploy --compose-file docker-compose-accountant.yml tourchain --with-registry-auth"
       - name: cleanup
         run: rm -rf ~/.ssh

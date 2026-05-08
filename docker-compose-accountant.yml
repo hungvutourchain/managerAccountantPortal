@@ -3,7 +3,7 @@ version: '3.4'
 services:
 
   accountant-portal-classic:
-    image: ghcr.io/hungvutourchain/hoteltourportal:latest
+    image: ghcr.io/hungvutourchain/accountantportal:latest
     networks:
       - general
 
