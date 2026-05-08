@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { CustomerManagementService } from "./customer-management.service";
+import { TransactionManagementService } from "./transaction-management.service";
 import {
   CreateDebtTransactionPayload,
   DebtTransactionAuditLogItem,
@@ -144,7 +145,10 @@ export class DebtManagementComponent implements OnInit {
     { label: "100 / page", value: 100 },
   ];
 
-  constructor(private customerManagementService: CustomerManagementService) {}
+  constructor(
+    private customerManagementService: CustomerManagementService,
+    private transactionManagementService: TransactionManagementService,
+  ) {}
 
   ngOnInit(): void {
     this.loadCustomerOptions();
@@ -228,7 +232,7 @@ export class DebtManagementComponent implements OnInit {
       customerId: this.normalizeCustomerId(this.transactionQuery.customerId),
     };
 
-    this.customerManagementService.getDebtTransactions(query).subscribe({
+    this.transactionManagementService.getDebtTransactions(query).subscribe({
       next: (response) => {
         this.transactions = response.items || [];
         this.transactionPager.totalItems = response.totalItems || 0;
@@ -299,8 +303,8 @@ export class DebtManagementComponent implements OnInit {
 
     this.savingTransaction = true;
     const request$ = this.editingTransactionId
-      ? this.customerManagementService.updateDebtTransaction(this.editingTransactionId, basePayload as UpdateDebtTransactionPayload)
-      : this.customerManagementService.addDebtTransaction(payload);
+      ? this.transactionManagementService.updateDebtTransaction(this.editingTransactionId, basePayload as UpdateDebtTransactionPayload)
+      : this.transactionManagementService.addDebtTransaction(payload);
 
     request$.subscribe({
       next: () => {
@@ -333,7 +337,7 @@ export class DebtManagementComponent implements OnInit {
     }
 
     this.transactionAuditLoading = true;
-    this.customerManagementService.getDebtTransactionAuditLogs(transactionId, 1, 100).subscribe({
+    this.transactionManagementService.getDebtTransactionAuditLogs(transactionId, 1, 100).subscribe({
       next: (response) => {
         this.transactionAuditLogs = response.items || [];
       },
@@ -379,7 +383,7 @@ export class DebtManagementComponent implements OnInit {
     };
 
     this.excelLoading = true;
-    this.customerManagementService.getDebtTransactions(query).subscribe({
+    this.transactionManagementService.getDebtTransactions(query).subscribe({
       next: (response) => {
         this.excelTransactions = response.items || [];
         this.transactionCountByCustomerId[customerId] = response.totalItems || this.excelTransactions.length;
@@ -690,6 +694,28 @@ export class DebtManagementComponent implements OnInit {
     return `${day} ${month}, ${year}`;
   }
 
+  formatAuditDateTime(value?: string): string {
+    if (!value) {
+      return "N/A";
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "N/A";
+    }
+
+    const day = date.toLocaleDateString("en-GB", { day: "2-digit" });
+    const month = date.toLocaleDateString("en-GB", { month: "short" });
+    const year = date.toLocaleDateString("en-GB", { year: "numeric" });
+    const time = date.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    return `${day} ${month}, ${year} ${time}`;
+  }
+
   formatTransactionAuditAction(action?: string): string {
     const map: Record<string, string> = {
       "transaction-create": "Create (Tạo mới)",
@@ -830,7 +856,7 @@ export class DebtManagementComponent implements OnInit {
         sortDirection: "desc",
       };
 
-      this.customerManagementService.getDebtTransactions(query).subscribe({
+      this.transactionManagementService.getDebtTransactions(query).subscribe({
         next: (response) => {
           this.transactionCountByCustomerId[customerId] = response.totalItems || 0;
         },
@@ -861,7 +887,7 @@ export class DebtManagementComponent implements OnInit {
   }
 
   private downloadCustomerExcel(customerId: string, fallbackCode: string): void {
-    this.customerManagementService.exportDebtCustomerExcel(customerId).subscribe({
+    this.transactionManagementService.exportDebtCustomerExcel(customerId).subscribe({
       next: (response) => {
         const blob = response.body;
         if (!blob) {

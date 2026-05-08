@@ -9,6 +9,7 @@ import {
   DebtTransactionQueryParams,
 } from "./models/debt-management";
 import { CustomerManagementService } from "./customer-management.service";
+import { TransactionManagementService } from "./transaction-management.service";
 
 @Component({
   standalone: false,
@@ -95,7 +96,10 @@ export class CustomerManagementComponent implements OnInit {
     { label: "Critical (Nghiêm trọng)", value: "critical" },
   ];
 
-  constructor(private customerService: CustomerManagementService) {}
+  constructor(
+    private customerService: CustomerManagementService,
+    private transactionManagementService: TransactionManagementService,
+  ) {}
 
   ngOnInit(): void {
     this.loadSummary();
@@ -302,7 +306,7 @@ export class CustomerManagementComponent implements OnInit {
     };
 
     this.excelLoading = true;
-    this.customerService.getDebtTransactions(query).subscribe({
+    this.transactionManagementService.getDebtTransactions(query).subscribe({
       next: (response) => {
         this.excelTransactions = response.items || [];
       },

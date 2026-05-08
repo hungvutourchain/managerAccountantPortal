@@ -398,7 +398,7 @@
 .audit-panel {
   padding-top: 8px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .audit-meta-grid {
@@ -430,7 +430,9 @@
 .audit-table-panel {
   border: 1px solid #dce7f7;
   border-radius: 12px;
+  background: #ffffff;
   overflow: auto;
+  max-height: min(64vh, 540px);
 }
 
 .audit-error-banner {
@@ -443,22 +445,119 @@
 }
 
 .audit-table {
-  min-width: 980px;
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.audit-value {
-  max-width: 220px;
-  color: #3a527e;
+.audit-table th,
+.audit-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5edf9;
+  text-align: left;
+  font-size: 13px;
+  vertical-align: top;
+}
+
+.audit-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f3f7ff;
+  color: #355282;
+  white-space: nowrap;
+}
+
+.audit-table tbody tr:nth-child(even) {
+  background: #fbfdff;
+}
+
+.audit-table tbody tr:hover {
+  background: #f3f8ff;
+}
+
+.audit-table .col-when {
+  width: 182px;
+}
+
+.audit-table .col-by {
+  width: 114px;
+}
+
+.audit-table .col-action {
+  width: 170px;
+}
+
+.audit-table .col-field {
+  width: 250px;
+}
+
+.audit-table .col-from,
+.audit-table .col-to {
+  width: 260px;
+}
+
+.audit-table .col-note {
+  width: 280px;
+}
+
+.audit-table td.col-when,
+.audit-table td.col-by {
+  white-space: nowrap;
+  color: #344f7f;
+}
+
+.audit-user {
+  font-weight: 600;
+}
+
+.audit-action,
+.audit-field {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.audit-action {
+  background: #edf4ff;
+  color: #2b4c7f;
+  font-weight: 700;
+}
+
+.audit-field {
+  background: #f3f6fc;
+  color: #445f8b;
+}
+
+.audit-cell {
   white-space: normal;
   word-break: break-word;
+  line-height: 1.45;
+  max-height: calc(1.45em * 3);
+  overflow: hidden;
 }
 
-.audit-value.old {
+.audit-cell--from,
+.audit-cell--to {
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.audit-cell--from {
+  background: #fff4f4;
   color: #a63a3a;
 }
 
-.audit-value.new {
+.audit-cell--to {
+  background: #eefbf3;
   color: #1e7a4c;
+}
+
+.audit-note {
+  color: #3a527e;
 }
 
 .excel-preview {
@@ -838,6 +937,14 @@
 
   .transaction-filter-bar {
     grid-template-columns: 1fr;
+  }
+
+  .audit-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audit-table {
+    min-width: 980px;
   }
 
   .editor-full {

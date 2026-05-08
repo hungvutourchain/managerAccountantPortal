@@ -18,6 +18,7 @@ import { MainPagePanelManagerComponent } from './main-page-panel-manager.compone
 import { CustomerManagementComponent } from './customer-management.component';
 import { DebtManagementComponent } from './debt-management.component';
 import { CustomerManagementService } from './customer-management.service';
+import { TransactionManagementService } from './transaction-management.service';
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import { CustomerManagementService } from './customer-management.service';
   providers: [
     AppFactory,
     CustomerManagementService,
+    TransactionManagementService,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,

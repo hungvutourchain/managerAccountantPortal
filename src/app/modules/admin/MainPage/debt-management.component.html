@@ -362,7 +362,7 @@
     [visible]="showTransactionAuditDialog"
     [closeOnEscape]="true"
     [header]="'Transaction Audit Logs / Lịch sử thay đổi giao dịch'"
-    [width]="'980px'"
+    [width]="'1180px'"
     (overlayClick)="closeTransactionAuditLogs()"
     (close)="closeTransactionAuditLogs()"
   >
@@ -391,24 +391,24 @@
           <table class="audit-table">
             <thead>
               <tr>
-                <th><span class="bilingual"><span class="en-text">When</span><span class="vi-text">Thời điểm</span></span></th>
-                <th><span class="bilingual"><span class="en-text">By</span><span class="vi-text">Người đổi</span></span></th>
-                <th><span class="bilingual"><span class="en-text">Action</span><span class="vi-text">Hành động</span></span></th>
-                <th><span class="bilingual"><span class="en-text">Field</span><span class="vi-text">Trường</span></span></th>
-                <th><span class="bilingual"><span class="en-text">From</span><span class="vi-text">Từ giá trị</span></span></th>
-                <th><span class="bilingual"><span class="en-text">To</span><span class="vi-text">Sang giá trị</span></span></th>
-                <th><span class="bilingual"><span class="en-text">Note</span><span class="vi-text">Ghi chú</span></span></th>
+                <th class="col-when"><span class="bilingual"><span class="en-text">When</span><span class="vi-text">Thời điểm</span></span></th>
+                <th class="col-by"><span class="bilingual"><span class="en-text">By</span><span class="vi-text">Người đổi</span></span></th>
+                <th class="col-action"><span class="bilingual"><span class="en-text">Action</span><span class="vi-text">Hành động</span></span></th>
+                <th class="col-field"><span class="bilingual"><span class="en-text">Field</span><span class="vi-text">Trường</span></span></th>
+                <th class="col-from"><span class="bilingual"><span class="en-text">From</span><span class="vi-text">Từ giá trị</span></span></th>
+                <th class="col-to"><span class="bilingual"><span class="en-text">To</span><span class="vi-text">Sang giá trị</span></span></th>
+                <th class="col-note"><span class="bilingual"><span class="en-text">Note</span><span class="vi-text">Ghi chú</span></span></th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let log of transactionAuditLogs">
-                <td>{{ formatDate(log.changedAt) }}</td>
-                <td>{{ log.changedBy || 'system' }}</td>
-                <td>{{ formatTransactionAuditAction(log.action) }}</td>
-                <td>{{ formatTransactionAuditField(log.field) }}</td>
-                <td class="audit-value old">{{ formatTransactionAuditValue(log.oldValue) }}</td>
-                <td class="audit-value new">{{ formatTransactionAuditValue(log.newValue) }}</td>
-                <td>{{ log.note || '-' }}</td>
+                <td class="col-when">{{ formatAuditDateTime(log.changedAt) }}</td>
+                <td class="col-by audit-user">{{ log.changedBy || 'system' }}</td>
+                <td class="col-action"><span class="audit-action">{{ formatTransactionAuditAction(log.action) }}</span></td>
+                <td class="col-field"><span class="audit-field">{{ formatTransactionAuditField(log.field) }}</span></td>
+                <td class="col-from"><div class="audit-cell audit-cell--from" [title]="formatTransactionAuditValue(log.oldValue)">{{ formatTransactionAuditValue(log.oldValue) }}</div></td>
+                <td class="col-to"><div class="audit-cell audit-cell--to" [title]="formatTransactionAuditValue(log.newValue)">{{ formatTransactionAuditValue(log.newValue) }}</div></td>
+                <td class="col-note"><div class="audit-cell audit-note" [title]="log.note || '-'">{{ log.note || '-' }}</div></td>
               </tr>
               <tr *ngIf="!transactionAuditLoading && transactionAuditLogs.length === 0">
                 <td colspan="7" class="empty-row">
