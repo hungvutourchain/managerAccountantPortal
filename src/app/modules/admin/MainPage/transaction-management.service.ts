@@ -4,6 +4,8 @@ import { environment as env } from "environments/environment";
 import { Observable } from "rxjs";
 import {
   CreateDebtTransactionPayload,
+  DebtTransactionAttachmentResponse,
+  DebtTransactionMutationResponse,
   DebtAiQueryRequest,
   DebtAiQueryResponse,
   DebtTransactionAuditLogResponse,
@@ -40,12 +42,30 @@ export class TransactionManagementService {
     return this.http.get<DebtTransactionListResponse>(`${this.baseUrl}/transactions`, { params });
   }
 
-  addDebtTransaction(payload: CreateDebtTransactionPayload): Observable<{ success: boolean }> {
-    return this.http.post<{ success: boolean }>(`${this.baseUrl}/transactions`, payload);
+  addDebtTransaction(payload: CreateDebtTransactionPayload): Observable<DebtTransactionMutationResponse> {
+    return this.http.post<DebtTransactionMutationResponse>(`${this.baseUrl}/transactions`, payload);
   }
 
-  updateDebtTransaction(transactionId: string, payload: UpdateDebtTransactionPayload): Observable<{ success: boolean }> {
-    return this.http.put<{ success: boolean }>(`${this.baseUrl}/transactions/${transactionId}`, payload);
+  updateDebtTransaction(transactionId: string, payload: UpdateDebtTransactionPayload): Observable<DebtTransactionMutationResponse> {
+    return this.http.put<DebtTransactionMutationResponse>(`${this.baseUrl}/transactions/${transactionId}`, payload);
+  }
+
+  uploadDebtTransactionAttachments(transactionId: string, files: File[]): Observable<DebtTransactionAttachmentResponse> {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file, file.name));
+
+    return this.http.post<DebtTransactionAttachmentResponse>(`${this.baseUrl}/transactions/${transactionId}/attachments`, formData);
+  }
+
+  deleteDebtTransactionAttachment(transactionId: string, attachmentId: string): Observable<DebtTransactionAttachmentResponse> {
+    return this.http.delete<DebtTransactionAttachmentResponse>(`${this.baseUrl}/transactions/${transactionId}/attachments/${attachmentId}`);
+  }
+
+  downloadDebtTransactionAttachment(transactionId: string, attachmentId: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.baseUrl}/transactions/${transactionId}/attachments/${attachmentId}/download`, {
+      observe: "response",
+      responseType: "blob",
+    });
   }
 
   getDebtTransactionAuditLogs(transactionId: string, page = 1, pageSize = 50): Observable<DebtTransactionAuditLogResponse> {

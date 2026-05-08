@@ -1284,6 +1284,128 @@ tr.cart-locked {
   grid-column: span 3;
 }
 
+.transaction-file-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #d8e4f5;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%);
+}
+
+.transaction-file-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.transaction-file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: #1f5fbf;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.transaction-file-upload-btn input {
+  display: none;
+}
+
+.transaction-file-hint {
+  color: #5f7397;
+  font-size: 12px;
+}
+
+.transaction-file-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-file-group-title {
+  color: #274573;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.transaction-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #dce7f7;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.transaction-file-item.pending {
+  background: #fdfaf1;
+  border-color: #f0deaa;
+}
+
+.transaction-file-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.transaction-file-name {
+  color: #16325c;
+  font-size: 13px;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.transaction-file-size {
+  color: #6d83a8;
+  font-size: 11px;
+}
+
+.transaction-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.transaction-file-mini-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.transaction-file-mini-btn.danger {
+  color: #be3f3f;
+  border-color: rgba(190, 63, 63, 0.2);
+  background: rgba(190, 63, 63, 0.08);
+}
+
+.transaction-editor-alert {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #f1c9c9;
+  background: #fff6f6;
+  color: #a13f3f;
+  font-size: 12px;
+}
+
 :host ::ng-deep .transaction-account-type-ddl.e-ddl .e-input-value,
 :host ::ng-deep .transaction-account-type-ddl.e-ddl .e-list-item {
   font-size: 14px;
@@ -1293,6 +1415,21 @@ tr.cart-locked {
   margin-top: 12px;
   display: flex;
   gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .transaction-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-full {
+    grid-column: span 1;
+  }
+
+  .transaction-file-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .table-panel table {

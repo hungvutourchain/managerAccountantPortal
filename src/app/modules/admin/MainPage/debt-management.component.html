@@ -282,6 +282,7 @@
             <th (click)="sortTransactionsBy('amount')"><span class="bilingual"><span class="en-text">Amount</span><span class="vi-text">Số tiền</span></span> {{ getTransactionSortIcon('amount') }}</th>
             <th (click)="sortTransactionsBy('transactionAt')"><span class="bilingual"><span class="en-text">Date</span><span class="vi-text">Ngày</span></span> {{ getTransactionSortIcon('transactionAt') }}</th>
             <th (click)="sortTransactionsBy('createdBy')"><span class="bilingual"><span class="en-text">Created By</span><span class="vi-text">Người tạo</span></span> {{ getTransactionSortIcon('createdBy') }}</th>
+            <th><span class="bilingual"><span class="en-text">Contract Code</span><span class="vi-text">Mã hợp đồng</span></span></th>
             <th><span class="bilingual"><span class="en-text">Note</span><span class="vi-text">Ghi chú</span></span></th>
             <th><span class="bilingual"><span class="en-text">Actions</span><span class="vi-text">Thao tác</span></span></th>
           </tr>
@@ -305,6 +306,7 @@
             <td class="amount" [ngClass]="tx.transactionType === 'debt' ? 'debt' : 'credit'">{{ formatCurrency(tx.amount) }}</td>
             <td>{{ formatDate(tx.transactionAt) }}</td>
             <td>{{ tx.createdBy || 'system' }}</td>
+            <td class="ledger-note">{{ tx.contractCode || '-' }}</td>
             <td class="ledger-note">{{ tx.note || '-' }}</td>
             <td>
               <div class="row-actions">
@@ -318,7 +320,7 @@
             </td>
           </tr>
           <tr *ngIf="!transactionLoading && transactions.length === 0">
-            <td colspan="8" class="empty-row">
+            <td colspan="9" class="empty-row">
               <span class="bilingual"><span class="en-text">No transaction data.</span><span class="vi-text">Không có dữ liệu giao dịch.</span></span>
             </td>
           </tr>
@@ -528,13 +530,82 @@
           </div>
 
           <div class="editor-field editor-full">
+            <label class="editor-label bilingual"><span class="en-text">Contract Code *</span><span class="vi-text">Mã hợp đồng *</span></label>
+            <ejs-textbox [width]="'100%'" [placeholder]="'Enter contract code... / Nhập mã hợp đồng...'" [(ngModel)]="transactionForm.contractCode"></ejs-textbox>
+          </div>
+
+          <div class="editor-field editor-full">
             <label class="editor-label bilingual"><span class="en-text">Note</span><span class="vi-text">Ghi chú</span></label>
             <ejs-textbox [multiline]="true" [width]="'100%'" [placeholder]="'Type note... / Nhập ghi chú...'" [(ngModel)]="transactionForm.note"></ejs-textbox>
           </div>
+
+          <div class="editor-field editor-full">
+            <label class="editor-label bilingual"><span class="en-text">Files</span><span class="vi-text">Tệp đính kèm</span></label>
+            <div class="transaction-file-panel">
+              <div class="transaction-file-toolbar">
+                <label class="transaction-file-upload-btn">
+                  <input type="file" multiple (change)="onTransactionFilesSelected($event)" />
+                  <i class="bi bi-upload" aria-hidden="true"></i>
+                  <span class="bilingual"><span class="en-text">Choose Files</span><span class="vi-text">Chọn tệp</span></span>
+                </label>
+                <span class="transaction-file-hint bilingual">
+                  <span class="en-text">Files are uploaded to the server after saving the transaction.</span>
+                  <span class="vi-text">Tệp sẽ được tải lên server sau khi lưu giao dịch.</span>
+                </span>
+              </div>
+
+              <div class="transaction-file-group" *ngIf="transactionForm.attachments.length > 0">
+                <div class="transaction-file-group-title bilingual">
+                  <span class="en-text">Uploaded Files</span>
+                  <span class="vi-text">Tệp đã lưu</span>
+                </div>
+                <div class="transaction-file-list">
+                  <div class="transaction-file-item" *ngFor="let attachment of transactionForm.attachments">
+                    <div class="transaction-file-meta">
+                      <span class="transaction-file-name">{{ attachment.fileName }}</span>
+                      <span class="transaction-file-size">{{ getReadableFileSize(attachment.size) }}</span>
+                    </div>
+                    <div class="transaction-file-actions">
+                      <button type="button" class="btn-ghost transaction-file-mini-btn" [disabled]="transactionDownloadingAttachmentIds.includes(attachment.id)" (click)="downloadTransactionAttachment(attachment)">
+                        {{ transactionDownloadingAttachmentIds.includes(attachment.id) ? 'Downloading...' : 'Download / Tải xuống' }}
+                      </button>
+                      <button type="button" class="btn-ghost transaction-file-mini-btn danger" [disabled]="transactionDeletingAttachmentIds.includes(attachment.id) || savingTransaction" (click)="deleteTransactionAttachment(attachment)">
+                        {{ transactionDeletingAttachmentIds.includes(attachment.id) ? 'Deleting...' : 'Delete / Xóa' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="transaction-file-group" *ngIf="transactionPendingFiles.length > 0">
+                <div class="transaction-file-group-title bilingual">
+                  <span class="en-text">Pending Upload</span>
+                  <span class="vi-text">Tệp chờ tải lên</span>
+                </div>
+                <div class="transaction-file-list">
+                  <div class="transaction-file-item pending" *ngFor="let file of transactionPendingFiles; let index = index">
+                    <div class="transaction-file-meta">
+                      <span class="transaction-file-name">{{ file.name }}</span>
+                      <span class="transaction-file-size">{{ getReadableFileSize(file.size) }}</span>
+                    </div>
+                    <div class="transaction-file-actions">
+                      <button type="button" class="btn-ghost transaction-file-mini-btn danger" [disabled]="savingTransaction" (click)="removePendingTransactionFile(index)">
+                        Remove / Bỏ
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="transaction-editor-alert" *ngIf="transactionEditorErrorMessage">
+          {{ transactionEditorErrorMessage }}
         </div>
 
         <div class="editor-actions">
-          <button class="btn-primary" [disabled]="savingTransaction" (click)="saveTransaction()">
+          <button class="btn-primary" [disabled]="savingTransaction || !transactionForm.contractCode?.trim()" (click)="saveTransaction()">
             {{ savingTransaction ? 'Saving... / Đang lưu...' : (editingTransactionId ? 'Update Transaction / Cập nhật giao dịch' : 'Save Transaction / Lưu giao dịch') }}
           </button>
           <button class="btn-secondary" (click)="cancelTransactionEditor()">

@@ -1,3 +1,14 @@
+export interface DebtTransactionAttachmentItem {
+  id: string;
+  fileName: string;
+  storedFileName?: string;
+  relativePath?: string;
+  contentType?: string;
+  size: number;
+  uploadedAt: string;
+  uploadedBy?: string;
+}
+
 export interface DebtTransactionItem {
   id: string;
   customerId: string;
@@ -6,7 +17,9 @@ export interface DebtTransactionItem {
   transactionType: "debt" | "credit";
   amount: number;
   transactionAt: string;
+  contractCode?: string;
   note?: string;
+  attachments?: DebtTransactionAttachmentItem[];
   createdAt: string;
   createdBy?: string;
 }
@@ -34,6 +47,7 @@ export interface CreateDebtTransactionPayload {
   transactionType: "debt" | "credit";
   amount: number;
   transactionAt: string;
+  contractCode?: string;
   note?: string;
 }
 
@@ -42,7 +56,22 @@ export interface UpdateDebtTransactionPayload {
   transactionType: "debt" | "credit";
   amount: number;
   transactionAt: string;
+  contractCode?: string;
   note?: string;
+}
+
+export interface DebtTransactionMutationResponse {
+  success: boolean;
+  customerId: string;
+  debtAmount?: number;
+  creditAmount?: number;
+  netBalance?: number;
+  transaction: DebtTransactionItem;
+}
+
+export interface DebtTransactionAttachmentResponse {
+  success: boolean;
+  attachments: DebtTransactionAttachmentItem[];
 }
 
 export interface DebtTransactionAuditLogItem {

@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
+import { Observable } from "rxjs";
 import { CustomerManagementService } from "./customer-management.service";
 import { TransactionManagementService } from "./transaction-management.service";
 import {
@@ -10,7 +11,9 @@ import {
   DebtAiQueryRequest,
   DebtAiQueryResponse,
   DebtAiTransactionItem,
+  DebtTransactionAttachmentItem,
   DebtTransactionAuditLogItem,
+  DebtTransactionMutationResponse,
   DebtItem,
   DebtOverviewResponse,
   DebtTransactionItem,
@@ -58,12 +61,16 @@ export class DebtManagementComponent implements OnInit {
   aiLoading = false;
   transactionAuditErrorMessage = "";
   excelErrorMessage = "";
+  transactionEditorErrorMessage = "";
   editingTransactionId: string | null = null;
   selectedTransaction: DebtTransactionItem | null = null;
   selectedExcelDebtItem: DebtItem | null = null;
   aiPrompt = "";
   aiCopiedMessageId: string | null = null;
   aiMessages: DebtAiConversationMessage[] = [];
+  transactionPendingFiles: File[] = [];
+  transactionDownloadingAttachmentIds: string[] = [];
+  transactionDeletingAttachmentIds: string[] = [];
 
   // Cart – selected transactions for Excel view/export
   cartItems: DebtTransactionItem[] = [];
@@ -130,7 +137,9 @@ export class DebtManagementComponent implements OnInit {
     transactionType: "debt" as "debt" | "credit",
     amount: 0,
     transactionAt: this.getCurrentDateTime(),
+    contractCode: "",
     note: "",
+    attachments: [] as DebtTransactionAttachmentItem[],
   };
 
   readonly optionFields = { text: "label", value: "value" };
@@ -342,6 +351,8 @@ export class DebtManagementComponent implements OnInit {
   openTransactionEditor(item?: DebtItem | DebtTransactionItem): void {
     this.activeTab = "transactions";
     this.editingTransactionId = null;
+    this.transactionEditorErrorMessage = "";
+    this.transactionPendingFiles = [];
 
     const existingTransaction = this.isDebtTransactionItem(item) ? item : null;
     if (existingTransaction) {
@@ -355,7 +366,9 @@ export class DebtManagementComponent implements OnInit {
         transactionType: existingTransaction.transactionType,
         amount: Number(existingTransaction.amount || 0),
         transactionAt: this.parseDateValue(existingTransaction.transactionAt) || this.getCurrentDateTime(),
+        contractCode: existingTransaction.contractCode || "",
         note: existingTransaction.note || "",
+        attachments: [...(existingTransaction.attachments || [])],
       };
 
       this.ensureTransactionAccountTypeOption(accountType);
@@ -372,7 +385,9 @@ export class DebtManagementComponent implements OnInit {
       transactionType: this.getTransactionTypeByAccountType(accountType, "debt"),
       amount: 0,
       transactionAt: this.getCurrentDateTime(),
+      contractCode: "",
       note: "",
+      attachments: [],
     };
 
     this.ensureTransactionAccountTypeOption(accountType);
@@ -384,11 +399,21 @@ export class DebtManagementComponent implements OnInit {
     this.showTransactionEditor = false;
     this.savingTransaction = false;
     this.editingTransactionId = null;
+    this.transactionEditorErrorMessage = "";
+    this.transactionPendingFiles = [];
+    this.transactionDownloadingAttachmentIds = [];
+    this.transactionDeletingAttachmentIds = [];
   }
 
   saveTransaction(): void {
     const customerId = this.normalizeCustomerId(this.transactionForm.customerId);
+    const contractCode = this.transactionForm.contractCode?.trim();
     if (!customerId || this.transactionForm.amount <= 0) {
+      return;
+    }
+
+    if (!contractCode) {
+      this.transactionEditorErrorMessage = "Contract code is required. / Mã hợp đồng là bắt buộc.";
       return;
     }
 
@@ -400,6 +425,7 @@ export class DebtManagementComponent implements OnInit {
       transactionType,
       amount: Number(this.transactionForm.amount),
       transactionAt: this.toApiDateTime(this.transactionForm.transactionAt),
+      contractCode,
       note: this.transactionForm.note?.trim(),
     };
 
@@ -408,29 +434,149 @@ export class DebtManagementComponent implements OnInit {
       transactionType: basePayload.transactionType,
       amount: basePayload.amount,
       transactionAt: basePayload.transactionAt,
+      contractCode: basePayload.contractCode,
       note: basePayload.note,
     };
 
+    this.transactionEditorErrorMessage = "";
     this.savingTransaction = true;
     const request$ = this.editingTransactionId
       ? this.transactionManagementService.updateDebtTransaction(this.editingTransactionId, basePayload as UpdateDebtTransactionPayload)
       : this.transactionManagementService.addDebtTransaction(payload);
 
     request$.subscribe({
-      next: () => {
-        this.cancelTransactionEditor();
-        this.loadOverview();
-        this.loadDebtList();
-        this.transactionQuery.page = 1;
-        this.loadTransactions();
+      next: (response: DebtTransactionMutationResponse) => {
+        const transactionId = this.normalizeTransactionId(response?.transaction?.id);
+        this.transactionForm.attachments = [...(response?.transaction?.attachments || [])];
+        this.refreshAfterTransactionMutation();
+
+        if (!transactionId || this.transactionPendingFiles.length === 0) {
+          this.savingTransaction = false;
+          this.cancelTransactionEditor();
+          return;
+        }
+
+        const pendingFiles = [...this.transactionPendingFiles];
+        this.transactionManagementService.uploadDebtTransactionAttachments(transactionId, pendingFiles).subscribe({
+          next: (uploadResponse) => {
+            this.transactionForm.attachments = [...(uploadResponse.attachments || [])];
+            this.transactionPendingFiles = [];
+            this.savingTransaction = false;
+            this.cancelTransactionEditor();
+            this.loadTransactions();
+          },
+          error: () => {
+            this.savingTransaction = false;
+            this.editingTransactionId = transactionId;
+            this.transactionEditorErrorMessage = "Transaction was saved, but file upload failed. / Giao dịch đã lưu nhưng tải file lên thất bại.";
+          },
+        });
       },
       error: () => {
         this.savingTransaction = false;
-      },
-      complete: () => {
-        this.savingTransaction = false;
+        this.transactionEditorErrorMessage = "Failed to save transaction. / Lưu giao dịch thất bại.";
       },
     });
+  }
+
+  onTransactionFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    const selectedFiles = Array.from(input?.files || []);
+    if (selectedFiles.length === 0) {
+      return;
+    }
+
+    const existingKeys = new Set(this.transactionPendingFiles.map((file) => `${file.name}-${file.size}-${file.lastModified}`));
+    for (const file of selectedFiles) {
+      const key = `${file.name}-${file.size}-${file.lastModified}`;
+      if (!existingKeys.has(key)) {
+        this.transactionPendingFiles.push(file);
+        existingKeys.add(key);
+      }
+    }
+
+    if (input) {
+      input.value = "";
+    }
+  }
+
+  removePendingTransactionFile(index: number): void {
+    this.transactionPendingFiles.splice(index, 1);
+  }
+
+  downloadTransactionAttachment(attachment: DebtTransactionAttachmentItem): void {
+    const transactionId = this.normalizeTransactionId(this.editingTransactionId);
+    const attachmentId = this.normalizeTransactionId(attachment?.id);
+    if (!transactionId || !attachmentId || this.transactionDownloadingAttachmentIds.includes(attachmentId)) {
+      return;
+    }
+
+    this.transactionDownloadingAttachmentIds = [...this.transactionDownloadingAttachmentIds, attachmentId];
+    this.transactionManagementService.downloadDebtTransactionAttachment(transactionId, attachmentId).subscribe({
+      next: (response) => {
+        const blob = response.body;
+        if (!blob) {
+          return;
+        }
+
+        const fileName = this.extractFileName(response.headers.get("content-disposition"))
+          || attachment.fileName
+          || "download.bin";
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileName;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.transactionEditorErrorMessage = "Failed to download file. / Tải file thất bại.";
+      },
+      complete: () => {
+        this.transactionDownloadingAttachmentIds = this.transactionDownloadingAttachmentIds
+          .filter((id) => id !== attachmentId);
+      },
+    });
+  }
+
+  deleteTransactionAttachment(attachment: DebtTransactionAttachmentItem): void {
+    const transactionId = this.normalizeTransactionId(this.editingTransactionId);
+    const attachmentId = this.normalizeTransactionId(attachment?.id);
+    if (!transactionId || !attachmentId || this.transactionDeletingAttachmentIds.includes(attachmentId)) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete file ${attachment.fileName}? / Xóa file ${attachment.fileName}?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.transactionDeletingAttachmentIds = [...this.transactionDeletingAttachmentIds, attachmentId];
+    this.transactionManagementService.deleteDebtTransactionAttachment(transactionId, attachmentId).subscribe({
+      next: (response) => {
+        this.transactionForm.attachments = [...(response.attachments || [])];
+        this.loadTransactions();
+      },
+      error: () => {
+        this.transactionEditorErrorMessage = "Failed to delete file. / Xóa file thất bại.";
+      },
+      complete: () => {
+        this.transactionDeletingAttachmentIds = this.transactionDeletingAttachmentIds
+          .filter((id) => id !== attachmentId);
+      },
+    });
+  }
+
+  getReadableFileSize(size: number): string {
+    if (!size || size < 1024) {
+      return `${size || 0} B`;
+    }
+
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   onTransactionCustomerChanged(): void {
@@ -566,11 +712,22 @@ export class DebtManagementComponent implements OnInit {
     }
 
     const txCustomerId = this.normalizeCustomerId(tx?.customerId);
+    const contractCode = (tx?.contractCode || "").trim();
+    const normalizedContractCode = this.normalizeContractCode(contractCode);
 
     if (this.isInCart(tx)) {
-      this.cartItems = this.cartItems.filter((c) => this.normalizeTransactionId(c?.id) !== id);
+      if (normalizedContractCode) {
+        this.cartItems = this.cartItems.filter(
+          (c) => this.normalizeContractCode(c?.contractCode) !== normalizedContractCode,
+        );
+      } else {
+        this.cartItems = this.cartItems.filter((c) => this.normalizeTransactionId(c?.id) !== id);
+      }
+
       if (this.cartItems.length === 0) {
         this.cartLockedCustomerId = null;
+      } else {
+        this.cartLockedCustomerId = this.normalizeCustomerId(this.cartItems[0]?.customerId) || null;
       }
 
       return;
@@ -584,7 +741,97 @@ export class DebtManagementComponent implements OnInit {
       this.cartLockedCustomerId = txCustomerId;
     }
 
+    if (normalizedContractCode && txCustomerId) {
+      this.addContractTransactionsToCart(tx, txCustomerId, contractCode, normalizedContractCode);
+      return;
+    }
+
     this.cartItems = [...this.cartItems, tx];
+  }
+
+  private addContractTransactionsToCart(
+    seedTransaction: DebtTransactionItem,
+    customerId: string,
+    contractCode: string,
+    normalizedContractCode: string,
+  ): void {
+    this.loadTransactionsByContractCodePage(customerId, contractCode, normalizedContractCode, 1, []).subscribe({
+      next: (matchedTransactions) => {
+        const byId = new Map<string, DebtTransactionItem>();
+
+        for (const item of this.cartItems) {
+          const existingId = this.normalizeTransactionId(item?.id);
+          if (existingId) {
+            byId.set(existingId, item);
+          }
+        }
+
+        const seedId = this.normalizeTransactionId(seedTransaction?.id);
+        if (seedId) {
+          byId.set(seedId, seedTransaction);
+        }
+
+        for (const item of matchedTransactions) {
+          const itemId = this.normalizeTransactionId(item?.id);
+          if (itemId) {
+            byId.set(itemId, item);
+          }
+        }
+
+        this.cartItems = Array.from(byId.values());
+      },
+      error: () => {
+        const exists = this.cartItems.some(
+          (item) => this.normalizeTransactionId(item?.id) === this.normalizeTransactionId(seedTransaction?.id),
+        );
+        if (!exists) {
+          this.cartItems = [...this.cartItems, seedTransaction];
+        }
+      },
+    });
+  }
+
+  private loadTransactionsByContractCodePage(
+    customerId: string,
+    contractCode: string,
+    normalizedContractCode: string,
+    page: number,
+    collected: DebtTransactionItem[],
+  ): Observable<DebtTransactionItem[]> {
+    const query: DebtTransactionQueryParams = {
+      search: contractCode,
+      customerId,
+      transactionType: "all",
+      page,
+      pageSize: 200,
+      sortBy: "transactionAt",
+      sortDirection: "desc",
+    };
+
+    return new Observable<DebtTransactionItem[]>((observer) => {
+      this.transactionManagementService.getDebtTransactions(query).subscribe({
+        next: (response) => {
+          const currentPageMatches = (response.items || [])
+            .filter((item) => this.normalizeContractCode(item.contractCode) === normalizedContractCode);
+          const merged = [...collected, ...currentPageMatches];
+          const totalPages = response.totalPages || 0;
+
+          if (page < totalPages) {
+            this.loadTransactionsByContractCodePage(customerId, contractCode, normalizedContractCode, page + 1, merged)
+              .subscribe({
+                next: (items) => observer.next(items),
+                error: (error) => observer.error(error),
+                complete: () => observer.complete(),
+              });
+            return;
+          }
+
+          observer.next(merged);
+          observer.complete();
+        },
+        error: (error) => observer.error(error),
+      });
+    });
   }
 
   clearCart(): void {
@@ -1414,6 +1661,13 @@ export class DebtManagementComponent implements OnInit {
     });
   }
 
+  private refreshAfterTransactionMutation(): void {
+    this.loadOverview();
+    this.loadDebtList();
+    this.transactionQuery.page = 1;
+    this.loadTransactions();
+  }
+
   private extractFileName(contentDisposition: string | null): string {
     if (!contentDisposition) {
       return "";
@@ -1458,6 +1712,10 @@ export class DebtManagementComponent implements OnInit {
     }
 
     return normalized;
+  }
+
+  private normalizeContractCode(value?: string): string {
+    return (value || "").trim().toLowerCase();
   }
 
 }
