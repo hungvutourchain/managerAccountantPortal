@@ -1280,6 +1280,17 @@ tr.cart-locked {
   line-height: 1.2;
 }
 
+.required-mark {
+  color: #c93c3c;
+  font-weight: 700;
+}
+
+.field-required-message {
+  color: #c23b3b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .editor-full {
   grid-column: span 3;
 }
@@ -1292,6 +1303,13 @@ tr.cart-locked {
   border: 1px solid #d8e4f5;
   border-radius: 14px;
   background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.transaction-file-panel.drag-active {
+  border-color: #2f6ec8;
+  background: linear-gradient(180deg, #f5f9ff 0%, #e9f2ff 100%);
+  box-shadow: 0 0 0 3px rgba(47, 110, 200, 0.14);
 }
 
 .transaction-file-toolbar {
@@ -1322,6 +1340,16 @@ tr.cart-locked {
 .transaction-file-hint {
   color: #5f7397;
   font-size: 12px;
+}
+
+.transaction-file-drop-hint {
+  margin-top: -2px;
+  padding: 10px 12px;
+  border: 1px dashed #c9d9f2;
+  border-radius: 10px;
+  color: #627da8;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .transaction-file-group {
@@ -1406,6 +1434,32 @@ tr.cart-locked {
   font-size: 12px;
 }
 
+.transaction-editor-required-note {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #efd8a4;
+  background: #fff8e7;
+  color: #7f5b00;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.transaction-editor-required-note i {
+  color: #d59a00;
+  font-size: 14px;
+}
+
+.transaction-editor-required-note .en-text {
+  color: #7f5b00;
+}
+
+.transaction-editor-required-note .vi-text {
+  color: #9a761d;
+}
+
 :host ::ng-deep .transaction-account-type-ddl.e-ddl .e-input-value,
 :host ::ng-deep .transaction-account-type-ddl.e-ddl .e-list-item {
   font-size: 14px;
@@ -1415,6 +1469,12 @@ tr.cart-locked {
   margin-top: 12px;
   display: flex;
   gap: 8px;
+}
+
+.editor-actions .btn-primary:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  filter: saturate(0.72);
 }
 
 @media (max-width: 900px) {

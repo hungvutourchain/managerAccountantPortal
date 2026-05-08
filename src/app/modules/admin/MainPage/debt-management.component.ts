@@ -69,6 +69,7 @@ export class DebtManagementComponent implements OnInit {
   aiCopiedMessageId: string | null = null;
   aiMessages: DebtAiConversationMessage[] = [];
   transactionPendingFiles: File[] = [];
+  transactionFileDragActive = false;
   transactionDownloadingAttachmentIds: string[] = [];
   transactionDeletingAttachmentIds: string[] = [];
 
@@ -406,12 +407,13 @@ export class DebtManagementComponent implements OnInit {
   }
 
   saveTransaction(): void {
-    const customerId = this.normalizeCustomerId(this.transactionForm.customerId);
-    const contractCode = this.transactionForm.contractCode?.trim();
-    if (!customerId || this.transactionForm.amount <= 0) {
+    if (!this.canSubmitTransactionForm()) {
+      this.transactionEditorErrorMessage = "Please fill all required fields (Customer, Amount, Contract Code). / Vui lòng nhập đủ trường bắt buộc (Khách hàng, Số tiền, Mã hợp đồng).";
       return;
     }
 
+    const customerId = this.normalizeCustomerId(this.transactionForm.customerId);
+    const contractCode = this.transactionForm.contractCode?.trim();
     if (!contractCode) {
       this.transactionEditorErrorMessage = "Contract code is required. / Mã hợp đồng là bắt buộc.";
       return;
@@ -482,22 +484,38 @@ export class DebtManagementComponent implements OnInit {
   onTransactionFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     const selectedFiles = Array.from(input?.files || []);
-    if (selectedFiles.length === 0) {
-      return;
-    }
-
-    const existingKeys = new Set(this.transactionPendingFiles.map((file) => `${file.name}-${file.size}-${file.lastModified}`));
-    for (const file of selectedFiles) {
-      const key = `${file.name}-${file.size}-${file.lastModified}`;
-      if (!existingKeys.has(key)) {
-        this.transactionPendingFiles.push(file);
-        existingKeys.add(key);
-      }
-    }
+    this.appendPendingTransactionFiles(selectedFiles);
 
     if (input) {
       input.value = "";
     }
+  }
+
+  onTransactionFileDragEnter(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.transactionFileDragActive = true;
+  }
+
+  onTransactionFileDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.transactionFileDragActive = true;
+  }
+
+  onTransactionFileDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.transactionFileDragActive = false;
+  }
+
+  onTransactionFileDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.transactionFileDragActive = false;
+
+    const droppedFiles = Array.from(event.dataTransfer?.files || []);
+    this.appendPendingTransactionFiles(droppedFiles);
   }
 
   removePendingTransactionFile(index: number): void {
@@ -577,6 +595,14 @@ export class DebtManagementComponent implements OnInit {
     }
 
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  canSubmitTransactionForm(): boolean {
+    const customerId = this.normalizeCustomerId(this.transactionForm.customerId);
+    const contractCode = this.transactionForm.contractCode?.trim();
+    const amount = Number(this.transactionForm.amount || 0);
+
+    return !!customerId && !!contractCode && amount > 0;
   }
 
   onTransactionCustomerChanged(): void {
@@ -1666,6 +1692,21 @@ export class DebtManagementComponent implements OnInit {
     this.loadDebtList();
     this.transactionQuery.page = 1;
     this.loadTransactions();
+  }
+
+  private appendPendingTransactionFiles(files: File[]): void {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const existingKeys = new Set(this.transactionPendingFiles.map((file) => `${file.name}-${file.size}-${file.lastModified}`));
+    for (const file of files) {
+      const key = `${file.name}-${file.size}-${file.lastModified}`;
+      if (!existingKeys.has(key)) {
+        this.transactionPendingFiles.push(file);
+        existingKeys.add(key);
+      }
+    }
   }
 
   private extractFileName(contentDisposition: string | null): string {

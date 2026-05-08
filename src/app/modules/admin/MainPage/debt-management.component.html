@@ -230,7 +230,7 @@
         <input
           ejs-textbox
           type="text"
-          placeholder="Search customer, note, or creator... / Tìm khách hàng, ghi chú, người tạo..."
+          placeholder="Search customer, contract code, note, or creator... / Tìm khách hàng, mã hợp đồng, ghi chú, người tạo..."
           [(ngModel)]="transactionQuery.search"
           (keyup.enter)="applyTransactionFilters()"
         />
@@ -277,12 +277,13 @@
         <thead>
           <tr>
             <th class="col-cart"></th>
+            <th><span class="bilingual"><span class="en-text">Contract Code</span><span class="vi-text">Mã hợp đồng</span></span></th>
             <th (click)="sortTransactionsBy('customerName')"><span class="bilingual"><span class="en-text">Customer</span><span class="vi-text">Khách hàng</span></span> {{ getTransactionSortIcon('customerName') }}</th>
+            
             <th (click)="sortTransactionsBy('transactionType')"><span class="bilingual"><span class="en-text">Type</span><span class="vi-text">Loại</span></span> {{ getTransactionSortIcon('transactionType') }}</th>
             <th (click)="sortTransactionsBy('amount')"><span class="bilingual"><span class="en-text">Amount</span><span class="vi-text">Số tiền</span></span> {{ getTransactionSortIcon('amount') }}</th>
             <th (click)="sortTransactionsBy('transactionAt')"><span class="bilingual"><span class="en-text">Date</span><span class="vi-text">Ngày</span></span> {{ getTransactionSortIcon('transactionAt') }}</th>
             <th (click)="sortTransactionsBy('createdBy')"><span class="bilingual"><span class="en-text">Created By</span><span class="vi-text">Người tạo</span></span> {{ getTransactionSortIcon('createdBy') }}</th>
-            <th><span class="bilingual"><span class="en-text">Contract Code</span><span class="vi-text">Mã hợp đồng</span></span></th>
             <th><span class="bilingual"><span class="en-text">Note</span><span class="vi-text">Ghi chú</span></span></th>
             <th><span class="bilingual"><span class="en-text">Actions</span><span class="vi-text">Thao tác</span></span></th>
           </tr>
@@ -299,6 +300,7 @@
                 (change)="toggleCartItem(tx)"
               />
             </td>
+            <td class="ledger-note">{{ tx.contractCode || '-' }}</td>
             <td>
               <div class="cell-title">{{ tx.customerCode }} - {{ tx.customerName }}</div>
             </td>
@@ -306,7 +308,6 @@
             <td class="amount" [ngClass]="tx.transactionType === 'debt' ? 'debt' : 'credit'">{{ formatCurrency(tx.amount) }}</td>
             <td>{{ formatDate(tx.transactionAt) }}</td>
             <td>{{ tx.createdBy || 'system' }}</td>
-            <td class="ledger-note">{{ tx.contractCode || '-' }}</td>
             <td class="ledger-note">{{ tx.note || '-' }}</td>
             <td>
               <div class="row-actions">
@@ -530,8 +531,11 @@
           </div>
 
           <div class="editor-field editor-full">
-            <label class="editor-label bilingual"><span class="en-text">Contract Code *</span><span class="vi-text">Mã hợp đồng *</span></label>
+            <label class="editor-label bilingual"><span class="en-text">Contract Code <span class="required-mark">*</span></span><span class="vi-text">Mã hợp đồng <span class="required-mark">*</span></span></label>
             <ejs-textbox [width]="'100%'" [placeholder]="'Enter contract code... / Nhập mã hợp đồng...'" [(ngModel)]="transactionForm.contractCode"></ejs-textbox>
+            <div class="field-required-message" *ngIf="!transactionForm.contractCode?.trim()">
+              Contract code is required. / Mã hợp đồng là bắt buộc.
+            </div>
           </div>
 
           <div class="editor-field editor-full">
@@ -541,7 +545,14 @@
 
           <div class="editor-field editor-full">
             <label class="editor-label bilingual"><span class="en-text">Files</span><span class="vi-text">Tệp đính kèm</span></label>
-            <div class="transaction-file-panel">
+            <div
+              class="transaction-file-panel"
+              [class.drag-active]="transactionFileDragActive"
+              (dragenter)="onTransactionFileDragEnter($event)"
+              (dragover)="onTransactionFileDragOver($event)"
+              (dragleave)="onTransactionFileDragLeave($event)"
+              (drop)="onTransactionFileDrop($event)"
+            >
               <div class="transaction-file-toolbar">
                 <label class="transaction-file-upload-btn">
                   <input type="file" multiple (change)="onTransactionFilesSelected($event)" />
@@ -552,6 +563,11 @@
                   <span class="en-text">Files are uploaded to the server after saving the transaction.</span>
                   <span class="vi-text">Tệp sẽ được tải lên server sau khi lưu giao dịch.</span>
                 </span>
+              </div>
+
+              <div class="transaction-file-drop-hint bilingual">
+                <span class="en-text">Or drag and drop files here.</span>
+                <span class="vi-text">Hoặc kéo thả tệp vào đây.</span>
               </div>
 
               <div class="transaction-file-group" *ngIf="transactionForm.attachments.length > 0">
@@ -604,8 +620,16 @@
           {{ transactionEditorErrorMessage }}
         </div>
 
+        <div class="transaction-editor-required-note" *ngIf="!transactionEditorErrorMessage && !canSubmitTransactionForm()">
+          <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+          <span class="bilingual">
+            <span class="en-text">Required to save/update: Customer, Amount &gt; 0, Contract Code.</span>
+            <span class="vi-text">Điều kiện lưu/cập nhật: Khách hàng, Số tiền &gt; 0, Mã hợp đồng.</span>
+          </span>
+        </div>
+
         <div class="editor-actions">
-          <button class="btn-primary" [disabled]="savingTransaction || !transactionForm.contractCode?.trim()" (click)="saveTransaction()">
+          <button class="btn-primary" [disabled]="savingTransaction || !canSubmitTransactionForm()" (click)="saveTransaction()">
             {{ savingTransaction ? 'Saving... / Đang lưu...' : (editingTransactionId ? 'Update Transaction / Cập nhật giao dịch' : 'Save Transaction / Lưu giao dịch') }}
           </button>
           <button class="btn-secondary" (click)="cancelTransactionEditor()">
