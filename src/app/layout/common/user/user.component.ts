@@ -228,6 +228,55 @@ export class UserComponent implements OnInit, OnDestroy {
     return displayName ? displayName.charAt(0) : 'U';
   }
 
+  get avatarInitials(): string {
+    const displayName = this.displayName;
+    if (!displayName) {
+      return 'U';
+    }
+
+    const words = displayName
+      .split(/\s+/)
+      .map((word: string) => word.trim())
+      .filter((word: string) => !!word);
+
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${words[0][0] || ''}${words[words.length - 1][0] || ''}`.toUpperCase();
+  }
+
+  get displayName(): string {
+    return (
+      this.user?.fullname ||
+      this.user?.username ||
+      (this.user?.email || '').toString().split('@')[0] ||
+      'User'
+    );
+  }
+
+  get statusLabel(): string {
+    const status = (this.user?.status || '').toString().trim().toLowerCase();
+
+    if (!status || status === 'online') {
+      return 'Online';
+    }
+
+    if (status === 'away') {
+      return 'Away';
+    }
+
+    if (status === 'busy') {
+      return 'Busy';
+    }
+
+    if (status === 'not-visible') {
+      return 'Invisible';
+    }
+
+    return status;
+  }
+
   private normalizeUser(user: any): any {
     if (!user || typeof user !== 'object') {
       return user;

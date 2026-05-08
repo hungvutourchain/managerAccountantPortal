@@ -1,34 +1,38 @@
 <!-- Button -->
-<button mat-icon-button [matMenuTriggerFor]="userActions">
-  <span class="relative">
+<button mat-icon-button class="user-trigger-btn" [matMenuTriggerFor]="userActions">
+  <span class="user-avatar-shell">
     <img
-      class="w-7 h-7 rounded-full object-cover"
+      class="user-avatar-image"
       *ngIf="showAvatar && avatarUrl"
       [src]="avatarUrl"
       (error)="onAvatarError()"
       alt="User avatar" />
     <span
       *ngIf="showAvatar && !avatarUrl"
-      class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-semibold uppercase">
-      {{ avatarInitial }}
+      class="user-avatar-fallback">
+      {{ avatarInitials }}
     </span>
 
-    <!-- <mat-icon *ngIf="!showAvatar || !user?.avatar" [svgIcon]="'heroicons_outline:user-circle'"></mat-icon> -->
-    <span class="absolute right-0 bottom-0 w-2 h-2 rounded-full" [ngClass]="{
-        'mr-px mb-px': !showAvatar || !avatarUrl,
-        'bg-green-500': !user?.status,
-        'bg-gray-500': user?.status === 'online',
+    <span class="user-status-dot" [ngClass]="{
+        'bg-green-500': user?.status === 'online' || !user?.status,
         'bg-amber-500': user?.status === 'away',
         'bg-red-500': user?.status === 'busy',
-        'bg-gray-400': user?.status === 'not-visible'
+        'bg-slate-400': user?.status === 'not-visible'
       }"></span>
   </span>
 </button>
-<mat-menu [xPosition]="'before'" #userActions="matMenu">
-  <button mat-menu-item>
-    <span class="flex flex-col leading-none">
-      <span>{{ user?.fullname }}</span>
-      <span class="mt-1.5 text-md font-medium">{{ user?.email }}</span>
+<mat-menu class="user-actions-menu" [xPosition]="'before'" #userActions="matMenu">
+  <button mat-menu-item disabled class="user-menu-profile-item">
+    <span class="user-menu-profile-avatar" *ngIf="avatarUrl; else userMenuInitialsAvatar">
+      <img [src]="avatarUrl" alt="User avatar" />
+    </span>
+    <ng-template #userMenuInitialsAvatar>
+      <span class="user-menu-profile-avatar user-menu-profile-avatar--fallback">{{ avatarInitials }}</span>
+    </ng-template>
+    <span class="user-menu-profile-text">
+      <span class="user-menu-profile-name">{{ displayName }}</span>
+      <span class="user-menu-profile-email">{{ user?.email }}</span>
+      <span class="user-menu-profile-status">{{ statusLabel }}</span>
     </span>
   </button>
   <mat-divider class="my-2"></mat-divider>
