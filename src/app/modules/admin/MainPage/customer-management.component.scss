@@ -54,6 +54,12 @@
   gap: 12px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .page-header p {
   margin: 8px 0 0;
   color: #5d739b;
@@ -152,6 +158,36 @@
   margin-top: 10px;
   display: flex;
   gap: 8px;
+}
+
+.account-type-config-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.config-toolbar {
+  display: grid;
+  grid-template-columns: 2fr auto auto auto;
+  gap: 8px;
+}
+
+.config-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.config-form-actions {
+  align-self: end;
+}
+
+.config-table {
+  max-height: 420px;
+}
+
+.pagination-panel.compact {
+  margin-top: 4px;
 }
 
 .filter-row {
@@ -674,6 +710,14 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .config-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .config-form-grid {
+    grid-template-columns: 1fr;
+  }
+
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -693,6 +737,10 @@ th {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
   }
 
   .audit-meta-grid {

@@ -11,6 +11,14 @@ import {
 import { CustomerManagementService } from "./customer-management.service";
 import { TransactionManagementService } from "./transaction-management.service";
 
+type AccountTypeConfigItem = {
+  id: string;
+  accountType: string;
+  accountName?: string;
+  accountNameLocal?: string;
+  updatedAt?: string;
+};
+
 @Component({
   standalone: false,
   selector: "app-customer-management",
@@ -26,6 +34,30 @@ export class CustomerManagementComponent implements OnInit {
     accountName?: string;
     accountNameLocal?: string;
   }> = [];
+  showAccountTypeConfigDialog = false;
+  accountTypeConfigLoading = false;
+  accountTypeConfigSaving = false;
+  accountTypeConfigs: AccountTypeConfigItem[] = [];
+  accountTypeConfigForm: {
+    id?: string;
+    accountType: string;
+    accountName: string;
+    accountNameLocal: string;
+  } = {
+      id: undefined,
+      accountType: "",
+      accountName: "",
+      accountNameLocal: "",
+    };
+  accountTypeConfigQuery = {
+    search: "",
+    page: 1,
+    pageSize: 10,
+  };
+  accountTypeConfigPager = {
+    totalItems: 0,
+    totalPages: 0,
+  };
 
   loading = false;
   saving = false;
@@ -126,6 +158,128 @@ export class CustomerManagementComponent implements OnInit {
       },
       error: () => {
         this.accountTypeOptions = [];
+      },
+    });
+  }
+
+  openAccountTypeConfigManager(): void {
+    this.showAccountTypeConfigDialog = true;
+    this.resetAccountTypeConfigForm();
+    this.accountTypeConfigQuery.page = 1;
+    this.loadAccountTypeConfigs();
+  }
+
+  closeAccountTypeConfigManager(): void {
+    this.showAccountTypeConfigDialog = false;
+    this.accountTypeConfigLoading = false;
+    this.accountTypeConfigSaving = false;
+    this.accountTypeConfigs = [];
+    this.accountTypeConfigQuery.search = "";
+    this.accountTypeConfigQuery.page = 1;
+    this.accountTypeConfigPager.totalItems = 0;
+    this.accountTypeConfigPager.totalPages = 0;
+    this.resetAccountTypeConfigForm();
+  }
+
+  loadAccountTypeConfigs(): void {
+    this.accountTypeConfigLoading = true;
+    this.customerService.getAccountTypeConfigs(
+      this.accountTypeConfigQuery.search,
+      this.accountTypeConfigQuery.page,
+      this.accountTypeConfigQuery.pageSize,
+    ).subscribe({
+      next: (response) => {
+        this.accountTypeConfigs = response?.items || [];
+        this.accountTypeConfigPager.totalItems = response?.totalItems || 0;
+        this.accountTypeConfigPager.totalPages = response?.totalPages || 0;
+      },
+      error: () => {
+        this.accountTypeConfigs = [];
+        this.accountTypeConfigPager.totalItems = 0;
+        this.accountTypeConfigPager.totalPages = 0;
+      },
+      complete: () => {
+        this.accountTypeConfigLoading = false;
+      },
+    });
+  }
+
+  applyAccountTypeConfigFilters(): void {
+    this.accountTypeConfigQuery.page = 1;
+    this.loadAccountTypeConfigs();
+  }
+
+  clearAccountTypeConfigFilters(): void {
+    this.accountTypeConfigQuery.search = "";
+    this.accountTypeConfigQuery.page = 1;
+    this.loadAccountTypeConfigs();
+  }
+
+  changeAccountTypeConfigPage(page: number): void {
+    if (page < 1 || page > this.accountTypeConfigPager.totalPages || page === this.accountTypeConfigQuery.page) {
+      return;
+    }
+
+    this.accountTypeConfigQuery.page = page;
+    this.loadAccountTypeConfigs();
+  }
+
+  startCreateAccountTypeConfig(): void {
+    this.resetAccountTypeConfigForm();
+  }
+
+  startEditAccountTypeConfig(item: AccountTypeConfigItem): void {
+    this.accountTypeConfigForm = {
+      id: item.id,
+      accountType: item.accountType || "",
+      accountName: item.accountName || "",
+      accountNameLocal: item.accountNameLocal || "",
+    };
+  }
+
+  saveAccountTypeConfig(): void {
+    const accountType = (this.accountTypeConfigForm.accountType || "").trim();
+    if (!accountType) {
+      return;
+    }
+
+    this.accountTypeConfigSaving = true;
+    this.customerService.upsertAccountTypeConfig({
+      id: this.accountTypeConfigForm.id,
+      accountType,
+      accountName: (this.accountTypeConfigForm.accountName || "").trim(),
+      accountNameLocal: (this.accountTypeConfigForm.accountNameLocal || "").trim(),
+    }).subscribe({
+      next: () => {
+        this.resetAccountTypeConfigForm();
+        this.loadAccountTypeConfigs();
+        this.loadAccountTypeOptions();
+      },
+      error: () => {
+        window.alert("Save failed, please check duplicate account type. / Lưu thất bại, vui lòng kiểm tra trùng loại tài khoản.");
+      },
+      complete: () => {
+        this.accountTypeConfigSaving = false;
+      },
+    });
+  }
+
+  deleteAccountTypeConfig(item: AccountTypeConfigItem): void {
+    if (!item?.id) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete account type ${item.accountType}? / Xóa loại tài khoản ${item.accountType}?`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.customerService.deleteAccountTypeConfig(item.id).subscribe({
+      next: () => {
+        this.loadAccountTypeConfigs();
+        this.loadAccountTypeOptions();
       },
     });
   }
@@ -718,6 +872,15 @@ export class CustomerManagementComponent implements OnInit {
       riskLevel: "normal",
       owner: "",
       tags: [],
+    };
+  }
+
+  private resetAccountTypeConfigForm(): void {
+    this.accountTypeConfigForm = {
+      id: undefined,
+      accountType: "",
+      accountName: "",
+      accountNameLocal: "",
     };
   }
 

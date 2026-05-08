@@ -75,6 +75,59 @@ export class CustomerManagementService {
     }>>(`${this.baseUrl}/account-types`, { params });
   }
 
+  getAccountTypeConfigs(
+    search = "",
+    page = 1,
+    pageSize = 20,
+  ): Observable<{
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    items: Array<{
+      id: string;
+      accountType: string;
+      accountName?: string;
+      accountNameLocal?: string;
+      updatedAt?: string;
+    }>;
+  }> {
+    let params = new HttpParams()
+      .set("page", String(page))
+      .set("pageSize", String(pageSize));
+
+    if (search && search.trim()) {
+      params = params.set("search", search.trim());
+    }
+
+    return this.http.get<{
+      page: number;
+      pageSize: number;
+      totalItems: number;
+      totalPages: number;
+      items: Array<{
+        id: string;
+        accountType: string;
+        accountName?: string;
+        accountNameLocal?: string;
+        updatedAt?: string;
+      }>;
+    }>(`${this.baseUrl}/account-types/manage`, { params });
+  }
+
+  upsertAccountTypeConfig(payload: {
+    id?: string;
+    accountType: string;
+    accountName?: string;
+    accountNameLocal?: string;
+  }): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(`${this.baseUrl}/account-types`, payload);
+  }
+
+  deleteAccountTypeConfig(id: string): Observable<{ success: boolean }> {
+    return this.http.delete<{ success: boolean }>(`${this.baseUrl}/account-types/${id}`);
+  }
+
   upsertCustomer(payload: CustomerAccount): Observable<CustomerAccount> {
     return this.http.post<CustomerAccount>(`${this.baseUrl}/customers`, payload);
   }

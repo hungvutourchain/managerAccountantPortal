@@ -4,7 +4,10 @@
       <h2 class="bilingual heading-bilingual"><span class="en-text">Customer Management</span><span class="vi-text">Quản lý khách hàng</span></h2>
       <p class="bilingual desc-bilingual"><span class="en-text">Real-time monitoring for customer debt, status, and risk.</span><span class="vi-text">Trung tâm theo dõi công nợ, trạng thái và rủi ro khách hàng theo thời gian thực.</span></p>
     </div>
-    <button class="btn-primary" (click)="openCreateForm()"><span class="bilingual"><span class="en-text">Add Customer</span><span class="vi-text">Thêm khách hàng</span></span></button>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="openAccountTypeConfigManager()"><span class="bilingual"><span class="en-text">Manage Account Types</span><span class="vi-text">Quản lý loại tài khoản</span></span></button>
+      <button class="btn-primary" (click)="openCreateForm()"><span class="bilingual"><span class="en-text">Add Customer</span><span class="vi-text">Thêm khách hàng</span></span></button>
+    </div>
   </header>
 
   <div class="kpi-grid">
@@ -142,6 +145,99 @@
       <button (click)="changePage(query.page + 1)"><span class="bilingual"><span class="en-text">Next</span><span class="vi-text">Sau</span></span></button>
     </div>
   </footer>
+
+  <ejs-dialog
+    *ngIf="showAccountTypeConfigDialog"
+    cssClass="account-type-config-dialog"
+    [isModal]="true"
+    [showCloseIcon]="true"
+    [visible]="showAccountTypeConfigDialog"
+    [closeOnEscape]="true"
+    [header]="'Manage Account Types / Quản lý loại tài khoản'"
+    [width]="'1080px'"
+    (overlayClick)="closeAccountTypeConfigManager()"
+    (close)="closeAccountTypeConfigManager()"
+  >
+    <ng-template #content>
+      <section class="account-type-config-panel">
+        <div class="config-toolbar">
+          <ejs-textbox
+            [placeholder]="'Search account type or name... / Tìm mã hoặc tên loại tài khoản...'"
+            [(ngModel)]="accountTypeConfigQuery.search"
+            (keyup.enter)="applyAccountTypeConfigFilters()"
+          ></ejs-textbox>
+          <button class="btn-primary" (click)="applyAccountTypeConfigFilters()"><span class="bilingual"><span class="en-text">Search</span><span class="vi-text">Tìm kiếm</span></span></button>
+          <button class="btn-secondary" (click)="clearAccountTypeConfigFilters()"><span class="bilingual"><span class="en-text">Reset</span><span class="vi-text">Đặt lại</span></span></button>
+          <button class="btn-secondary" (click)="startCreateAccountTypeConfig()"><span class="bilingual"><span class="en-text">New</span><span class="vi-text">Tạo mới</span></span></button>
+        </div>
+
+        <div class="config-form-grid">
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Account Type Code</span><span class="vi-text">Mã loại tài khoản</span></label>
+            <ejs-textbox [(ngModel)]="accountTypeConfigForm.accountType"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">English Name</span><span class="vi-text">Tên tiếng Anh</span></label>
+            <ejs-textbox [(ngModel)]="accountTypeConfigForm.accountName"></ejs-textbox>
+          </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Vietnamese Name</span><span class="vi-text">Tên tiếng Việt</span></label>
+            <ejs-textbox [(ngModel)]="accountTypeConfigForm.accountNameLocal"></ejs-textbox>
+          </div>
+          <div class="editor-field config-form-actions">
+            <button class="btn-primary" [disabled]="accountTypeConfigSaving" (click)="saveAccountTypeConfig()">
+              {{ accountTypeConfigSaving ? "Saving... / Đang lưu..." : "Save / Lưu" }}
+            </button>
+          </div>
+        </div>
+
+        <section class="table-panel config-table" [class.loading]="accountTypeConfigLoading">
+          <table>
+            <thead>
+              <tr>
+                <th><span class="bilingual"><span class="en-text">Code</span><span class="vi-text">Mã</span></span></th>
+                <th><span class="bilingual"><span class="en-text">English Name</span><span class="vi-text">Tên tiếng Anh</span></span></th>
+                <th><span class="bilingual"><span class="en-text">Vietnamese Name</span><span class="vi-text">Tên tiếng Việt</span></span></th>
+                <th><span class="bilingual"><span class="en-text">Updated At</span><span class="vi-text">Cập nhật</span></span></th>
+                <th><span class="bilingual"><span class="en-text">Actions</span><span class="vi-text">Thao tác</span></span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of accountTypeConfigs">
+                <td>{{ item.accountType }}</td>
+                <td>{{ item.accountName || '-' }}</td>
+                <td>{{ item.accountNameLocal || '-' }}</td>
+                <td>{{ formatDateTime(item.updatedAt) }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button type="button" class="icon-action-button" title="Edit / Sửa" aria-label="Edit / Sửa" (click)="startEditAccountTypeConfig(item)">
+                      <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="icon-action-button danger" title="Delete / Xóa" aria-label="Delete / Xóa" (click)="deleteAccountTypeConfig(item)">
+                      <i class="bi bi-trash3" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="!accountTypeConfigLoading && accountTypeConfigs.length === 0">
+                <td colspan="5" class="empty-row"><span class="bilingual"><span class="en-text">No account types found.</span><span class="vi-text">Không có dữ liệu loại tài khoản.</span></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <footer class="pagination-panel compact">
+          <span>
+            <span class="bilingual"><span class="en-text">Total: {{ accountTypeConfigPager.totalItems }} | Page {{ accountTypeConfigQuery.page }} / {{ accountTypeConfigPager.totalPages || 1 }}</span><span class="vi-text">Tổng: {{ accountTypeConfigPager.totalItems }} | Trang {{ accountTypeConfigQuery.page }} / {{ accountTypeConfigPager.totalPages || 1 }}</span></span>
+          </span>
+          <div class="pager-actions">
+            <button (click)="changeAccountTypeConfigPage(accountTypeConfigQuery.page - 1)"><span class="bilingual"><span class="en-text">Previous</span><span class="vi-text">Trước</span></span></button>
+            <button (click)="changeAccountTypeConfigPage(accountTypeConfigQuery.page + 1)"><span class="bilingual"><span class="en-text">Next</span><span class="vi-text">Sau</span></span></button>
+          </div>
+        </footer>
+      </section>
+    </ng-template>
+  </ejs-dialog>
 
   <ejs-dialog
     cssClass="customer-editor-dialog"
