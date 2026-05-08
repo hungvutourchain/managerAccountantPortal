@@ -4,6 +4,8 @@ import { environment as env } from "environments/environment";
 import { Observable } from "rxjs";
 import {
   CreateDebtTransactionPayload,
+  DebtAiQueryRequest,
+  DebtAiQueryResponse,
   DebtTransactionAuditLogResponse,
   DebtTransactionListResponse,
   DebtTransactionQueryParams,
@@ -67,5 +69,9 @@ export class TransactionManagementService {
       observe: "response",
       responseType: "blob",
     });
+  }
+
+  queryDebtAi(payload: DebtAiQueryRequest): Observable<DebtAiQueryResponse> {
+    return this.http.post<DebtAiQueryResponse>(`${this.baseUrl}/debt-ai/query`, payload);
   }
 }

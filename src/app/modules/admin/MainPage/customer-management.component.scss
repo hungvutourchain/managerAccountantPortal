@@ -60,6 +60,14 @@
   flex-wrap: wrap;
 }
 
+.ai-launch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 .page-header p {
   margin: 8px 0 0;
   color: #5d739b;
@@ -196,6 +204,21 @@
   gap: 10px;
 }
 
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #c4d4ef;
+  color: #4f6791;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background: #f0f5ff;
+}
+
 .btn-primary,
 .btn-secondary {
   padding: 10px 14px;
@@ -219,6 +242,246 @@
   border: 1px solid #dce7f7;
   border-radius: 12px;
   overflow: auto;
+}
+
+.customer-ai-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.customer-ai-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.customer-ai-header h4 {
+  margin: 0;
+  color: #1d3f73;
+  font-size: 14px;
+}
+
+.customer-ai-subtitle {
+  margin: 6px 0 0;
+}
+
+.customer-ai-scope {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #d9e6f8;
+  color: #35557f;
+}
+
+.customer-ai-suggestions,
+.customer-ai-followup,
+.customer-ai-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-chip,
+.customer-ai-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #c8d9f2;
+  background: #ffffff;
+  color: #35557f;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.ai-chip {
+  cursor: pointer;
+}
+
+.ai-chip:hover {
+  background: #edf4ff;
+}
+
+.customer-ai-composer {
+  display: grid;
+  gap: 10px;
+}
+
+.customer-ai-textarea {
+  width: 100%;
+  border: 1px solid #c9daf4;
+  border-radius: 10px;
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 92px;
+  font: inherit;
+  color: #183057;
+  background: #ffffff;
+}
+
+.customer-ai-textarea:focus {
+  outline: 0;
+  border-color: #3e6fba;
+  box-shadow: 0 0 0 3px rgba(62, 111, 186, 0.12);
+}
+
+.customer-ai-actions,
+.customer-ai-message-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.customer-ai-conversation {
+  display: grid;
+  gap: 12px;
+}
+
+.customer-ai-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.customer-ai-message.user-message {
+  flex-direction: row-reverse;
+}
+
+.customer-ai-message-badge {
+  flex: 0 0 auto;
+  min-width: 58px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #e6eefc;
+  color: #35557f;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.assistant-message .customer-ai-message-badge {
+  background: #1f4fa6;
+  color: #ffffff;
+}
+
+.customer-ai-message-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid #d9e6f8;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 12px 14px;
+  box-shadow: 0 8px 22px rgba(31, 79, 166, 0.05);
+}
+
+.user-message .customer-ai-message-body {
+  background: #edf4ff;
+  border-color: #cfe0fb;
+}
+
+.customer-ai-message-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #5f779d;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.customer-ai-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #4d658d;
+  font-size: 13px;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #5b87d5;
+  animation: customer-ai-pulse 1.1s infinite ease-in-out;
+}
+
+.loading-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.loading-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.customer-ai-summary {
+  margin: 0 0 12px;
+  color: #1c3966;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.customer-ai-section {
+  margin-bottom: 12px;
+}
+
+.customer-ai-section h5 {
+  margin: 0 0 8px;
+  color: #2a4977;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.customer-ai-section ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #456188;
+}
+
+.customer-ai-section li + li {
+  margin-top: 6px;
+}
+
+.customer-ai-answer {
+  margin: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8fbff;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: inherit;
+  color: #183057;
+  line-height: 1.6;
+}
+
+.followup-label {
+  display: inline-flex;
+  align-items: center;
+  color: #6b7f9d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.customer-ai-empty-state {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px dashed #cad9f3;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #58719a;
+}
+
+@keyframes customer-ai-pulse {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.75);
+    opacity: 0.55;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 table {

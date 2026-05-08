@@ -267,6 +267,10 @@
 
         <button class="btn-primary" (click)="applyTransactionFilters()"><span class="bilingual"><span class="en-text">Apply</span><span class="vi-text">Áp dụng</span></span></button>
         <button class="btn-secondary" (click)="clearTransactionFilters()"><span class="bilingual"><span class="en-text">Reset</span><span class="vi-text">Làm mới</span></span></button>
+        <button class="btn-ghost ai-launch-btn" (click)="openDebtAiDialog()">
+          <i class="bi bi-stars" aria-hidden="true"></i>
+          <span class="bilingual"><span class="en-text">AI Assistant</span><span class="vi-text">Trợ lý AI</span></span>
+        </button>
       </div>
 
       <table class="transaction-table">
@@ -333,6 +337,135 @@
       </footer>
     </section>
   </section>
+
+  <ejs-dialog
+    *ngIf="showDebtAiDialog"
+    cssClass="debt-ai-dialog"
+    [isModal]="true"
+    [showCloseIcon]="true"
+    [visible]="showDebtAiDialog"
+    [closeOnEscape]="true"
+    [header]="'Debt AI Assistant / Trợ lý AI công nợ'"
+    [width]="'1020px'"
+    (overlayClick)="closeDebtAiDialog()"
+    (close)="closeDebtAiDialog()"
+  >
+    <ng-template #content>
+      <section class="debt-ai-panel debt-ai-panel--dialog">
+        <div class="debt-ai-header">
+          <div>
+            <h4 class="bilingual"><span class="en-text">Debt AI Assistant</span><span class="vi-text">Trợ lý AI công nợ</span></h4>
+            <p class="debt-ai-subtitle bilingual">
+              <span class="en-text">Ask Gemini to summarize debt, inspect selected transactions, or find customer debt signals.</span>
+              <span class="vi-text">Hỏi Gemini để tóm tắt công nợ, kiểm tra giao dịch đã chọn, hoặc tìm dấu hiệu rủi ro.</span>
+            </p>
+          </div>
+          <span class="debt-ai-scope bilingual">
+            <span class="en-text">Scope: {{ transactions.length }} transactions, {{ debtItems.length }} customers, {{ cartItems.length }} selected</span>
+            <span class="vi-text">Phạm vi: {{ transactions.length }} giao dịch, {{ debtItems.length }} khách hàng, {{ cartItems.length }} đã chọn</span>
+          </span>
+        </div>
+
+        <div class="debt-ai-suggestions">
+          <button type="button" class="ai-chip" *ngFor="let suggestion of aiPromptSuggestions" (click)="applyAiPromptSuggestion(suggestion)">
+            {{ suggestion }}
+          </button>
+        </div>
+
+        <div class="debt-ai-composer">
+          <textarea
+            class="debt-ai-textarea"
+            [(ngModel)]="aiPrompt"
+            placeholder="Ví dụ: phân tích khách hàng nào đang rủi ro nhất, kiểm tra giao dịch đã chọn, hoặc đề xuất hành động thu hồi công nợ."
+            rows="4"
+            (keyup.enter)="!$event.shiftKey && askDebtAi()"
+          ></textarea>
+
+          <div class="debt-ai-actions">
+            <button class="btn-primary" [disabled]="aiLoading" (click)="askDebtAi()">
+              {{ aiLoading ? 'Gemini đang phân tích...' : 'Ask Gemini / Hỏi Gemini' }}
+            </button>
+            <button class="btn-secondary" [disabled]="aiLoading" (click)="clearDebtAi()">
+              <span class="bilingual"><span class="en-text">Clear history</span><span class="vi-text">Xóa lịch sử</span></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="debt-ai-conversation" *ngIf="aiMessages.length > 0; else debtAiEmptyState">
+          <article class="debt-ai-message" *ngFor="let message of aiMessages" [class.user-message]="message.role === 'user'" [class.assistant-message]="message.role === 'assistant'" [class.is-loading]="message.loading" [class.has-error]="message.error">
+            <div class="debt-ai-message-badge">{{ message.role === 'user' ? 'You' : 'Gemini' }}</div>
+            <div class="debt-ai-message-body">
+              <div class="debt-ai-message-meta">
+                <span>{{ message.role === 'user' ? 'Question / Câu hỏi' : 'Analysis / Phân tích' }}</span>
+                <span *ngIf="message.provider">{{ message.provider }}</span>
+                <span *ngIf="message.model">{{ message.model }}</span>
+                <span *ngIf="message.createdAt">{{ formatAuditDateTime(message.createdAt) }}</span>
+              </div>
+
+              <div class="debt-ai-loading" *ngIf="message.loading">
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span>Gemini đang tổng hợp dữ liệu công nợ...</span>
+              </div>
+
+              <ng-container *ngIf="!message.loading">
+                <p class="debt-ai-summary" *ngIf="message.summary">{{ message.summary }}</p>
+
+                <div class="debt-ai-tag-group" *ngIf="message.relatedCustomers?.length">
+                  <span class="debt-ai-tag" *ngFor="let customer of message.relatedCustomers">{{ customer }}</span>
+                </div>
+
+                <div class="debt-ai-section" *ngIf="message.findings?.length">
+                  <h5>Findings / Điểm chính</h5>
+                  <ul>
+                    <li *ngFor="let item of message.findings">{{ item }}</li>
+                  </ul>
+                </div>
+
+                <div class="debt-ai-section" *ngIf="message.recommendations?.length">
+                  <h5>Recommendations / Đề xuất</h5>
+                  <ul>
+                    <li *ngFor="let item of message.recommendations">{{ item }}</li>
+                  </ul>
+                </div>
+
+                <div class="debt-ai-section" *ngIf="message.scopeNotes?.length">
+                  <h5>Scope / Phạm vi</h5>
+                  <ul>
+                    <li *ngFor="let item of message.scopeNotes">{{ item }}</li>
+                  </ul>
+                </div>
+
+                <pre class="debt-ai-answer" *ngIf="message.content">{{ message.content }}</pre>
+
+                <div class="debt-ai-followup" *ngIf="message.suggestedQuestions?.length">
+                  <span class="followup-label">Next asks / Câu hỏi tiếp theo</span>
+                  <button type="button" class="ai-chip" *ngFor="let question of message.suggestedQuestions" (click)="applyAiPromptSuggestion(question)">{{ question }}</button>
+                </div>
+
+                <div class="debt-ai-message-actions">
+                  <button type="button" class="btn-ghost debt-ai-mini-btn" *ngIf="message.role === 'assistant' && !message.error" (click)="copyAiMessage(message)">
+                    {{ aiCopiedMessageId === message.id ? 'Copied / Đã copy' : 'Copy / Sao chép' }}
+                  </button>
+                  <button type="button" class="btn-ghost debt-ai-mini-btn" *ngIf="message.role === 'user'" (click)="retryDebtAi(message.content)">
+                    Retry / Hỏi lại
+                  </button>
+                </div>
+              </ng-container>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #debtAiEmptyState>
+          <div class="debt-ai-empty-state">
+            <strong>Gemini chưa có hội thoại nào.</strong>
+            <span>Hãy nhập một câu hỏi về công nợ, rủi ro, khách hàng, hoặc giao dịch đang chọn.</span>
+          </div>
+        </ng-template>
+      </section>
+    </ng-template>
+  </ejs-dialog>
 
   <ejs-dialog
     cssClass="debt-transaction-dialog"

@@ -5,6 +5,11 @@ import {
   CustomerSummaryResponse,
 } from "./models/customer-management";
 import {
+  DebtAiContext,
+  DebtAiDebtItem,
+  DebtAiHistoryMessage,
+  DebtAiQueryRequest,
+  DebtAiQueryResponse,
   DebtTransactionItem,
   DebtTransactionQueryParams,
 } from "./models/debt-management";
@@ -18,6 +23,24 @@ type AccountTypeConfigItem = {
   accountNameLocal?: string;
   updatedAt?: string;
 };
+
+interface CustomerAiConversationMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+  loading?: boolean;
+  error?: boolean;
+  provider?: string;
+  model?: string;
+  summary?: string;
+  findings?: string[];
+  recommendations?: string[];
+  relatedCustomers?: string[];
+  scopeNotes?: string[];
+  suggestedQuestions?: string[];
+  rawText?: string;
+}
 
 @Component({
   standalone: false,
@@ -64,13 +87,18 @@ export class CustomerManagementComponent implements OnInit {
   showEditor = false;
   showAuditDialog = false;
   showExcelDialog = false;
+  showAiDialog = false;
   auditLoading = false;
   excelLoading = false;
+  aiLoading = false;
   auditErrorMessage = "";
   excelErrorMessage = "";
   editingId: string | null = null;
   selectedAuditCustomer: CustomerAccount | null = null;
   selectedExcelCustomer: CustomerAccount | null = null;
+  aiPrompt = "";
+  aiCopiedMessageId: string | null = null;
+  aiMessages: CustomerAiConversationMessage[] = [];
   excelTransactions: DebtTransactionItem[] = [];
   auditLogs: Array<{
     id: string;
@@ -133,6 +161,12 @@ export class CustomerManagementComponent implements OnInit {
     { label: "Normal (Bình thường)", value: "normal" },
     { label: "Warning (Cảnh báo)", value: "warning" },
     { label: "Critical (Nghiêm trọng)", value: "critical" },
+  ];
+
+  aiPromptSuggestions = [
+    "Đánh giá nhanh danh sách khách hàng hiện tại và nêu khách hàng rủi ro nhất.",
+    "Phân tích nhóm khách hàng có dư nợ cao và đề xuất thứ tự ưu tiên theo dõi.",
+    "Tìm dấu hiệu bất thường về dư nợ, trạng thái và rủi ro trong dữ liệu đang lọc.",
   ];
 
   constructor(
@@ -359,6 +393,96 @@ export class CustomerManagementComponent implements OnInit {
     this.editingId = null;
     this.formModel = this.createEmptyCustomer();
     this.showEditor = true;
+  }
+
+  openAiDialog(): void {
+    this.showAiDialog = true;
+  }
+
+  closeAiDialog(): void {
+    this.showAiDialog = false;
+  }
+
+  applyAiPromptSuggestion(prompt: string): void {
+    this.aiPrompt = prompt;
+  }
+
+  askCustomerAi(promptOverride?: string): void {
+    if (this.aiLoading) {
+      return;
+    }
+
+    const prompt = (promptOverride ?? this.aiPrompt).trim();
+    if (!prompt) {
+      return;
+    }
+
+    const userMessage: CustomerAiConversationMessage = {
+      id: this.generateAiMessageId(),
+      role: "user",
+      content: prompt,
+      createdAt: new Date().toISOString(),
+    };
+
+    const pendingMessage: CustomerAiConversationMessage = {
+      id: this.generateAiMessageId(),
+      role: "assistant",
+      content: "",
+      createdAt: new Date().toISOString(),
+      loading: true,
+    };
+
+    this.aiMessages = [...this.aiMessages, userMessage, pendingMessage];
+    this.aiLoading = true;
+    this.aiPrompt = promptOverride ? this.aiPrompt : "";
+
+    this.transactionManagementService.queryDebtAi(this.buildCustomerAiRequest(prompt)).subscribe({
+      next: (response) => {
+        this.replacePendingAiMessage(pendingMessage.id, this.buildAssistantMessage(response));
+      },
+      error: (error) => {
+        this.replacePendingAiMessage(pendingMessage.id, {
+          id: pendingMessage.id,
+          role: "assistant",
+          content: error?.error?.message || "Gemini request failed. / Gọi Gemini thất bại.",
+          createdAt: new Date().toISOString(),
+          error: true,
+        });
+      },
+      complete: () => {
+        this.aiLoading = false;
+      },
+    });
+  }
+
+  clearCustomerAi(): void {
+    this.aiPrompt = "";
+    this.aiCopiedMessageId = null;
+    this.aiMessages = [];
+  }
+
+  retryCustomerAi(prompt: string): void {
+    this.askCustomerAi(prompt);
+  }
+
+  async copyAiMessage(message: CustomerAiConversationMessage): Promise<void> {
+    const text = this.getAiMessageCopyText(message);
+    if (!text) {
+      return;
+    }
+
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        this.aiCopiedMessageId = message.id;
+        setTimeout(() => {
+          if (this.aiCopiedMessageId === message.id) {
+            this.aiCopiedMessageId = null;
+          }
+        }, 1800);
+      }
+    } catch {
+    }
   }
 
   openEditForm(item: CustomerAccount): void {
@@ -679,6 +803,113 @@ export class CustomerManagementComponent implements OnInit {
         window.URL.revokeObjectURL(url);
       },
     });
+  }
+
+  private buildCustomerAiRequest(prompt: string): DebtAiQueryRequest {
+    const highRiskExposure = this.customers
+      .filter((item) => item.riskLevel === "warning" || item.riskLevel === "critical")
+      .reduce((sum, item) => sum + Math.max(this.getNetBalance(item), 0), 0);
+
+    const context: DebtAiContext = {
+      activeTab: "customer-management",
+      overview: {
+        totalReceivable: this.summary.totalDebt,
+        totalPayable: this.summary.totalCredit,
+        netExposure: this.summary.totalDebt - this.summary.totalCredit,
+        highRiskExposure,
+        customerCount: this.summary.totalCustomers,
+      },
+      filters: {
+        overviewSearch: this.query.search,
+        overviewStatus: this.query.status,
+        overviewRiskLevel: this.query.riskLevel,
+        overviewBalanceType: "all",
+        transactionSearch: "",
+        transactionCustomerId: "",
+        transactionType: "all",
+        cartLockedCustomerId: null,
+      },
+      debtItems: this.customers.slice(0, 30).map((item) => this.mapCustomerToAi(item)),
+      transactions: [],
+      selectedTransactions: [],
+    };
+
+    return {
+      prompt,
+      context,
+      history: this.buildAiHistory(),
+    };
+  }
+
+  private buildAiHistory(): DebtAiHistoryMessage[] {
+    return this.aiMessages
+      .filter((message) => !message.loading)
+      .slice(-8)
+      .map((message) => ({
+        role: message.role,
+        content: this.getAiMessageCopyText(message),
+      }));
+  }
+
+  private mapCustomerToAi(item: CustomerAccount): DebtAiDebtItem {
+    return {
+      id: this.getItemId(item) || item.code || item.name,
+      code: item.code,
+      name: item.name,
+      status: item.status,
+      riskLevel: item.riskLevel,
+      debtAmount: item.debtAmount,
+      creditAmount: item.creditAmount,
+      netBalance: this.getNetBalance(item),
+      agingDays: 0,
+      agingBucket: "n/a",
+      lastTransactionAt: item.lastTransactionAt,
+    };
+  }
+
+  private buildAssistantMessage(response: DebtAiQueryResponse): CustomerAiConversationMessage {
+    return {
+      id: this.generateAiMessageId(),
+      role: "assistant",
+      content: response.answer || response.summary || "",
+      createdAt: response.generatedAt || new Date().toISOString(),
+      provider: response.provider || "gemini",
+      model: response.model || "",
+      summary: response.summary || "",
+      findings: response.findings || [],
+      recommendations: response.recommendations || [],
+      relatedCustomers: response.relatedCustomers || [],
+      scopeNotes: response.scopeNotes || [],
+      suggestedQuestions: response.suggestedQuestions || [],
+      rawText: response.rawText || "",
+    };
+  }
+
+  private replacePendingAiMessage(messageId: string, nextMessage: CustomerAiConversationMessage): void {
+    this.aiMessages = this.aiMessages.map((message) => {
+      if (message.id !== messageId) {
+        return message;
+      }
+
+      return {
+        ...nextMessage,
+        id: messageId,
+      };
+    });
+  }
+
+  private getAiMessageCopyText(message: CustomerAiConversationMessage): string {
+    if (message.role === "user") {
+      return message.content || "";
+    }
+
+    const parts = [message.summary, ...(message.findings || []), ...(message.recommendations || []), message.content]
+      .filter((item) => typeof item === "string" && item.trim());
+    return parts.join("\n");
+  }
+
+  private generateAiMessageId(): string {
+    return `cust-ai-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   formatDateTime(value?: string): string {

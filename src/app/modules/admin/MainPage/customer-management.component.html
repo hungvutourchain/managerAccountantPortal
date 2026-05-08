@@ -5,6 +5,7 @@
       <p class="bilingual desc-bilingual"><span class="en-text">Real-time monitoring for customer debt, status, and risk.</span><span class="vi-text">Trung tâm theo dõi công nợ, trạng thái và rủi ro khách hàng theo thời gian thực.</span></p>
     </div>
     <div class="header-actions">
+      <button class="btn-ghost ai-launch-btn" (click)="openAiDialog()"><i class="bi bi-stars" aria-hidden="true"></i><span class="bilingual"><span class="en-text">AI Insights</span><span class="vi-text">AI đánh giá</span></span></button>
       <button class="btn-secondary" (click)="openAccountTypeConfigManager()"><span class="bilingual"><span class="en-text">Manage Account Types</span><span class="vi-text">Quản lý loại tài khoản</span></span></button>
       <button class="btn-primary" (click)="openCreateForm()"><span class="bilingual"><span class="en-text">Add Customer</span><span class="vi-text">Thêm khách hàng</span></span></button>
     </div>
@@ -142,6 +143,135 @@
       <button (click)="changePage(query.page + 1)"><span class="bilingual"><span class="en-text">Next</span><span class="vi-text">Sau</span></span></button>
     </div>
   </footer>
+
+  <ejs-dialog
+    *ngIf="showAiDialog"
+    cssClass="customer-ai-dialog"
+    [isModal]="true"
+    [showCloseIcon]="true"
+    [visible]="showAiDialog"
+    [closeOnEscape]="true"
+    [header]="'Customer AI Insights / AI đánh giá khách hàng'"
+    [width]="'1020px'"
+    (overlayClick)="closeAiDialog()"
+    (close)="closeAiDialog()"
+  >
+    <ng-template #content>
+      <section class="customer-ai-panel">
+        <div class="customer-ai-header">
+          <div>
+            <h4 class="bilingual"><span class="en-text">Customer AI Insights</span><span class="vi-text">AI phân tích khách hàng</span></h4>
+            <p class="customer-ai-subtitle bilingual">
+              <span class="en-text">Ask Gemini to evaluate customer risk, debt concentration, and monitoring priorities from the current filters.</span>
+              <span class="vi-text">Hỏi Gemini để đánh giá rủi ro khách hàng, mức tập trung công nợ và ưu tiên theo dõi theo bộ lọc hiện tại.</span>
+            </p>
+          </div>
+          <span class="customer-ai-scope bilingual">
+            <span class="en-text">Scope: {{ customers.length }} customers on page, total {{ summary.totalCustomers }} customers</span>
+            <span class="vi-text">Phạm vi: {{ customers.length }} khách hàng trên trang, tổng {{ summary.totalCustomers }} khách hàng</span>
+          </span>
+        </div>
+
+        <div class="customer-ai-suggestions">
+          <button type="button" class="ai-chip" *ngFor="let suggestion of aiPromptSuggestions" (click)="applyAiPromptSuggestion(suggestion)">
+            {{ suggestion }}
+          </button>
+        </div>
+
+        <div class="customer-ai-composer">
+          <textarea
+            class="customer-ai-textarea"
+            [(ngModel)]="aiPrompt"
+            placeholder="Ví dụ: nhóm khách hàng nào cần ưu tiên theo dõi ngay, hoặc dữ liệu hiện tại có dấu hiệu rủi ro gì?"
+            rows="4"
+            (keyup.enter)="!$event.shiftKey && askCustomerAi()"
+          ></textarea>
+
+          <div class="customer-ai-actions">
+            <button class="btn-primary" [disabled]="aiLoading" (click)="askCustomerAi()">
+              {{ aiLoading ? 'Gemini đang phân tích...' : 'Ask Gemini / Hỏi Gemini' }}
+            </button>
+            <button class="btn-secondary" [disabled]="aiLoading" (click)="clearCustomerAi()">
+              <span class="bilingual"><span class="en-text">Clear history</span><span class="vi-text">Xóa lịch sử</span></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="customer-ai-conversation" *ngIf="aiMessages.length > 0; else customerAiEmptyState">
+          <article class="customer-ai-message" *ngFor="let message of aiMessages" [class.user-message]="message.role === 'user'" [class.assistant-message]="message.role === 'assistant'">
+            <div class="customer-ai-message-badge">{{ message.role === 'user' ? 'You' : 'Gemini' }}</div>
+            <div class="customer-ai-message-body">
+              <div class="customer-ai-message-meta">
+                <span>{{ message.role === 'user' ? 'Question / Câu hỏi' : 'Analysis / Phân tích' }}</span>
+                <span *ngIf="message.provider">{{ message.provider }}</span>
+                <span *ngIf="message.model">{{ message.model }}</span>
+                <span *ngIf="message.createdAt">{{ formatDateTime(message.createdAt) }}</span>
+              </div>
+
+              <div class="customer-ai-loading" *ngIf="message.loading">
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span>Gemini đang đánh giá dữ liệu khách hàng...</span>
+              </div>
+
+              <ng-container *ngIf="!message.loading">
+                <p class="customer-ai-summary" *ngIf="message.summary">{{ message.summary }}</p>
+
+                <div class="customer-ai-tag-group" *ngIf="message.relatedCustomers?.length">
+                  <span class="customer-ai-tag" *ngFor="let customer of message.relatedCustomers">{{ customer }}</span>
+                </div>
+
+                <div class="customer-ai-section" *ngIf="message.findings?.length">
+                  <h5>Findings / Điểm chính</h5>
+                  <ul>
+                    <li *ngFor="let item of message.findings">{{ item }}</li>
+                  </ul>
+                </div>
+
+                <div class="customer-ai-section" *ngIf="message.recommendations?.length">
+                  <h5>Recommendations / Đề xuất</h5>
+                  <ul>
+                    <li *ngFor="let item of message.recommendations">{{ item }}</li>
+                  </ul>
+                </div>
+
+                <div class="customer-ai-section" *ngIf="message.scopeNotes?.length">
+                  <h5>Scope / Phạm vi</h5>
+                  <ul>
+                    <li *ngFor="let item of message.scopeNotes">{{ item }}</li>
+                  </ul>
+                </div>
+
+                <pre class="customer-ai-answer" *ngIf="message.content">{{ message.content }}</pre>
+
+                <div class="customer-ai-followup" *ngIf="message.suggestedQuestions?.length">
+                  <span class="followup-label">Next asks / Câu hỏi tiếp theo</span>
+                  <button type="button" class="ai-chip" *ngFor="let question of message.suggestedQuestions" (click)="applyAiPromptSuggestion(question)">{{ question }}</button>
+                </div>
+
+                <div class="customer-ai-message-actions">
+                  <button type="button" class="btn-ghost customer-ai-mini-btn" *ngIf="message.role === 'assistant' && !message.error" (click)="copyAiMessage(message)">
+                    {{ aiCopiedMessageId === message.id ? 'Copied / Đã copy' : 'Copy / Sao chép' }}
+                  </button>
+                  <button type="button" class="btn-ghost customer-ai-mini-btn" *ngIf="message.role === 'user'" (click)="retryCustomerAi(message.content)">
+                    Retry / Hỏi lại
+                  </button>
+                </div>
+              </ng-container>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #customerAiEmptyState>
+          <div class="customer-ai-empty-state">
+            <strong>Chưa có hội thoại AI nào cho Customer Management.</strong>
+            <span>Hãy hỏi về rủi ro, công nợ, mức ưu tiên theo dõi hoặc đánh giá danh sách khách hàng hiện tại.</span>
+          </div>
+        </ng-template>
+      </section>
+    </ng-template>
+  </ejs-dialog>
 
   <ejs-dialog
     *ngIf="showAccountTypeConfigDialog"
