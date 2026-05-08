@@ -1570,6 +1570,36 @@ tr.cart-locked {
   color: #4d6387;
 }
 
+.transaction-files-cell {
+  white-space: nowrap;
+}
+
+.tx-file-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid #d6e1f2;
+  background: #f5f9ff;
+  color: #6780a7;
+  font-size: 12px;
+}
+
+.tx-file-indicator i {
+  font-size: 13px;
+}
+
+.tx-file-indicator strong {
+  font-size: 12px;
+}
+
+.tx-file-indicator.has-files {
+  border-color: #9fc3ff;
+  background: #ebf3ff;
+  color: #285b9e;
+}
+
 .empty-row {
   text-align: center;
   color: #6d81a7;

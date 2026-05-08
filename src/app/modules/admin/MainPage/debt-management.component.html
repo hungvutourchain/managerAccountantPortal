@@ -285,6 +285,7 @@
             <th (click)="sortTransactionsBy('transactionAt')"><span class="bilingual"><span class="en-text">Date</span><span class="vi-text">Ngày</span></span> {{ getTransactionSortIcon('transactionAt') }}</th>
             <th (click)="sortTransactionsBy('createdBy')"><span class="bilingual"><span class="en-text">Created By</span><span class="vi-text">Người tạo</span></span> {{ getTransactionSortIcon('createdBy') }}</th>
             <th><span class="bilingual"><span class="en-text">Note</span><span class="vi-text">Ghi chú</span></span></th>
+            <th><span class="bilingual"><span class="en-text">Files</span><span class="vi-text">Tệp</span></span></th>
             <th><span class="bilingual"><span class="en-text">Actions</span><span class="vi-text">Thao tác</span></span></th>
           </tr>
         </thead>
@@ -309,6 +310,16 @@
             <td>{{ formatDate(tx.transactionAt) }}</td>
             <td>{{ tx.createdBy || 'system' }}</td>
             <td class="ledger-note">{{ tx.note || '-' }}</td>
+            <td class="transaction-files-cell">
+              <span
+                class="tx-file-indicator"
+                [class.has-files]="(tx.attachments?.length || 0) > 0"
+                [title]="(tx.attachments?.length || 0) > 0 ? ((tx.attachments?.length || 0) + ' attached files') : 'No attached files'"
+              >
+                <i class="bi bi-paperclip" aria-hidden="true"></i>
+                <strong>{{ tx.attachments?.length || 0 }}</strong>
+              </span>
+            </td>
             <td>
               <div class="row-actions">
                 <button type="button" class="icon-action-button neutral" title="View History / Xem lịch sử" aria-label="View History / Xem lịch sử" data-tooltip="View History / Xem lịch sử" (click)="openTransactionAuditLogs(tx)">
@@ -321,7 +332,7 @@
             </td>
           </tr>
           <tr *ngIf="!transactionLoading && transactions.length === 0">
-            <td colspan="9" class="empty-row">
+            <td colspan="10" class="empty-row">
               <span class="bilingual"><span class="en-text">No transaction data.</span><span class="vi-text">Không có dữ liệu giao dịch.</span></span>
             </td>
           </tr>
