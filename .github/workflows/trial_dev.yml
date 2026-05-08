@@ -7,10 +7,9 @@ on:
 env:
   RESISTRY: ghcr.io
   IMAGE_NAME: hungvutourchain/hoteltourportal:latest
-  GHCR_USERNAME: ${{ github.actor }}
   IP: 159.89.193.175
   # IP: 178.128.86.194
-  GHCR_PAT: ${{ secrets.GHCR_PAT }}
+  PAT: ${{secrets.PAT}}
   SSH: ${{ secrets.SSH_PRIVATE_KEY }}
 jobs:
   publish:
@@ -42,10 +41,6 @@ jobs:
           ssh-keyscan -H ${{ env.IP }} > ~/.ssh/known_hosts
       - name: Connect and pull docker image
         run: |
-          if [ -z "${{ env.GHCR_PAT }}" ]; then
-            echo "GHCR_PAT is empty. Please set repository secret GHCR_PAT." >&2
-            exit 1
-          fi
-          ssh root@${{ env.IP }} "set -e; docker logout ghcr.io || true; echo '${{ env.GHCR_PAT }}' | docker login ghcr.io -u '${{ env.GHCR_USERNAME }}' --password-stdin; docker pull '${{ env.RESISTRY }}/${{ env.IMAGE_NAME }}'; cd /host/tourchain/develop && docker stack deploy --compose-file docker-compose-accountant.yml tourchain --with-registry-auth"
+          ssh root@${{ env.IP }} "echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin &&cd .. && cd /host/tourchain/develop && docker stack deploy --compose-file docker-compose-accountant.yml tourchain --with-registry-auth"
       - name: cleanup
         run: rm -rf ~/.ssh
