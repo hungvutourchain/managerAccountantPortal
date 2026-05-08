@@ -1,10 +1,13 @@
 :host {
   display: block;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .customer-management-page {
   display: grid;
   gap: 16px;
+  overflow: hidden;
 }
 
 .bilingual {
@@ -241,7 +244,9 @@
 .table-panel {
   border: 1px solid #dce7f7;
   border-radius: 12px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100%;
 }
 
 .customer-ai-panel {

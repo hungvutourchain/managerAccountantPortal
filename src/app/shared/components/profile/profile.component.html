@@ -455,15 +455,47 @@
       </div>
       } @else {
       <div class="security-enabled">
-        <div class="success-message">
-          <i class="fas fa-check-circle"></i>
-          <h4>Two-Factor Authentication Enabled</h4>
-          <p>Your account is now protected with 2FA</p>
+        <!-- Status Banner -->
+        <div class="twofa-status-banner">
+          <div class="twofa-status-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="twofa-status-content">
+            <div class="twofa-status-header">
+              <h4>Two-Factor Authentication</h4>
+              <span class="twofa-badge"><i class="fas fa-check"></i> Active</span>
+            </div>
+            <p>Your account is protected with an extra layer of security. A verification code is required each time you sign in.</p>
+          </div>
         </div>
-        <button type="button" class="btn btn-danger" (click)="disable2FA()" [disabled]="isUpdatingTwoFactor">
-          <i class="fas fa-times"></i>
-          {{ isUpdatingTwoFactor ? 'Updating...' : 'Disable 2FA' }}
-        </button>
+
+        <!-- Info Cards -->
+        <div class="twofa-info-grid">
+          <div class="twofa-info-card">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Authenticator App</span>
+          </div>
+          <div class="twofa-info-card">
+            <i class="fas fa-lock"></i>
+            <span>End-to-end secured</span>
+          </div>
+          <div class="twofa-info-card">
+            <i class="fas fa-clock"></i>
+            <span>Code refreshes every 30s</span>
+          </div>
+        </div>
+
+        <!-- Disable Action -->
+        <div class="twofa-disable-section">
+          <div class="twofa-disable-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Disabling 2FA will reduce your account security. Only proceed if necessary.</span>
+          </div>
+          <button type="button" class="btn-disable-2fa" (click)="disable2FA()" [disabled]="isUpdatingTwoFactor">
+            <span *ngIf="!isUpdatingTwoFactor"><i class="fas fa-unlock-alt"></i> Disable 2FA</span>
+            <span *ngIf="isUpdatingTwoFactor"><i class="fas fa-spinner fa-spin"></i> Updating...</span>
+          </button>
+        </div>
       </div>
       }
     </div>
