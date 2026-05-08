@@ -35,6 +35,10 @@ export class DebtManagementComponent implements OnInit {
   selectedTransaction: DebtTransactionItem | null = null;
   selectedExcelDebtItem: DebtItem | null = null;
 
+  // Cart – selected transactions for Excel view/export
+  cartItems: DebtTransactionItem[] = [];
+  cartLockedCustomerId: string | null = null;
+
   overview: DebtOverviewResponse = {
     totalReceivable: 0,
     totalPayable: 0,
@@ -478,6 +482,91 @@ export class DebtManagementComponent implements OnInit {
     this.selectedExcelDebtItem = null;
     this.excelTransactions = [];
   }
+
+  // ── Cart methods ──────────────────────────────────────────────────────────
+
+  isInCart(tx: DebtTransactionItem): boolean {
+    const id = this.normalizeTransactionId(tx?.id);
+    return id ? this.cartItems.some((c) => this.normalizeTransactionId(c?.id) === id) : false;
+  }
+
+  isCartLocked(tx: DebtTransactionItem): boolean {
+    if (!this.cartLockedCustomerId || this.cartItems.length === 0) {
+      return false;
+    }
+
+    const txCustomerId = this.normalizeCustomerId(tx?.customerId);
+    return txCustomerId !== this.cartLockedCustomerId;
+  }
+
+  toggleCartItem(tx: DebtTransactionItem): void {
+    const id = this.normalizeTransactionId(tx?.id);
+    if (!id) {
+      return;
+    }
+
+    const txCustomerId = this.normalizeCustomerId(tx?.customerId);
+
+    if (this.isInCart(tx)) {
+      this.cartItems = this.cartItems.filter((c) => this.normalizeTransactionId(c?.id) !== id);
+      if (this.cartItems.length === 0) {
+        this.cartLockedCustomerId = null;
+      }
+
+      return;
+    }
+
+    if (this.cartLockedCustomerId && txCustomerId !== this.cartLockedCustomerId) {
+      return; // silently block – UI disables the checkbox already
+    }
+
+    if (!this.cartLockedCustomerId && txCustomerId) {
+      this.cartLockedCustomerId = txCustomerId;
+    }
+
+    this.cartItems = [...this.cartItems, tx];
+  }
+
+  clearCart(): void {
+    this.cartItems = [];
+    this.cartLockedCustomerId = null;
+  }
+
+  openCartExcelView(): void {
+    if (this.cartItems.length === 0) {
+      return;
+    }
+
+    const customer = this.debtItems.find(
+      (item) => this.normalizeCustomerId(item?.id) === this.cartLockedCustomerId,
+    ) || null;
+
+    this.selectedExcelDebtItem = customer;
+    this.excelTransactions = [...this.cartItems].sort(
+      (a, b) => new Date(a.transactionAt).getTime() - new Date(b.transactionAt).getTime(),
+    );
+    this.excelErrorMessage = "";
+    this.excelLoading = false;
+    this.showExcelDialog = true;
+  }
+
+  exportCartExcel(): void {
+    if (this.cartItems.length === 0 || !this.cartLockedCustomerId) {
+      return;
+    }
+
+    const customer = this.debtItems.find(
+      (item) => this.normalizeCustomerId(item?.id) === this.cartLockedCustomerId,
+    );
+    const fallbackCode = customer?.code || "khach-hang";
+    const cartIds = this.cartItems
+      .map((tx) => this.normalizeTransactionId(tx?.id))
+      .filter(Boolean);
+
+    this.downloadCustomerExcel(this.cartLockedCustomerId, fallbackCode, cartIds);
+  }
+
+  // ── End cart methods ──────────────────────────────────────────────────────
 
   exportCustomerExcelFromOverview(item: DebtItem): void {
     const customerId = this.normalizeCustomerId(item?.id);
@@ -1025,8 +1114,8 @@ export class DebtManagementComponent implements OnInit {
     return `Từ ngày ${from} đến ${to}`;
   }
 
-  private downloadCustomerExcel(customerId: string, fallbackCode: string): void {
-    this.transactionManagementService.exportDebtCustomerExcel(customerId).subscribe({
+  private downloadCustomerExcel(customerId: string, fallbackCode: string, transactionIds?: string[]): void {
+    this.transactionManagementService.exportDebtCustomerExcel(customerId, transactionIds).subscribe({
       next: (response) => {
         const blob = response.body;
         if (!blob) {

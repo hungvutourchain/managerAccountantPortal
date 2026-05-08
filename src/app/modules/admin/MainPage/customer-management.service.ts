@@ -214,8 +214,14 @@ export class CustomerManagementService {
     });
   }
 
-  exportDebtCustomerExcel(customerId: string): Observable<HttpResponse<Blob>> {
+  exportDebtCustomerExcel(customerId: string, transactionIds?: string[]): Observable<HttpResponse<Blob>> {
+    let params = new HttpParams();
+    if (transactionIds && transactionIds.length > 0) {
+      params = params.set("transactionIds", transactionIds.join(","));
+    }
+
     return this.http.get(`${this.baseUrl}/debt/customers/${customerId}/export-excel`, {
+      params,
       observe: "response",
       responseType: "blob",
     });

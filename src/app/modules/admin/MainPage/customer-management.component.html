@@ -113,9 +113,6 @@
           </td>
           <td>
             <div class="row-actions">
-              <button type="button" class="icon-action-button neutral" title="View Excel Ledger / Xem sổ Excel" aria-label="View Excel Ledger / Xem sổ Excel" data-tooltip="View Excel Ledger / Xem sổ Excel" (click)="openExcelView(item)">
-                <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
-              </button>
               <button type="button" class="icon-action-button neutral" title="View History / Xem lịch sử" aria-label="View History / Xem lịch sử" data-tooltip="View History / Xem lịch sử" (click)="openAuditLogs(item)">
                 <i class="bi bi-clock-history" aria-hidden="true"></i>
               </button>
@@ -409,117 +406,5 @@
     </ng-template>
   </ejs-dialog>
 
-  <ejs-dialog
-    *ngIf="showExcelDialog"
-    cssClass="customer-excel-dialog"
-    [isModal]="true"
-    [showCloseIcon]="true"
-    [visible]="showExcelDialog"
-    [closeOnEscape]="true"
-    [header]="'Excel Detail View / Xem sổ Excel chi tiết'"
-    [width]="'1120px'"
-    (overlayClick)="closeExcelView()"
-    (close)="closeExcelView()"
-  >
-    <ng-template #content>
-      <section class="excel-preview" *ngIf="selectedExcelCustomer as customer">
-        <div class="excel-preview-actions">
-          <button class="btn-primary" (click)="exportCustomerExcel()"><span class="bilingual"><span class="en-text">Export Excel</span><span class="vi-text">Xuất Excel</span></span></button>
-          <button class="btn-secondary" (click)="closeExcelView()"><span class="bilingual"><span class="en-text">Close</span><span class="vi-text">Đóng</span></span></button>
-        </div>
-
-        <div class="audit-error-banner" *ngIf="excelErrorMessage">
-          {{ excelErrorMessage }}
-        </div>
-
-        <div class="excel-sheet-wrap" [class.loading]="excelLoading">
-          <div class="excel-sheet ledger-sheet">
-            <div class="ledger-meta">
-              <p><strong>Tên đơn vị:</strong> {{ customer.name || '-' }}</p>
-              <p><strong>Địa chỉ:</strong> {{ customer.address || '-' }}</p>
-              <p><strong>MST:</strong> {{ customer.taxCode || '-' }}</p>
-            </div>
-
-            <h3 class="ledger-title">{{ getExcelLedgerTitle() }}</h3>
-            <p class="period-text ledger-period">{{ getExcelPeriodRange() }}</p>
-            <div class="ledger-company-box">
-              <div class="company-name">CÔNG TY TNHH TM XNK VUI PHAT</div>
-              <div class="ledger-company-code">{{ customer.code || '-' }}</div>
-            </div>
-
-            <table class="excel-table ledger-table">
-              <thead>
-                <tr>
-                  <th colspan="2">Chứng từ</th>
-                  <th rowspan="2">DIỄN GIẢI</th>
-                  <th rowspan="2">Số hiệu TK</th>
-                  <th colspan="2">Số tiền</th>
-                  <th rowspan="2">Ghi chú</th>
-                </tr>
-                <tr>
-                  <th>Số hiệu</th>
-                  <th>Ngày tháng</th>
-                  <th>Nợ</th>
-                  <th>Có</th>
-                </tr>
-                <tr class="ledger-index-row">
-                  <th>B</th>
-                  <th>C</th>
-                  <th>D</th>
-                  <th>H</th>
-                  <th>1</th>
-                  <th>2</th>
-                  <th>3</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="ledger-opening-row">
-                  <td colspan="4">Số dư đầu tháng</td>
-                  <td class="amount debt">-</td>
-                  <td class="amount credit">-</td>
-                  <td></td>
-                </tr>
-                <tr *ngFor="let row of getExcelPreviewRows()" [class.placeholder-row]="row.isPlaceholder">
-                  <td>{{ row.voucher }}</td>
-                  <td>{{ row.date }}</td>
-                  <td class="ledger-desc">{{ row.description }}</td>
-                  <td>{{ row.account }}</td>
-                  <td class="amount debt">{{ formatSheetAmount(row.debit) }}</td>
-                  <td class="amount credit">{{ formatSheetAmount(row.credit) }}</td>
-                  <td class="ledger-note-cell">{{ row.note }}</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr class="ledger-summary-row">
-                  <td colspan="4"><strong>Tổng số phát sinh</strong></td>
-                  <td class="amount debt"><strong>{{ formatCurrency(getExcelTotalDebit()) }}</strong></td>
-                  <td class="amount credit"><strong>{{ formatCurrency(getExcelTotalCredit()) }}</strong></td>
-                  <td></td>
-                </tr>
-                <tr class="ledger-summary-row closing-row">
-                  <td colspan="4"><strong>Số dư cuối tháng</strong></td>
-                  <td class="amount debt"><strong>{{ formatCurrency(getExcelClosingDebit()) }}</strong></td>
-                  <td class="amount credit"><strong>{{ formatCurrency(getExcelClosingCredit()) }}</strong></td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            </table>
-
-            <div class="ledger-footer-date">{{ getExcelSignatureDate() }}</div>
-            <div class="ledger-signatures">
-              <div class="ledger-sign-block">
-                <strong>Kế toán trưởng</strong>
-                <span>(Ký, họ tên)</span>
-              </div>
-              <div class="ledger-sign-block">
-                <strong>Giám Đốc</strong>
-                <span>(Ký, họ tên)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </ng-template>
-  </ejs-dialog>
 
 </section>

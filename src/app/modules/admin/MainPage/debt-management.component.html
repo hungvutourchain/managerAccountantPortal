@@ -138,12 +138,6 @@
                 <button type="button" class="icon-action-button neutral" title="View Transactions / Xem giao dịch" aria-label="View Transactions / Xem giao dịch" data-tooltip="View Transactions / Xem giao dịch" (click)="openCustomerTransactions(item)">
                   <i class="bi bi-list-ul" aria-hidden="true"></i>
                 </button>
-                <button type="button" class="icon-action-button neutral" title="View Excel Ledger / Xem sổ Excel" aria-label="View Excel Ledger / Xem sổ Excel" data-tooltip="View Excel Ledger / Xem sổ Excel" (click)="openExcelView(item)">
-                  <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
-                </button>
-                <button type="button" class="icon-action-button" title="Export Excel File / Xuất file Excel" aria-label="Export Excel File / Xuất file Excel" data-tooltip="Export Excel File / Xuất file Excel" (click)="exportCustomerExcelFromOverview(item)">
-                  <i class="bi bi-download" aria-hidden="true"></i>
-                </button>
               </div>
             </td>
           </tr>
@@ -185,6 +179,31 @@
           </div>
         </div>
       </header>
+
+      <div class="cart-banner" *ngIf="cartItems.length > 0">
+        <span class="cart-info bilingual">
+          <span class="en-text">{{ cartItems.length }} transaction(s) selected</span>
+          <span class="vi-text">Đã chọn {{ cartItems.length }} giao dịch</span>
+        </span>
+        <span class="cart-lock bilingual" *ngIf="cartLockedCustomerId">
+          <i class="bi bi-lock-fill" aria-hidden="true"></i>
+          <span class="en-text">Locked to 1 customer</span>
+          <span class="vi-text">Đã khóa 1 khách hàng</span>
+        </span>
+        <div class="cart-actions">
+          <button class="btn-primary" (click)="openCartExcelView()">
+            <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
+            <span class="bilingual"><span class="en-text">View Excel</span><span class="vi-text">Xem sổ</span></span>
+          </button>
+          <button class="btn-secondary" (click)="exportCartExcel()">
+            <i class="bi bi-download" aria-hidden="true"></i>
+            <span class="bilingual"><span class="en-text">Export Excel</span><span class="vi-text">Xuất Excel</span></span>
+          </button>
+          <button class="btn-ghost" (click)="clearCart()">
+            <span class="bilingual"><span class="en-text">Clear Cart</span><span class="vi-text">Bỏ chọn tất cả</span></span>
+          </button>
+        </div>
+      </div>
 
       <div class="transaction-filter-bar">
         <input
@@ -232,6 +251,7 @@
       <table class="transaction-table">
         <thead>
           <tr>
+            <th class="col-cart"></th>
             <th (click)="sortTransactionsBy('customerName')"><span class="bilingual"><span class="en-text">Customer</span><span class="vi-text">Khách hàng</span></span> {{ getTransactionSortIcon('customerName') }}</th>
             <th (click)="sortTransactionsBy('transactionType')"><span class="bilingual"><span class="en-text">Type</span><span class="vi-text">Loại</span></span> {{ getTransactionSortIcon('transactionType') }}</th>
             <th (click)="sortTransactionsBy('amount')"><span class="bilingual"><span class="en-text">Amount</span><span class="vi-text">Số tiền</span></span> {{ getTransactionSortIcon('amount') }}</th>
@@ -242,7 +262,17 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let tx of transactions">
+          <tr *ngFor="let tx of transactions" [class.cart-selected]="isInCart(tx)" [class.cart-locked]="isCartLocked(tx)">
+            <td class="col-cart">
+              <input
+                type="checkbox"
+                class="cart-checkbox"
+                [checked]="isInCart(tx)"
+                [disabled]="isCartLocked(tx)"
+                [title]="isCartLocked(tx) ? 'Cannot mix transactions from different customers / Không thể chọn giao dịch của khách hàng khác' : ''"
+                (change)="toggleCartItem(tx)"
+              />
+            </td>
             <td>
               <div class="cell-title">{{ tx.customerCode }} - {{ tx.customerName }}</div>
             </td>
@@ -263,7 +293,7 @@
             </td>
           </tr>
           <tr *ngIf="!transactionLoading && transactions.length === 0">
-            <td colspan="7" class="empty-row">
+            <td colspan="8" class="empty-row">
               <span class="bilingual"><span class="en-text">No transaction data.</span><span class="vi-text">Không có dữ liệu giao dịch.</span></span>
             </td>
           </tr>
