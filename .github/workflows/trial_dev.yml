@@ -7,7 +7,7 @@ on:
 env:
   RESISTRY: ghcr.io
   IMAGE_NAME: hungvutourchain/hoteltourportal:latest
-  GHCR_USERNAME: hungvutourchain
+  GHCR_USERNAME: ${{ github.actor }}
   IP: 159.89.193.175
   # IP: 178.128.86.194
   PAT: ${{secrets.PAT}}
