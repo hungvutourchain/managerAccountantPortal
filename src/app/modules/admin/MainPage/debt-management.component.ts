@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
+import { DialogUtility } from "@syncfusion/ej2-popups";
 import { Observable } from "rxjs";
 import { CustomerManagementService } from "./customer-management.service";
 import { TransactionManagementService } from "./transaction-management.service";
@@ -585,14 +586,17 @@ export class DebtManagementComponent implements OnInit {
     });
   }
 
-  deleteTransactionAttachment(attachment: DebtTransactionAttachmentItem): void {
+  async deleteTransactionAttachment(attachment: DebtTransactionAttachmentItem): Promise<void> {
     const transactionId = this.normalizeTransactionId(this.editingTransactionId);
     const attachmentId = this.normalizeTransactionId(attachment?.id);
     if (!transactionId || !attachmentId || this.transactionDeletingAttachmentIds.includes(attachmentId)) {
       return;
     }
 
-    const confirmed = window.confirm(`Delete file ${attachment.fileName}? / Xóa file ${attachment.fileName}?`);
+    const confirmed = await this.showConfirmDialog(
+      `Delete file ${attachment.fileName}? / Xóa file ${attachment.fileName}?`,
+      "Confirm delete / Xác nhận xóa",
+    );
     if (!confirmed) {
       return;
     }
@@ -757,7 +761,14 @@ export class DebtManagementComponent implements OnInit {
       return;
     }
 
-    window.alert("Please choose a customer filter first to view export history. / Vui lòng chọn khách hàng trước để xem lịch sử xuất.");
+    this.showInfoDialog(
+      "Please choose a customer before opening export history. / Vui lòng chọn khách hàng trước khi mở lịch sử xuất.",
+      "Export History Notice / Lưu ý lịch sử xuất",
+      [
+        "Use Customer filter in Transaction Ledger to scope the history. / Dùng bộ lọc Khách hàng trong Transaction Ledger để khoanh phạm vi lịch sử.",
+        "Or select transactions from one customer to lock the scope. / Hoặc chọn giao dịch của 1 khách hàng để khóa phạm vi.",
+      ],
+    );
   }
 
   closeExcelView(): void {
@@ -1982,6 +1993,75 @@ export class DebtManagementComponent implements OnInit {
     const month = `${value.getMonth() + 1}`.padStart(2, "0");
     const day = `${value.getDate()}`.padStart(2, "0");
     return `${year}-${month}-${day}`;
+  }
+
+  private showInfoDialog(content: string, title = "Notification / Thông báo", highlights: string[] = []): void {
+    const safeContent = this.escapeHtml(content);
+    const highlightItems = highlights
+      .map((item) => `<li>${this.escapeHtml(item)}</li>`)
+      .join("");
+    const formattedContent = `
+      <div class="debt-dialog-message debt-dialog-message--info">
+        <div class="debt-dialog-message__icon" aria-hidden="true">
+          <i class="bi bi-info-circle-fill"></i>
+        </div>
+        <div class="debt-dialog-message__body">
+          <p class="debt-dialog-message__headline">Action needed / Cần thao tác</p>
+          <p class="debt-dialog-message__text">${safeContent}</p>
+          ${highlightItems ? `<ul class="debt-dialog-message__highlights">${highlightItems}</ul>` : ""}
+        </div>
+      </div>`;
+
+    DialogUtility.alert({
+      title,
+      content: formattedContent,
+      cssClass: "debt-pro-dialog debt-pro-dialog--info",
+      position: { X: "center", Y: "center" },
+      okButton: { text: "OK" },
+      showCloseIcon: true,
+      closeOnEscape: true,
+    });
+  }
+
+  private showConfirmDialog(content: string, title = "Confirm / Xác nhận"): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+      let settled = false;
+      const finalize = (value: boolean): void => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        resolve(value);
+      };
+
+      DialogUtility.confirm({
+        title,
+        content: `<div class="debt-dialog-message debt-dialog-message--confirm"><p class="debt-dialog-message__text">${this.escapeHtml(content)}</p></div>`,
+        cssClass: "debt-pro-dialog debt-pro-dialog--confirm",
+        position: { X: "center", Y: "center" },
+        okButton: {
+          text: "Yes / Đồng ý",
+          click: () => finalize(true),
+        },
+        cancelButton: {
+          text: "No / Hủy",
+          click: () => finalize(false),
+        },
+        showCloseIcon: true,
+        closeOnEscape: true,
+        close: () => finalize(false),
+      });
+    });
+  }
+
+  private escapeHtml(value: string): string {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   private resolveExcelHistoryCustomerId(): string {

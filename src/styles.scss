@@ -4695,3 +4695,113 @@ mark {
     display: none !important;
   }
 }
+
+/* ============================================================
+   debt-pro-dialog — Global styles for DialogUtility popups
+   (DialogUtility renders at body level, outside component host)
+   ============================================================ */
+.debt-pro-dialog .e-dlg-content {
+  padding: 18px 22px !important;
+}
+
+.debt-pro-dialog .e-footer-content .e-btn.e-primary {
+  background: #1f4fa6 !important;
+  border-color: #1f4fa6 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.debt-pro-dialog .e-footer-content .e-btn.e-primary:hover,
+.debt-pro-dialog .e-footer-content .e-btn.e-primary:focus {
+  background: #173d8a !important;
+  border-color: #173d8a !important;
+  color: #ffffff !important;
+}
+
+.debt-pro-dialog .e-footer-content .e-btn:not(.e-primary) {
+  background: #e8eefb !important;
+  border-color: #cfdcf2 !important;
+  color: #2c4675 !important;
+}
+
+.debt-pro-dialog .e-footer-content .e-btn:not(.e-primary):hover {
+  background: #d4e0f7 !important;
+  border-color: #aec5ef !important;
+}
+
+.debt-pro-dialog .e-dlg-header-content {
+  background: #183057 !important;
+  border-radius: 8px 8px 0 0;
+}
+
+.debt-pro-dialog .e-dlg-header {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.debt-pro-dialog .e-dlg-closeicon-btn .e-btn-icon {
+  color: #ffffff !important;
+}
+
+.debt-pro-dialog.e-dialog {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.debt-dialog-message {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.debt-dialog-message__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ebf3ff;
+  color: #1f5fbf;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.debt-dialog-message__body {
+  min-width: 0;
+}
+
+.debt-dialog-message__headline {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #234572;
+}
+
+.debt-dialog-message__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #2f466c;
+}
+
+.debt-dialog-message__highlights {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #34527d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.debt-dialog-message__highlights li + li {
+  margin-top: 5px;
+}
+
+.debt-pro-dialog--confirm .debt-dialog-message {
+  grid-template-columns: 1fr;
+}
+
+.debt-pro-dialog--confirm .debt-dialog-message__text {
+  font-size: 14px;
+}

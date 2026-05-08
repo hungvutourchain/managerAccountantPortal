@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
+import { DialogUtility } from "@syncfusion/ej2-popups";
 import {
   CustomerAccount,
   CustomerListResponse,
@@ -314,7 +315,7 @@ export class CustomerManagementComponent implements OnInit {
         this.loadAccountTypeOptions();
       },
       error: () => {
-        window.alert("Save failed, please check duplicate account type. / Lưu thất bại, vui lòng kiểm tra trùng loại tài khoản.");
+        this.showInfoDialog("Save failed, please check duplicate account type. / Lưu thất bại, vui lòng kiểm tra trùng loại tài khoản.");
       },
       complete: () => {
         this.accountTypeConfigSaving = false;
@@ -322,13 +323,14 @@ export class CustomerManagementComponent implements OnInit {
     });
   }
 
-  deleteAccountTypeConfig(item: AccountTypeConfigItem): void {
+  async deleteAccountTypeConfig(item: AccountTypeConfigItem): Promise<void> {
     if (!item?.id) {
       return;
     }
 
-    const confirmed = window.confirm(
+    const confirmed = await this.showConfirmDialog(
       `Delete account type ${item.accountType}? / Xóa loại tài khoản ${item.accountType}?`,
+      "Confirm delete / Xác nhận xóa",
     );
     if (!confirmed) {
       return;
@@ -554,14 +556,17 @@ export class CustomerManagementComponent implements OnInit {
     });
   }
 
-  deleteCustomer(item: CustomerAccount): void {
+  async deleteCustomer(item: CustomerAccount): Promise<void> {
     const id = this.getItemId(item);
     if (!id) {
-      window.alert("Customer ID is missing, cannot delete this record. / Thiếu ID khách hàng nên không thể xóa bản ghi này.");
+      this.showInfoDialog("Customer ID is missing, cannot delete this record. / Thiếu ID khách hàng nên không thể xóa bản ghi này.");
       return;
     }
 
-    const confirmed = window.confirm(`Delete customer ${item.name}? / Xóa khách hàng ${item.name}?`);
+    const confirmed = await this.showConfirmDialog(
+      `Delete customer ${item.name}? / Xóa khách hàng ${item.name}?`,
+      "Confirm delete / Xác nhận xóa",
+    );
     if (!confirmed) {
       return;
     }
@@ -1227,5 +1232,58 @@ export class CustomerManagementComponent implements OnInit {
 
     const asciiMatch = contentDisposition.match(/filename="?([^\";]+)"?/i);
     return asciiMatch?.[1] || "";
+  }
+
+  private showInfoDialog(content: string, title = "Notification / Thông báo"): void {
+    DialogUtility.alert({
+      title,
+      content: this.escapeHtml(content),
+      cssClass: "debt-pro-dialog debt-pro-dialog--info",
+      position: { X: "center", Y: "center" },
+      okButton: { text: "OK" },
+      showCloseIcon: true,
+      closeOnEscape: true,
+    });
+  }
+
+  private showConfirmDialog(content: string, title = "Confirm / Xác nhận"): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+      let settled = false;
+      const finalize = (value: boolean): void => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        resolve(value);
+      };
+
+      DialogUtility.confirm({
+        title,
+        content: this.escapeHtml(content),
+        cssClass: "debt-pro-dialog debt-pro-dialog--confirm",
+        position: { X: "center", Y: "center" },
+        okButton: {
+          text: "Yes / Đồng ý",
+          click: () => finalize(true),
+        },
+        cancelButton: {
+          text: "No / Hủy",
+          click: () => finalize(false),
+        },
+        showCloseIcon: true,
+        closeOnEscape: true,
+        close: () => finalize(false),
+      });
+    });
+  }
+
+  private escapeHtml(value: string): string {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 }

@@ -534,6 +534,81 @@
   color: #58719a;
 }
 
+:host ::ng-deep .debt-pro-dialog .e-dlg-content {
+  padding: 18px 22px;
+}
+
+:host ::ng-deep .debt-pro-dialog .e-footer-content .e-btn.e-primary,
+:host ::ng-deep .debt-pro-dialog .e-footer-content .e-btn.e-primary:hover,
+:host ::ng-deep .debt-pro-dialog .e-footer-content .e-btn.e-primary:focus {
+  background: #1f4fa6 !important;
+  border-color: #1f4fa6 !important;
+  color: #ffffff !important;
+}
+
+:host ::ng-deep .debt-pro-dialog .e-footer-content .e-btn:not(.e-primary) {
+  background: #e8eefb !important;
+  border-color: #cfdcf2 !important;
+  color: #2c4675 !important;
+}
+
+.debt-dialog-message {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.debt-dialog-message__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ebf3ff;
+  color: #1f5fbf;
+  font-size: 16px;
+}
+
+.debt-dialog-message__body {
+  min-width: 0;
+}
+
+.debt-dialog-message__headline {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #234572;
+}
+
+.debt-dialog-message__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #2f466c;
+}
+
+.debt-dialog-message__highlights {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #34527d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.debt-dialog-message__highlights li + li {
+  margin-top: 5px;
+}
+
+:host ::ng-deep .debt-pro-dialog--confirm .debt-dialog-message {
+  grid-template-columns: 1fr;
+}
+
+:host ::ng-deep .debt-pro-dialog--confirm .debt-dialog-message__text {
+  font-size: 14px;
+}
+
 @keyframes debt-ai-pulse {
   0%,
   80%,

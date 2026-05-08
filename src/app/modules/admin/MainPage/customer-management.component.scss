@@ -222,6 +222,20 @@
   background: #f0f5ff;
 }
 
+:host ::ng-deep .debt-pro-dialog .e-footer-content .e-btn.e-primary,
+:host ::ng-deep .debt-pro-dialog .e-footer-content .e-btn.e-primary:hover,
+:host ::ng-deep .debt-pro-dialog .e-footer-content .e-btn.e-primary:focus {
+  background: #1f4fa6 !important;
+  border-color: #1f4fa6 !important;
+  color: #ffffff !important;
+}
+
+:host ::ng-deep .debt-pro-dialog .e-footer-content .e-btn:not(.e-primary) {
+  background: #e8eefb !important;
+  border-color: #cfdcf2 !important;
+  color: #2c4675 !important;
+}
+
 .btn-primary,
 .btn-secondary {
   padding: 10px 14px;
