@@ -4,6 +4,8 @@ import { environment as env } from "environments/environment";
 import { Observable } from "rxjs";
 import {
   CreateDebtTransactionPayload,
+  DebtCustomerExcelExportHistoryQuery,
+  DebtCustomerExcelExportHistoryResponse,
   DebtTransactionAttachmentResponse,
   DebtTransactionMutationResponse,
   DebtAiQueryRequest,
@@ -86,6 +88,42 @@ export class TransactionManagementService {
 
     return this.http.get(`${this.baseUrl}/customers/${customerId}/export-excel`, {
       params,
+      observe: "response",
+      responseType: "blob",
+    });
+  }
+
+  getDebtCustomerExcelExportHistory(
+    customerId: string,
+    query: DebtCustomerExcelExportHistoryQuery,
+  ): Observable<DebtCustomerExcelExportHistoryResponse> {
+    const params = new HttpParams()
+      .set("page", String(query.page))
+      .set("pageSize", String(query.pageSize))
+      .set("sortBy", query.sortBy)
+      .set("sortDirection", query.sortDirection);
+
+    let finalParams = params;
+    if (query.search?.trim()) {
+      finalParams = finalParams.set("search", query.search.trim());
+    }
+    if (query.exportedBy?.trim()) {
+      finalParams = finalParams.set("exportedBy", query.exportedBy.trim());
+    }
+    if (query.fromDate) {
+      finalParams = finalParams.set("fromDate", query.fromDate);
+    }
+    if (query.toDate) {
+      finalParams = finalParams.set("toDate", query.toDate);
+    }
+
+    return this.http.get<DebtCustomerExcelExportHistoryResponse>(`${this.baseUrl}/customers/${customerId}/export-excel-history`, {
+      params: finalParams,
+    });
+  }
+
+  downloadDebtCustomerExcelExportHistory(customerId: string, historyId: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.baseUrl}/customers/${customerId}/export-excel-history/${historyId}/download`, {
       observe: "response",
       responseType: "blob",
     });

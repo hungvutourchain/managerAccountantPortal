@@ -11,6 +11,8 @@ import {
   DebtAiQueryRequest,
   DebtAiQueryResponse,
   DebtAiTransactionItem,
+  DebtCustomerExcelExportHistoryItem,
+  DebtCustomerExcelExportHistoryQuery,
   DebtTransactionAttachmentItem,
   DebtTransactionAuditLogItem,
   DebtTransactionMutationResponse,
@@ -55,12 +57,15 @@ export class DebtManagementComponent implements OnInit {
   showTransactionEditor = false;
   showTransactionAuditDialog = false;
   showExcelDialog = false;
+  showExcelHistoryDialog = false;
   showDebtAiDialog = false;
   transactionAuditLoading = false;
   excelLoading = false;
+  excelHistoryLoading = false;
   aiLoading = false;
   transactionAuditErrorMessage = "";
   excelErrorMessage = "";
+  excelHistoryErrorMessage = "";
   transactionEditorErrorMessage = "";
   editingTransactionId: string | null = null;
   selectedTransaction: DebtTransactionItem | null = null;
@@ -95,7 +100,30 @@ export class DebtManagementComponent implements OnInit {
   transactions: DebtTransactionItem[] = [];
   transactionAuditLogs: DebtTransactionAuditLogItem[] = [];
   excelTransactions: DebtTransactionItem[] = [];
+  excelExportHistoryItems: DebtCustomerExcelExportHistoryItem[] = [];
   transactionCountByCustomerId: Record<string, number> = {};
+  excelHistoryDownloadingIds: string[] = [];
+  excelHistoryCustomerId = "";
+  excelHistoryFromDate: Date | null = null;
+  excelHistoryToDate: Date | null = null;
+
+  excelHistoryPager = {
+    page: 1,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 0,
+  };
+
+  excelHistoryQuery: DebtCustomerExcelExportHistoryQuery = {
+    search: "",
+    exportedBy: "",
+    fromDate: "",
+    toDate: "",
+    page: 1,
+    pageSize: 10,
+    sortBy: "exportedAt",
+    sortDirection: "desc",
+  };
 
   query = {
     search: "",
@@ -707,12 +735,154 @@ export class DebtManagementComponent implements OnInit {
     this.loadTransactions();
   }
 
+  openCustomerExportHistory(item: DebtItem): void {
+    this.selectedExcelDebtItem = item;
+    this.openExcelExportHistory();
+  }
+
+  openLedgerExportHistory(): void {
+    const customerId = this.normalizeCustomerId(this.transactionQuery.customerId);
+    if (customerId) {
+      const linkedDebtItem = this.debtItems.find((item) => this.normalizeCustomerId(item?.id) === customerId) || null;
+      this.selectedExcelDebtItem = linkedDebtItem;
+      this.openExcelExportHistory();
+      return;
+    }
+
+    if (this.cartLockedCustomerId) {
+      this.selectedExcelDebtItem = this.debtItems.find(
+        (item) => this.normalizeCustomerId(item?.id) === this.normalizeCustomerId(this.cartLockedCustomerId),
+      ) || null;
+      this.openExcelExportHistory();
+      return;
+    }
+
+    window.alert("Please choose a customer filter first to view export history. / Vui lòng chọn khách hàng trước để xem lịch sử xuất.");
+  }
+
   closeExcelView(): void {
     this.showExcelDialog = false;
     this.excelLoading = false;
     this.excelErrorMessage = "";
     this.selectedExcelDebtItem = null;
     this.excelTransactions = [];
+  }
+
+  openExcelExportHistory(): void {
+    const customerId = this.resolveExcelHistoryCustomerId();
+    if (!customerId) {
+      this.excelErrorMessage = "Cannot determine customer to load export history. / Không xác định được khách hàng để tải lịch sử export.";
+      return;
+    }
+
+    this.showExcelHistoryDialog = true;
+    this.excelHistoryCustomerId = customerId;
+    this.excelHistoryQuery.page = 1;
+    this.loadExcelExportHistory();
+  }
+
+  closeExcelExportHistory(): void {
+    this.showExcelHistoryDialog = false;
+    this.excelHistoryLoading = false;
+    this.excelHistoryErrorMessage = "";
+    this.excelExportHistoryItems = [];
+    this.excelHistoryDownloadingIds = [];
+    this.excelHistoryCustomerId = "";
+    this.excelHistoryFromDate = null;
+    this.excelHistoryToDate = null;
+    this.excelHistoryQuery = {
+      search: "",
+      exportedBy: "",
+      fromDate: "",
+      toDate: "",
+      page: 1,
+      pageSize: 10,
+      sortBy: "exportedAt",
+      sortDirection: "desc",
+    };
+    this.excelHistoryPager = {
+      page: 1,
+      pageSize: 10,
+      totalItems: 0,
+      totalPages: 0,
+    };
+  }
+
+  changeExcelHistoryPage(page: number): void {
+    if (page < 1 || page > this.excelHistoryPager.totalPages || page === this.excelHistoryPager.page) {
+      return;
+    }
+
+    this.excelHistoryQuery.page = page;
+    this.excelHistoryPager.page = page;
+    this.loadExcelExportHistory();
+  }
+
+  applyExcelHistoryFilters(): void {
+    this.excelHistoryQuery.page = 1;
+    this.loadExcelExportHistory();
+  }
+
+  clearExcelHistoryFilters(): void {
+    this.excelHistoryQuery.search = "";
+    this.excelHistoryQuery.exportedBy = "";
+    this.excelHistoryQuery.fromDate = "";
+    this.excelHistoryQuery.toDate = "";
+    this.excelHistoryQuery.sortBy = "exportedAt";
+    this.excelHistoryQuery.sortDirection = "desc";
+    this.excelHistoryQuery.page = 1;
+    this.loadExcelExportHistory();
+  }
+
+  onExcelHistoryPageSizeChange(): void {
+    this.excelHistoryQuery.page = 1;
+    this.loadExcelExportHistory();
+  }
+
+  onExcelHistoryFromDateChange(event: { value?: Date | null }): void {
+    const value = event?.value instanceof Date ? event.value : null;
+    this.excelHistoryFromDate = value;
+    this.excelHistoryQuery.fromDate = this.formatDateQuery(value);
+  }
+
+  onExcelHistoryToDateChange(event: { value?: Date | null }): void {
+    const value = event?.value instanceof Date ? event.value : null;
+    this.excelHistoryToDate = value;
+    this.excelHistoryQuery.toDate = this.formatDateQuery(value);
+  }
+
+  downloadExcelHistoryItem(item: DebtCustomerExcelExportHistoryItem): void {
+    const customerId = this.normalizeCustomerId(this.excelHistoryCustomerId);
+    const historyId = this.normalizeTransactionId(item?.id);
+    if (!customerId || !historyId || this.excelHistoryDownloadingIds.includes(historyId)) {
+      return;
+    }
+
+    this.excelHistoryDownloadingIds = [...this.excelHistoryDownloadingIds, historyId];
+    this.transactionManagementService.downloadDebtCustomerExcelExportHistory(customerId, historyId).subscribe({
+      next: (response) => {
+        const blob = response.body;
+        if (!blob) {
+          return;
+        }
+
+        const fileName = this.extractFileName(response.headers.get("content-disposition"))
+          || item.fileName
+          || "debt-export.xlsx";
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileName;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.excelHistoryErrorMessage = "Failed to download exported file. / Tải file export thất bại.";
+      },
+      complete: () => {
+        this.excelHistoryDownloadingIds = this.excelHistoryDownloadingIds.filter((id) => id !== historyId);
+      },
+    });
   }
 
   // ── Cart methods ──────────────────────────────────────────────────────────
@@ -1407,6 +1577,17 @@ export class DebtManagementComponent implements OnInit {
     return `${day} ${month}, ${year} ${time}`;
   }
 
+  formatExportPeriod(from?: string, to?: string): string {
+    const fromText = this.formatSheetDate(from);
+    const toText = this.formatSheetDate(to);
+
+    if (!fromText || !toText) {
+      return "--/--/---- → --/--/----";
+    }
+
+    return `${fromText} → ${toText}`;
+  }
+
   formatTransactionAuditAction(action?: string): string {
     const map: Record<string, string> = {
       "transaction-create": "Create (Tạo mới)",
@@ -1687,6 +1868,39 @@ export class DebtManagementComponent implements OnInit {
     });
   }
 
+  private loadExcelExportHistory(): void {
+    const customerId = this.normalizeCustomerId(this.excelHistoryCustomerId);
+    if (!customerId) {
+      this.excelHistoryErrorMessage = "Customer ID is missing, cannot load export history. / Thiếu ID khách hàng nên không tải được lịch sử export.";
+      this.excelExportHistoryItems = [];
+      return;
+    }
+
+    this.excelHistoryLoading = true;
+    this.excelHistoryErrorMessage = "";
+
+    this.transactionManagementService
+      .getDebtCustomerExcelExportHistory(customerId, this.excelHistoryQuery)
+      .subscribe({
+        next: (response) => {
+          this.excelExportHistoryItems = response.items || [];
+          this.excelHistoryPager.page = response.page || this.excelHistoryQuery.page;
+          this.excelHistoryPager.pageSize = response.pageSize || this.excelHistoryQuery.pageSize;
+          this.excelHistoryPager.totalItems = response.totalItems || 0;
+          this.excelHistoryPager.totalPages = response.totalPages || 0;
+        },
+        error: () => {
+          this.excelExportHistoryItems = [];
+          this.excelHistoryPager.totalItems = 0;
+          this.excelHistoryPager.totalPages = 0;
+          this.excelHistoryErrorMessage = "Failed to load export history. / Không tải được lịch sử export.";
+        },
+        complete: () => {
+          this.excelHistoryLoading = false;
+        },
+      });
+  }
+
   private refreshAfterTransactionMutation(): void {
     this.loadOverview();
     this.loadDebtList();
@@ -1757,6 +1971,31 @@ export class DebtManagementComponent implements OnInit {
 
   private normalizeContractCode(value?: string): string {
     return (value || "").trim().toLowerCase();
+  }
+
+  private formatDateQuery(value: Date | null): string {
+    if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+      return "";
+    }
+
+    const year = value.getFullYear();
+    const month = `${value.getMonth() + 1}`.padStart(2, "0");
+    const day = `${value.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  private resolveExcelHistoryCustomerId(): string {
+    const selectedId = this.normalizeCustomerId(this.selectedExcelDebtItem?.id);
+    if (selectedId) {
+      return selectedId;
+    }
+
+    const filteredCustomerId = this.normalizeCustomerId(this.transactionQuery.customerId);
+    if (filteredCustomerId) {
+      return filteredCustomerId;
+    }
+
+    return this.normalizeCustomerId(this.cartLockedCustomerId);
   }
 
 }

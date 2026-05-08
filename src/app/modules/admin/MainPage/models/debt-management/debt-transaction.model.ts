@@ -92,3 +92,39 @@ export interface DebtTransactionAuditLogResponse {
   totalPages: number;
   items: DebtTransactionAuditLogItem[];
 }
+
+export interface DebtCustomerExcelExportHistoryItem {
+  id: string;
+  customerId: string;
+  customerCode?: string;
+  customerName?: string;
+  fileName: string;
+  storedFileName?: string;
+  relativePath?: string;
+  contentType?: string;
+  size: number;
+  periodFrom?: string;
+  periodTo?: string;
+  transactionCount: number;
+  exportedAt: string;
+  exportedBy?: string;
+}
+
+export interface DebtCustomerExcelExportHistoryResponse {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  items: DebtCustomerExcelExportHistoryItem[];
+}
+
+export interface DebtCustomerExcelExportHistoryQuery {
+  search: string;
+  exportedBy: string;
+  fromDate?: string;
+  toDate?: string;
+  page: number;
+  pageSize: number;
+  sortBy: "exportedAt" | "fileName" | "size" | "exportedBy";
+  sortDirection: "asc" | "desc";
+}

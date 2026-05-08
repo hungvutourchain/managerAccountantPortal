@@ -138,6 +138,9 @@
                 <button type="button" class="icon-action-button neutral" title="View Transactions / Xem giao dịch" aria-label="View Transactions / Xem giao dịch" data-tooltip="View Transactions / Xem giao dịch" (click)="openCustomerTransactions(item)">
                   <i class="bi bi-list-ul" aria-hidden="true"></i>
                 </button>
+                <button type="button" class="icon-action-button neutral" title="View Export History / Xem lịch sử xuất" aria-label="View Export History / Xem lịch sử xuất" data-tooltip="View Export History / Xem lịch sử xuất" (click)="openCustomerExportHistory(item)">
+                  <i class="bi bi-clock-history" aria-hidden="true"></i>
+                </button>
               </div>
             </td>
           </tr>
@@ -267,6 +270,10 @@
 
         <button class="btn-primary" (click)="applyTransactionFilters()"><span class="bilingual"><span class="en-text">Apply</span><span class="vi-text">Áp dụng</span></span></button>
         <button class="btn-secondary" (click)="clearTransactionFilters()"><span class="bilingual"><span class="en-text">Reset</span><span class="vi-text">Làm mới</span></span></button>
+        <button class="btn-ghost ai-launch-btn" (click)="openLedgerExportHistory()">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <span class="bilingual"><span class="en-text">Export History</span><span class="vi-text">Lịch sử xuất</span></span>
+        </button>
         <button class="btn-ghost ai-launch-btn" (click)="openDebtAiDialog()">
           <i class="bi bi-stars" aria-hidden="true"></i>
           <span class="bilingual"><span class="en-text">AI Assistant</span><span class="vi-text">Trợ lý AI</span></span>
@@ -744,6 +751,7 @@
     <ng-template #content>
       <section class="excel-preview" *ngIf="selectedExcelDebtItem as customer">
         <div class="excel-preview-actions">
+          <button class="btn-ghost" (click)="openExcelExportHistory()"><span class="bilingual"><span class="en-text">Export History</span><span class="vi-text">Lịch sử export</span></span></button>
           <button class="btn-primary" (click)="exportSelectedExcelCustomer()"><span class="bilingual"><span class="en-text">Export Excel</span><span class="vi-text">Xuất Excel</span></span></button>
           <button class="btn-secondary" (click)="closeExcelView()"><span class="bilingual"><span class="en-text">Close</span><span class="vi-text">Đóng</span></span></button>
         </div>
@@ -838,6 +846,125 @@
             </div>
           </div>
         </div>
+      </section>
+    </ng-template>
+  </ejs-dialog>
+
+  <ejs-dialog
+    *ngIf="showExcelHistoryDialog"
+    cssClass="debt-excel-history-dialog"
+    [isModal]="true"
+    [showCloseIcon]="true"
+    [visible]="showExcelHistoryDialog"
+    [closeOnEscape]="true"
+    [header]="'Excel Export History / Lịch sử xuất Excel'"
+    [width]="'90%'"
+    (overlayClick)="closeExcelExportHistory()"
+    (close)="closeExcelExportHistory()"
+  >
+    <ng-template #content>
+      <section class="excel-history-panel">
+        <div class="excel-history-filter-bar">
+          <input
+            ejs-textbox
+            type="text"
+            placeholder="Search file name... / Tìm tên file..."
+            [(ngModel)]="excelHistoryQuery.search"
+            (keyup.enter)="applyExcelHistoryFilters()"
+          />
+          <input
+            ejs-textbox
+            type="text"
+            placeholder="Exported by... / Người xuất..."
+            [(ngModel)]="excelHistoryQuery.exportedBy"
+            (keyup.enter)="applyExcelHistoryFilters()"
+          />
+          <ejs-datepicker
+            cssClass="excel-history-date"
+            [width]="'100%'"
+            [format]="'dd/MM/yyyy'"
+            [placeholder]="'From date / Từ ngày'"
+            [value]="excelHistoryFromDate"
+            (change)="onExcelHistoryFromDateChange($event)"
+          ></ejs-datepicker>
+          <ejs-datepicker
+            cssClass="excel-history-date"
+            [width]="'100%'"
+            [format]="'dd/MM/yyyy'"
+            [placeholder]="'To date / Đến ngày'"
+            [value]="excelHistoryToDate"
+            (change)="onExcelHistoryToDateChange($event)"
+          ></ejs-datepicker>
+          <ejs-dropdownlist
+            cssClass="excel-history-page-size"
+            [dataSource]="transactionPageSizeOptions"
+            [fields]="optionFields"
+            [width]="'100%'"
+            [(ngModel)]="excelHistoryQuery.pageSize"
+            (change)="onExcelHistoryPageSizeChange()"
+          ></ejs-dropdownlist>
+          <button class="btn-primary" (click)="applyExcelHistoryFilters()"><span class="bilingual"><span class="en-text">Apply</span><span class="vi-text">Áp dụng</span></span></button>
+          <button class="btn-secondary" (click)="clearExcelHistoryFilters()"><span class="bilingual"><span class="en-text">Reset</span><span class="vi-text">Làm mới</span></span></button>
+        </div>
+
+        <div class="audit-error-banner" *ngIf="excelHistoryErrorMessage">
+          {{ excelHistoryErrorMessage }}
+        </div>
+
+        <div class="excel-history-table-wrap" [class.loading]="excelHistoryLoading">
+          <table class="excel-history-table">
+            <thead>
+              <tr>
+                <th>Customer / Khách hàng</th>
+                <th>Exported At / Thời điểm</th>
+                <th>File Name / Tên file</th>
+                <th>Period / Kỳ</th>
+                <th>Transactions / Số GD</th>
+                <th>Size / Dung lượng</th>
+                <th>By / Người xuất</th>
+                <th>Action / Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of excelExportHistoryItems">
+                <td>{{ item.customerCode || selectedExcelDebtItem?.code || '-' }} - {{ item.customerName || selectedExcelDebtItem?.name || '-' }}</td>
+                <td>{{ formatAuditDateTime(item.exportedAt) }}</td>
+                <td class="history-file-name">{{ item.fileName || '-' }}</td>
+                <td>{{ formatExportPeriod(item.periodFrom, item.periodTo) }}</td>
+                <td>{{ item.transactionCount || 0 }}</td>
+                <td>{{ getReadableFileSize(item.size) }}</td>
+                <td>{{ item.exportedBy || 'system' }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="btn-ghost transaction-file-mini-btn"
+                    [disabled]="excelHistoryDownloadingIds.includes(item.id)"
+                    (click)="downloadExcelHistoryItem(item)"
+                  >
+                    {{ excelHistoryDownloadingIds.includes(item.id) ? 'Downloading...' : 'Download / Tải lại' }}
+                  </button>
+                </td>
+              </tr>
+
+              <tr *ngIf="!excelHistoryLoading && excelExportHistoryItems.length === 0">
+                <td colspan="8" class="empty-row">
+                  <span class="bilingual"><span class="en-text">No exported files found.</span><span class="vi-text">Chưa có file Excel nào được xuất.</span></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="excel-history-pagination">
+          <span class="bilingual">
+            <span class="en-text">Total {{ excelHistoryPager.totalItems }} files | Page {{ excelHistoryPager.page }} / {{ excelHistoryPager.totalPages || 1 }}</span>
+            <span class="vi-text">Tổng {{ excelHistoryPager.totalItems }} file | Trang {{ excelHistoryPager.page }} / {{ excelHistoryPager.totalPages || 1 }}</span>
+          </span>
+          <div class="pager-actions">
+            <button (click)="changeExcelHistoryPage(excelHistoryPager.page - 1)"><span class="bilingual"><span class="en-text">Previous</span><span class="vi-text">Trước</span></span></button>
+            <button (click)="changeExcelHistoryPage(excelHistoryPager.page + 1)"><span class="bilingual"><span class="en-text">Next</span><span class="vi-text">Sau</span></span></button>
+          </div>
+        </footer>
       </section>
     </ng-template>
   </ejs-dialog>
