@@ -395,11 +395,14 @@
               [dataSource]="accountTypeOptions"
               [fields]="optionFields"
               [allowFiltering]="true"
+              [ignoreAccent]="true"
+              [filterType]="'Contains'"
               [width]="'100%'"
               [popupWidth]="'760px'"
               [popupHeight]="'360px'"
               [(ngModel)]="formModel.category"
               [placeholder]="'Select account type / Chọn loại tài khoản'"
+              (filtering)="onAccountTypeFiltering($event)"
             ></ejs-dropdownlist>
           </div>
           <div class="editor-field">

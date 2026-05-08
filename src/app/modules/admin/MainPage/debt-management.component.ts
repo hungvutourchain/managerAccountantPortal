@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
 import { CustomerManagementService } from "./customer-management.service";
 import { TransactionManagementService } from "./transaction-management.service";
 import {
@@ -221,6 +222,29 @@ export class DebtManagementComponent implements OnInit {
         this.transactionAccountTypeOptions = [];
       },
     });
+  }
+
+  onTransactionAccountTypeFiltering(args: FilteringEventArgs): void {
+    const keyword = this.normalizeDropdownSearchText(args.text || "");
+
+    if (!keyword) {
+      args.updateData(this.transactionAccountTypeOptions);
+      return;
+    }
+
+    const filteredOptions = this.transactionAccountTypeOptions.filter((item) => {
+      const accountType = this.normalizeDropdownSearchText(item.accountType || item.value || "");
+      const english = this.normalizeDropdownSearchText(item.accountName || "");
+      const vietnamese = this.normalizeDropdownSearchText(item.accountNameLocal || "");
+      const label = this.normalizeDropdownSearchText(item.label || "");
+
+      return accountType.includes(keyword)
+        || english.includes(keyword)
+        || vietnamese.includes(keyword)
+        || label.includes(keyword);
+    });
+
+    args.updateData(filteredOptions);
   }
 
   loadCustomerOptions(): void {
@@ -1290,6 +1314,14 @@ export class DebtManagementComponent implements OnInit {
     }
 
     return normalized;
+  }
+
+  private normalizeDropdownSearchText(value?: unknown): string {
+    return String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
   }
 
   private isDebtTransactionItem(item?: DebtItem | DebtTransactionItem): item is DebtTransactionItem {

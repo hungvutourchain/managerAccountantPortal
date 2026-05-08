@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
 import {
   CustomerAccount,
   CustomerListResponse,
@@ -194,6 +195,29 @@ export class CustomerManagementComponent implements OnInit {
         this.accountTypeOptions = [];
       },
     });
+  }
+
+  onAccountTypeFiltering(args: FilteringEventArgs): void {
+    const keyword = this.normalizeDropdownSearchText(args.text || "");
+
+    if (!keyword) {
+      args.updateData(this.accountTypeOptions);
+      return;
+    }
+
+    const filteredOptions = this.accountTypeOptions.filter((item) => {
+      const accountType = this.normalizeDropdownSearchText(item.accountType || item.value || "");
+      const english = this.normalizeDropdownSearchText(item.accountName || "");
+      const vietnamese = this.normalizeDropdownSearchText(item.accountNameLocal || "");
+      const label = this.normalizeDropdownSearchText(item.label || "");
+
+      return accountType.includes(keyword)
+        || english.includes(keyword)
+        || vietnamese.includes(keyword)
+        || label.includes(keyword);
+    });
+
+    args.updateData(filteredOptions);
   }
 
   openAccountTypeConfigManager(): void {
@@ -1181,6 +1205,14 @@ export class CustomerManagementComponent implements OnInit {
     }
 
     return removedPrefix;
+  }
+
+  private normalizeDropdownSearchText(value?: unknown): string {
+    return String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
   }
 
   private extractFileName(contentDisposition: string | null): string {

@@ -506,10 +506,13 @@
               [dataSource]="transactionAccountTypeOptions"
               [fields]="optionFields"
               [allowFiltering]="true"
+                [ignoreAccent]="true"
+                [filterType]="'Contains'"
               [width]="'100%'"
               [popupWidth]="'820px'"
               [popupHeight]="'360px'"
               [placeholder]="'Select account type / Chọn loại tài khoản'"
+                (filtering)="onTransactionAccountTypeFiltering($event)"
               [(ngModel)]="transactionForm.accountType"
             ></ejs-dropdownlist>
           </div>
