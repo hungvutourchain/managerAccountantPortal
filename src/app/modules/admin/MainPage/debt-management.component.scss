@@ -340,6 +340,16 @@
   color: #355282;
 }
 
+.icon-action-button.primary {
+  color: #1a7f4b;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(26, 127, 75, 0.1);
+    color: #156639;
+  }
+}
+
 .icon-action-button.danger {
   color: #b33c3c;
 }

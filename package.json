@@ -18,7 +18,7 @@
     "build-prodbackend": "node --max_old_space_size=8096 node_modules/@angular/cli/bin/ng build --configuration prodbackend --aot=true  --base-href /backend/ --output-hashing=all",
     "build-prodmaster": "node --max_old_space_size=8096 node_modules/@angular/cli/bin/ng build --configuration prodmaster --aot=true  --base-href /master/ --output-hashing=all",
     "build-prodadmin": "node --max_old_space_size=8096 node_modules/@angular/cli/bin/ng build --configuration prodadmin --aot=true  --base-href /admin/ --output-hashing=all",
-    "build-prodmanager": "node --max_old_space_size=8096 node_modules/@angular/cli/bin/ng build --configuration prodmanager --aot=true  --base-href /manager/ --output-hashing=all",
+    "build-prodmanager": "node --max_old_space_size=8096 node_modules/@angular/cli/bin/ng build --configuration prodmanager --aot=true --output-hashing=all",
     "test": "ng test",
     "lint": "ng lint"
   },

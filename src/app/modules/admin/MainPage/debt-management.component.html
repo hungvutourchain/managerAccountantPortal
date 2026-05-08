@@ -132,6 +132,9 @@
             <td><span class="txn-count">{{ getCustomerTransactionCount(item) }}</span></td>
             <td>
               <div class="row-actions">
+                <button type="button" class="icon-action-button primary" title="Add Transaction / Thêm giao dịch" aria-label="Add Transaction / Thêm giao dịch" data-tooltip="Add Transaction / Thêm giao dịch" (click)="openTransactionEditor(item)">
+                  <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                </button>
                 <button type="button" class="icon-action-button neutral" title="View Transactions / Xem giao dịch" aria-label="View Transactions / Xem giao dịch" data-tooltip="View Transactions / Xem giao dịch" (click)="openCustomerTransactions(item)">
                   <i class="bi bi-list-ul" aria-hidden="true"></i>
                 </button>

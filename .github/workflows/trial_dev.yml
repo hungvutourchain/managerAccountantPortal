@@ -2,15 +2,15 @@ name: Deploy to Docker Swarm trial
 
 on:
   push:
-    branches: ["trialDev"] # Adjust as needed
+    branches: ["main"] # Adjust as needed
 # ghcr.io/hungvutourchain/tourchain-net/hoteltourportal:latest
 env:
   RESISTRY: ghcr.io
-  IMAGE_NAME: hungvutourchain/tourchain-net/hoteltourportal:trialDev
-  IP: 152.42.245.213
+  IMAGE_NAME: hungvutourchain/tourchain-net/hoteltourportal:latest
+  IP: 159.89.193.175
   # IP: 178.128.86.194
-  PAT: ${{secrets.PAT || secrets.PAT1 || secrets.PAT2}}
-  SSH: ${{ secrets.SSH_PRIVATE_KEY_TRIAL }}
+  PAT: ${{secrets.PAT}}
+  SSH: ${{ secrets.SSH_PRIVATE_KEY }}
 jobs:
   publish:
     name: publish image
@@ -38,6 +38,6 @@ jobs:
           ssh-keyscan -H ${{ env.IP }} > ~/.ssh/known_hosts
       - name: Connect and pull docker image
         run: |
-          ssh root@${{ env.IP }} "echo ${{ env.PAT }} | docker login ghcr.io -u ${{ github.actor }} -p ${{ env.PAT }} &&cd .. && cd /host/tourchain/develop && docker stack deploy --compose-file docker-compose-hotelTourPortal.yml tourchain --with-registry-auth"
+          ssh root@${{ env.IP }} "echo ${{ env.PAT }} | docker login ghcr.io -u ${{ github.actor }} -p ${{ env.PAT }} &&cd .. && cd /host/tourchain/develop && docker stack deploy --compose-file docker-compose-accountant.yml tourchain --with-registry-auth"
       - name: cleanup
         run: rm -rf ~/.ssh
