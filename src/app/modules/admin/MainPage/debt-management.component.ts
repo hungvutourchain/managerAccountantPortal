@@ -1114,11 +1114,11 @@ export class DebtManagementComponent implements OnInit {
   }
 
   getExcelDebitAmount(tx: DebtTransactionItem): number {
-    return tx.transactionType === "debt" ? Number(tx.amount || 0) : 0;
+    return this.getEffectiveTransactionType(tx) === "debt" ? Number(tx.amount || 0) : 0;
   }
 
   getExcelCreditAmount(tx: DebtTransactionItem): number {
-    return tx.transactionType === "credit" ? Number(tx.amount || 0) : 0;
+    return this.getEffectiveTransactionType(tx) === "credit" ? Number(tx.amount || 0) : 0;
   }
 
   getExcelTotalDebit(): number {
@@ -1310,7 +1310,7 @@ export class DebtManagementComponent implements OnInit {
       return `PHAT SINH TK ${accountCode}`;
     }
 
-    return tx.transactionType === "credit"
+    return this.getEffectiveTransactionType(tx) === "credit"
       ? (accountCode === "131" ? "THU TIEN CONG NO" : "THANH TOAN CONG NO")
       : (accountCode === "131" ? "PHAT SINH CONG NO PHAI THU" : "PHAT SINH CONG NO PHAI TRA");
   }
@@ -1775,6 +1775,10 @@ export class DebtManagementComponent implements OnInit {
     }
 
     return fallback;
+  }
+
+  private getEffectiveTransactionType(tx: DebtTransactionItem): "debt" | "credit" {
+    return this.getTransactionTypeByAccountType(tx.accountType || "", tx.transactionType === "credit" ? "credit" : "debt");
   }
 
   private getAccountTypeByCustomerId(customerId: string): string | null {
