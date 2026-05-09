@@ -311,6 +311,16 @@
             <label class="editor-label bilingual"><span class="en-text">Vietnamese Name</span><span class="vi-text">Tên tiếng Việt</span></label>
             <ejs-textbox [(ngModel)]="accountTypeConfigForm.accountNameLocal"></ejs-textbox>
           </div>
+          <div class="editor-field">
+            <label class="editor-label bilingual"><span class="en-text">Balance Side</span><span class="vi-text">Phân loại Nợ/Có</span></label>
+            <ejs-dropdownlist
+              [dataSource]="accountTypeBalanceSideOptions"
+              [fields]="optionFields"
+              [width]="'100%'"
+              [placeholder]="'Select side / Chọn phân loại'"
+              [(ngModel)]="accountTypeConfigForm.balanceSide"
+            ></ejs-dropdownlist>
+          </div>
           <div class="editor-field config-form-actions">
             <button class="btn-primary" [disabled]="accountTypeConfigSaving" (click)="saveAccountTypeConfig()">
               {{ accountTypeConfigSaving ? "Saving... / Đang lưu..." : "Save / Lưu" }}
@@ -325,6 +335,7 @@
                 <th><span class="bilingual"><span class="en-text">Code</span><span class="vi-text">Mã</span></span></th>
                 <th><span class="bilingual"><span class="en-text">English Name</span><span class="vi-text">Tên tiếng Anh</span></span></th>
                 <th><span class="bilingual"><span class="en-text">Vietnamese Name</span><span class="vi-text">Tên tiếng Việt</span></span></th>
+                <th><span class="bilingual"><span class="en-text">Balance Side</span><span class="vi-text">Nợ/Có</span></span></th>
                 <th><span class="bilingual"><span class="en-text">Updated At</span><span class="vi-text">Cập nhật</span></span></th>
                 <th><span class="bilingual"><span class="en-text">Actions</span><span class="vi-text">Thao tác</span></span></th>
               </tr>
@@ -334,6 +345,7 @@
                 <td>{{ item.accountType }}</td>
                 <td>{{ item.accountName || '-' }}</td>
                 <td>{{ item.accountNameLocal || '-' }}</td>
+                <td>{{ getBalanceSideLabel(item.balanceSide) }}</td>
                 <td>{{ formatDateTime(item.updatedAt) }}</td>
                 <td>
                   <div class="row-actions">
@@ -347,7 +359,7 @@
                 </td>
               </tr>
               <tr *ngIf="!accountTypeConfigLoading && accountTypeConfigs.length === 0">
-                <td colspan="5" class="empty-row"><span class="bilingual"><span class="en-text">No account types found.</span><span class="vi-text">Không có dữ liệu loại tài khoản.</span></span></td>
+                <td colspan="6" class="empty-row"><span class="bilingual"><span class="en-text">No account types found.</span><span class="vi-text">Không có dữ liệu loại tài khoản.</span></span></td>
               </tr>
             </tbody>
           </table>

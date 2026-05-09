@@ -213,6 +213,7 @@ export class DebtManagementComponent implements OnInit {
     accountType?: string;
     accountName?: string;
     accountNameLocal?: string;
+    balanceSide?: string;
   }> = [];
 
   transactionLedgerTypeOptions = [
@@ -1754,6 +1755,15 @@ export class DebtManagementComponent implements OnInit {
     const normalized = String(accountType || "").trim().toLowerCase();
     if (!normalized) {
       return fallback;
+    }
+
+    const matchedConfig = this.transactionAccountTypeOptions.find((item) => String(item.value || "").trim().toLowerCase() === normalized);
+    if (matchedConfig?.balanceSide === "debit") {
+      return "debt";
+    }
+
+    if (matchedConfig?.balanceSide === "credit") {
+      return "credit";
     }
 
     if (normalized.startsWith("1") || normalized.includes("131")) {

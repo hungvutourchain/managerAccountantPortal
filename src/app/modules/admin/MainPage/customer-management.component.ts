@@ -23,6 +23,7 @@ type AccountTypeConfigItem = {
   accountType: string;
   accountName?: string;
   accountNameLocal?: string;
+  balanceSide?: string;
   updatedAt?: string;
 };
 
@@ -58,6 +59,7 @@ export class CustomerManagementComponent implements OnInit {
     accountType?: string;
     accountName?: string;
     accountNameLocal?: string;
+    balanceSide?: string;
   }> = [];
   showAccountTypeConfigDialog = false;
   accountTypeConfigLoading = false;
@@ -68,11 +70,13 @@ export class CustomerManagementComponent implements OnInit {
     accountType: string;
     accountName: string;
     accountNameLocal: string;
+    balanceSide: string;
   } = {
       id: undefined,
       accountType: "",
       accountName: "",
       accountNameLocal: "",
+      balanceSide: "",
     };
   accountTypeConfigQuery = {
     search: "",
@@ -83,6 +87,11 @@ export class CustomerManagementComponent implements OnInit {
     totalItems: 0,
     totalPages: 0,
   };
+
+  accountTypeBalanceSideOptions = [
+    { label: "Debit (Nợ)", value: "debit" },
+    { label: "Credit (Có)", value: "credit" },
+  ];
 
   loading = false;
   saving = false;
@@ -293,6 +302,7 @@ export class CustomerManagementComponent implements OnInit {
       accountType: item.accountType || "",
       accountName: item.accountName || "",
       accountNameLocal: item.accountNameLocal || "",
+      balanceSide: item.balanceSide || "",
     };
   }
 
@@ -308,6 +318,7 @@ export class CustomerManagementComponent implements OnInit {
       accountType,
       accountName: (this.accountTypeConfigForm.accountName || "").trim(),
       accountNameLocal: (this.accountTypeConfigForm.accountNameLocal || "").trim(),
+      balanceSide: (this.accountTypeConfigForm.balanceSide || "").trim(),
     }).subscribe({
       next: () => {
         this.resetAccountTypeConfigForm();
@@ -1141,7 +1152,12 @@ export class CustomerManagementComponent implements OnInit {
       accountType: "",
       accountName: "",
       accountNameLocal: "",
+      balanceSide: "",
     };
+  }
+
+  getBalanceSideLabel(value?: string): string {
+    return value === "credit" ? "Credit / Có" : value === "debit" ? "Debit / Nợ" : "-";
   }
 
   private ensureAccountTypeOption(accountType?: string): void {

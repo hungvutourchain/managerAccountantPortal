@@ -57,6 +57,7 @@ export class CustomerManagementService {
     accountType?: string;
     accountName?: string;
     accountNameLocal?: string;
+    balanceSide?: string;
   }>> {
     let params = new HttpParams()
       .set("includeAll", String(includeAll))
@@ -72,6 +73,7 @@ export class CustomerManagementService {
       accountType?: string;
       accountName?: string;
       accountNameLocal?: string;
+      balanceSide?: string;
     }>>(`${this.baseUrl}/account-types`, { params });
   }
 
@@ -110,6 +112,8 @@ export class CustomerManagementService {
         accountType: string;
         accountName?: string;
         accountNameLocal?: string;
+        balanceSide?: string;
+        balanceSide?: string;
         updatedAt?: string;
       }>;
     }>(`${this.baseUrl}/account-types/manage`, { params });
@@ -120,6 +124,7 @@ export class CustomerManagementService {
     accountType: string;
     accountName?: string;
     accountNameLocal?: string;
+    balanceSide?: string;
   }): Observable<{ success: boolean }> {
     return this.http.post<{ success: boolean }>(`${this.baseUrl}/account-types`, payload);
   }
