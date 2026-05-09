@@ -4,6 +4,7 @@ import { MainPageDashboardComponent } from './main-page-dashboard.component';
 import { MainPagePanelManagerComponent } from './main-page-panel-manager.component';
 import { CustomerManagementComponent } from './customer-management.component';
 import { DebtManagementComponent } from './debt-management.component';
+import { ReportCenterComponent } from './report-center.component';
 
 export const MainPageRoutes: Route[] = [
 	{
@@ -22,6 +23,10 @@ export const MainPageRoutes: Route[] = [
 			{
 				path: 'debt-management',
 				component: DebtManagementComponent,
+			},
+			{
+				path: 'report-center',
+				component: ReportCenterComponent,
 			},
 			{
 				path: 'dashboard',

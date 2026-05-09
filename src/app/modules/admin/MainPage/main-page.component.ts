@@ -22,5 +22,12 @@ export class MainPageComponent {
       enDescription: "Aging analysis, receivable/payable, debt concentration",
       viDescription: "Phân tích tuổi nợ, phải thu/phải trả, tập trung công nợ",
     },
+    {
+      enLabel: "Report Center",
+      viLabel: "Trung tâm báo cáo",
+      route: "report-center",
+      enDescription: "Run customer and debt reports in one place",
+      viDescription: "Chạy báo cáo khách hàng và công nợ trong một nơi",
+    },
   ];
 }

@@ -1,0 +1,425 @@
+<div class="report-center-shell">
+  <header class="report-hero">
+    <div>
+      <h2 class="bilingual heading-bilingual"><span class="en-text">Report Center</span><span class="vi-text">Trung tâm báo cáo</span></h2>
+      <p class="bilingual hero-text">
+        <span class="en-text">Run customer and debt reports from one dedicated workspace.</span>
+        <span class="vi-text">Chạy báo cáo khách hàng và công nợ trong một không gian riêng.</span>
+      </p>
+      <p class="last-run" *ngIf="lastRefreshedAt">Last refreshed / Đã chạy lúc: {{ lastRefreshedAt }}</p>
+      <p class="last-run" *ngIf="reportMeta">Filters / Bộ lọc: {{ reportMeta.status }} · {{ reportMeta.riskLevel }}</p>
+    </div>
+
+  </header>
+
+  <section class="filter-panel">
+    <div class="filter-field">
+      <label>Status / Trạng thái</label>
+      <ejs-dropdownlist
+        cssClass="report-filter-control report-filter-control--compact"
+        [dataSource]="statusOptions"
+        [fields]="optionFields"
+        [width]="'100%'"
+        [popupHeight]="'220px'"
+        [(ngModel)]="filters.status"
+      ></ejs-dropdownlist>
+    </div>
+
+    <div class="filter-field">
+      <label>Risk / Rủi ro</label>
+      <ejs-dropdownlist
+        cssClass="report-filter-control report-filter-control--compact"
+        [dataSource]="riskOptions"
+        [fields]="optionFields"
+        [width]="'100%'"
+        [popupHeight]="'220px'"
+        [(ngModel)]="filters.riskLevel"
+      ></ejs-dropdownlist>
+    </div>
+
+    <div class="filter-field">
+      <label>From Date / Từ ngày</label>
+      <ejs-datepicker
+        cssClass="report-filter-control report-filter-control--compact"
+        [width]="'100%'"
+        [format]="reportDateFormat"
+        [placeholder]="'From date / Từ ngày'"
+        [value]="reportFromDate"
+        (change)="onReportFromDateChange($event)"
+      ></ejs-datepicker>
+    </div>
+
+    <div class="filter-field">
+      <label>To Date / Đến ngày</label>
+      <ejs-datepicker
+        cssClass="report-filter-control report-filter-control--compact"
+        [width]="'100%'"
+        [format]="reportDateFormat"
+        [placeholder]="'To date / Đến ngày'"
+        [value]="reportToDate"
+        (change)="onReportToDateChange($event)"
+      ></ejs-datepicker>
+    </div>
+
+    <div class="filter-field filter-search">
+      <label>Search Customer / Tìm khách hàng</label>
+      <ejs-textbox
+        cssClass="report-filter-control report-filter-control--compact"
+        [placeholder]="'Code, name, phone...'"
+        [(ngModel)]="filters.search"
+        (keyup.enter)="applyFilters()"
+      ></ejs-textbox>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn-primary" [disabled]="loading" (click)="applyFilters()">Apply Filters / Áp dụng</button>
+      <button class="btn-secondary" [disabled]="loading" (click)="resetFilters()">Reset Filters / Đặt lại bộ lọc</button>
+      <button class="btn-secondary" [disabled]="exporting || loading" (click)="exportReportExcel()">
+        {{ exporting ? 'Exporting... / Đang xuất...' : 'Export Excel / Xuất Excel' }}
+      </button>
+    </div>
+  </section>
+
+  <div class="report-error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="report-loading" *ngIf="loading">
+    Loading report data... / Đang tải dữ liệu báo cáo...
+  </div>
+
+  <section class="summary-grid">
+    <article class="summary-card accent-blue">
+      <span>Customers / Khách hàng</span>
+      <strong>{{ formatAmount(customerSummary.totalCustomers) }}</strong>
+      <p>Total customers in scope</p>
+    </article>
+    <article class="summary-card accent-green">
+      <span>Receivable / Phải thu</span>
+      <strong>{{ formatAmount(debtOverview.totalReceivable) }}</strong>
+      <p>Open receivable exposure</p>
+    </article>
+    <article class="summary-card accent-amber">
+      <span>Payable / Phải trả</span>
+      <strong>{{ formatAmount(debtOverview.totalPayable) }}</strong>
+      <p>Open payable exposure</p>
+    </article>
+    <article class="summary-card accent-rose">
+      <span>Net Exposure / Ròng công nợ</span>
+      <strong>{{ formatSignedAmount(debtOverview.netExposure) }}</strong>
+      <p>Receivable minus payable</p>
+    </article>
+  </section>
+
+  <section class="report-cards">
+    <article class="report-card" *ngFor="let card of reportCards">
+      <h3>{{ card.title }}</h3>
+      <p>{{ card.description }}</p>
+      <button class="btn-secondary" (click)="openTarget(card.target)">{{ card.action }}</button>
+    </article>
+  </section>
+
+  <ejs-dialog
+    *ngIf="showExportHistoryDialog"
+    cssClass="report-history-dialog"
+    [isModal]="true"
+    [showCloseIcon]="true"
+    [visible]="showExportHistoryDialog"
+    [width]="'1080px'"
+    [header]="'Report Export History / Lịch sử xuất báo cáo'"
+    (overlayClick)="closeReportExportHistory()"
+    (close)="closeReportExportHistory()"
+  >
+    <ng-template #content>
+      <section class="report-history-panel">
+        <div class="report-history-toolbar">
+          <ejs-textbox
+            cssClass="report-history-control"
+            [placeholder]="'Search file or filters... / Tìm file hoặc bộ lọc...'"
+            [(ngModel)]="exportHistoryQuery.search"
+            (keyup.enter)="applyReportHistoryFilters()"
+          ></ejs-textbox>
+          <ejs-textbox
+            cssClass="report-history-control"
+            [placeholder]="'Exported by / Người xuất'"
+            [(ngModel)]="exportHistoryQuery.exportedBy"
+            (keyup.enter)="applyReportHistoryFilters()"
+          ></ejs-textbox>
+          <ejs-datepicker
+            cssClass="report-history-control"
+            [width]="'100%'"
+            [format]="reportDateFormat"
+            [placeholder]="'From date / Từ ngày'"
+            [value]="exportHistoryFromDate"
+            (change)="onExportHistoryFromDateChange($event)"
+          ></ejs-datepicker>
+          <ejs-datepicker
+            cssClass="report-history-control"
+            [width]="'100%'"
+            [format]="reportDateFormat"
+            [placeholder]="'To date / Đến ngày'"
+            [value]="exportHistoryToDate"
+            (change)="onExportHistoryToDateChange($event)"
+          ></ejs-datepicker>
+          <button class="btn-primary" [disabled]="exportHistoryLoading" (click)="applyReportHistoryFilters()">Apply</button>
+        </div>
+
+        <div class="report-history-error" *ngIf="exportHistoryErrorMessage">{{ exportHistoryErrorMessage }}</div>
+
+        <section class="table-panel report-history-table" [class.loading]="exportHistoryLoading">
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Filters</th>
+                <th>Records</th>
+                <th>Size</th>
+                <th>Exported By</th>
+                <th>Exported At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngIf="exportHistoryLoading">
+                <tr class="skeleton-row" [attr.aria-hidden]="true" *ngFor="let _ of loadingSkeletonRows">
+                  <td colspan="7"><div class="skeleton-line"></div></td>
+                </tr>
+              </ng-container>
+              <tr *ngFor="let item of (exportHistoryLoading ? [] : exportHistoryItems)">
+                <td>{{ item.fileName || '-' }}</td>
+                <td>{{ item.status || 'all' }} / {{ item.riskLevel || 'all' }}</td>
+                <td>{{ item.recordCount }}</td>
+                <td>{{ formatFileSize(item.size) }}</td>
+                <td>{{ item.exportedBy || '-' }}</td>
+                <td>{{ formatDateTime(item.exportedAt) }}</td>
+                <td>
+                  <button class="row-link-button" [disabled]="exportHistoryDownloadingIds.includes(item.id)" (click)="downloadReportHistoryItem(item)">
+                    <i class="bi bi-download"></i>
+                    {{ exportHistoryDownloadingIds.includes(item.id) ? 'Downloading...' : 'Download' }}
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="!exportHistoryLoading && exportHistoryItems.length === 0">
+                <td colspan="7" class="empty-row">No report export history found. / Không có lịch sử xuất báo cáo.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <footer class="detail-footer">
+          <span>Total {{ exportHistoryPager.totalItems }} records / {{ exportHistoryPager.totalPages || 1 }} pages</span>
+          <div class="pager-actions">
+            <button class="btn-secondary" [disabled]="exportHistoryQuery.page <= 1 || exportHistoryLoading" (click)="changeReportHistoryPage(exportHistoryQuery.page - 1)">Previous</button>
+            <button class="btn-secondary" [disabled]="exportHistoryQuery.page >= (exportHistoryPager.totalPages || 1) || exportHistoryLoading" (click)="changeReportHistoryPage(exportHistoryQuery.page + 1)">Next</button>
+          </div>
+        </footer>
+      </section>
+    </ng-template>
+  </ejs-dialog>
+
+  <section class="detail-grid">
+    <article class="detail-panel">
+      <header>
+        <h3>Customer Health / Sức khỏe khách hàng</h3>
+      </header>
+      <ul class="metric-list">
+        <li><span>Active</span><strong>{{ formatAmount(customerSummary.activeCustomers) }}</strong></li>
+        <li><span>Warning</span><strong>{{ formatAmount(customerSummary.warningCustomers) }}</strong></li>
+        <li><span>Blocked</span><strong>{{ formatAmount(customerSummary.blockedCustomers) }}</strong></li>
+        <li><span>Total credit</span><strong>{{ formatAmount(customerSummary.totalCredit) }}</strong></li>
+      </ul>
+    </article>
+
+    <article class="detail-panel">
+      <header>
+        <h3>Aging Buckets / Nhóm tuổi nợ</h3>
+      </header>
+      <div class="aging-list" *ngIf="debtOverview.agingBuckets?.length; else noAging">
+        <div class="aging-item" *ngFor="let bucket of debtOverview.agingBuckets">
+          <div class="aging-row">
+            <span>{{ bucket.bucket }}</span>
+            <strong>{{ formatAmount(bucket.amount) }}</strong>
+          </div>
+          <div class="aging-bar"><span [style.width.%]="getAgingShare(bucket.amount)"></span></div>
+          <small>{{ bucket.customers }} customers / khách hàng</small>
+        </div>
+      </div>
+      <ng-template #noAging>
+        <p class="empty-state">
+          No aging data for current filters (no positive receivable balances). /
+          Không có dữ liệu tuổi nợ theo bộ lọc hiện tại (không có số dư phải thu dương).
+        </p>
+      </ng-template>
+    </article>
+  </section>
+
+  <section class="detail-panel table-panel">
+    <header>
+      <h3>Top Debtors / Khách nợ lớn nhất</h3>
+    </header>
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Customer</th>
+          <th>Status</th>
+          <th>Risk</th>
+          <th>Aging</th>
+          <th>Net Balance</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="loading">
+          <tr class="skeleton-row" [attr.aria-hidden]="true" *ngFor="let _ of loadingSkeletonRows">
+            <td colspan="7"><div class="skeleton-line"></div></td>
+          </tr>
+        </ng-container>
+        <tr *ngFor="let item of (loading ? [] : debtOverview.topDebtors); trackBy: trackTopDebtor">
+          <td>{{ item.code }}</td>
+          <td>{{ item.name }}</td>
+          <td><span [class]="getStatusBadgeClass(item.status)">{{ item.status || '-' }}</span></td>
+          <td><span [class]="getRiskBadgeClass(item.riskLevel)">{{ item.riskLevel || '-' }}</span></td>
+          <td>{{ item.agingDays }} days</td>
+          <td>{{ formatSignedAmount(item.netBalance) }}</td>
+          <td>
+            <div class="row-actions-inline">
+              <button
+                type="button"
+                class="row-link-button"
+                (click)="openCustomerLedger(item.id)"
+                aria-label="Open Ledger / Mở sổ"
+                matTooltip="Open Ledger / Mở sổ"
+                matTooltipPosition="above"
+              >
+                <i class="bi bi-journal-text"></i>
+              </button>
+              <button
+                type="button"
+                class="row-link-button accent"
+                (click)="openCustomerExcelPreview(item.id)"
+                aria-label="Preview / Xem trước"
+                matTooltip="Preview / Xem trước"
+                matTooltipPosition="above"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+              <button
+                type="button"
+                class="row-link-button secondary"
+                (click)="openCustomerExportHistory(item.id)"
+                aria-label="History / Lịch sử"
+                matTooltip="History / Lịch sử"
+                matTooltipPosition="above"
+              >
+                <i class="bi bi-clock-history"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!debtOverview.topDebtors?.length">
+          <td colspan="7" class="empty-row">
+            No top debtors for current filters (no positive receivable balances). /
+            Không có khách nợ lớn theo bộ lọc hiện tại (không có số dư phải thu dương).
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="detail-panel table-panel">
+    <header>
+      <h3>Report Details / Chi tiết báo cáo khách hàng</h3>
+    </header>
+    <table>
+      <thead>
+        <tr>
+          <th class="sortable" (click)="toggleSort('code')">Code <span>{{ getSortIndicator('code') }}</span></th>
+          <th class="sortable" (click)="toggleSort('name')">Customer <span>{{ getSortIndicator('name') }}</span></th>
+          <th class="sortable" (click)="toggleSort('status')">Status <span>{{ getSortIndicator('status') }}</span></th>
+          <th class="sortable" (click)="toggleSort('riskLevel')">Risk <span>{{ getSortIndicator('riskLevel') }}</span></th>
+          <th class="sortable" (click)="toggleSort('lastTransactionAt')">Last Txn <span>{{ getSortIndicator('lastTransactionAt') }}</span></th>
+          <th class="sortable" (click)="toggleSort('agingDays')">Aging <span>{{ getSortIndicator('agingDays') }}</span></th>
+          <th class="sortable" (click)="toggleSort('netBalance')">Net Balance <span>{{ getSortIndicator('netBalance') }}</span></th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="loading">
+          <tr class="skeleton-row" [attr.aria-hidden]="true" *ngFor="let _ of loadingSkeletonRows">
+            <td colspan="8"><div class="skeleton-line"></div></td>
+          </tr>
+        </ng-container>
+        <tr *ngFor="let item of (loading ? [] : detailReport.items)">
+          <td>{{ item.code }}</td>
+          <td>
+            <div class="customer-cell">
+              <strong>{{ item.name }}</strong>
+              <span>{{ item.phone || '-' }}</span>
+            </div>
+          </td>
+          <td><span [class]="getStatusBadgeClass(item.status)">{{ item.status || '-' }}</span></td>
+          <td><span [class]="getRiskBadgeClass(item.riskLevel)">{{ item.riskLevel || '-' }}</span></td>
+          <td>{{ formatDate(item.lastTransactionAt) }}</td>
+          <td>{{ item.agingDays }} days</td>
+          <td [class]="getBalanceTone(item)">{{ formatSignedAmount(item.netBalance) }}</td>
+          <td>
+            <div class="row-actions-inline">
+              <button
+                type="button"
+                class="row-link-button"
+                (click)="openCustomerLedger(item.id)"
+                aria-label="Open Ledger / Mở sổ"
+                matTooltip="Open Ledger / Mở sổ"
+                matTooltipPosition="above"
+              >
+                <i class="bi bi-journal-text"></i>
+              </button>
+              <button
+                type="button"
+                class="row-link-button accent"
+                (click)="openCustomerExcelPreview(item.id)"
+                aria-label="Preview / Xem trước"
+                matTooltip="Preview / Xem trước"
+                matTooltipPosition="above"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+              <button
+                type="button"
+                class="row-link-button secondary"
+                (click)="openCustomerExportHistory(item.id)"
+                aria-label="History / Lịch sử"
+                matTooltip="History / Lịch sử"
+                matTooltipPosition="above"
+              >
+                <i class="bi bi-clock-history"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!detailReport.items.length">
+          <td colspan="8" class="empty-row">No report details found. / Không có dữ liệu chi tiết phù hợp.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <footer class="detail-footer">
+      <span>Total {{ detailReport.totalItems }} records / {{ detailReport.totalPages || 1 }} pages</span>
+      <div class="page-size-box">
+        <label>Page size</label>
+        <ejs-dropdownlist
+          cssClass="report-page-size"
+          [dataSource]="detailPageSizeOptions"
+          [width]="'100px'"
+          [value]="detailQuery.pageSize"
+          (change)="changePageSize($event.value)"
+        ></ejs-dropdownlist>
+      </div>
+      <div class="pager-actions">
+        <button class="btn-secondary" [disabled]="detailQuery.page <= 1 || loading" (click)="goToPage(detailQuery.page - 1)">Previous</button>
+        <button class="btn-secondary" [disabled]="detailQuery.page >= (detailReport.totalPages || 1) || loading" (click)="goToPage(detailQuery.page + 1)">Next</button>
+      </div>
+    </footer>
+  </section>
+</div>

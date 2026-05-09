@@ -4,8 +4,11 @@ import { environment as env } from "environments/environment";
 import { Observable } from "rxjs";
 import {
   CustomerAccount,
+  CustomerDebtReportExportHistoryQuery,
+  CustomerDebtReportExportHistoryResponse,
   CustomerListResponse,
   CustomerQueryParams,
+  CustomerDebtReportSummaryResponse,
   CustomerSummaryResponse,
 } from "./models/customer-management";
 import {
@@ -49,6 +52,148 @@ export class CustomerManagementService {
 
   getSummary(): Observable<CustomerSummaryResponse> {
     return this.http.get<CustomerSummaryResponse>(`${this.baseUrl}/summary`);
+  }
+
+  getCustomerDebtReportSummary(status: string, riskLevel: string): Observable<CustomerDebtReportSummaryResponse> {
+    let params = new HttpParams();
+
+    if (status) {
+      params = params.set("status", status);
+    }
+
+    if (riskLevel) {
+      params = params.set("riskLevel", riskLevel);
+    }
+
+    return this.http.get<CustomerDebtReportSummaryResponse>(`${this.baseUrl}/reports/customer-debt-summary`, { params });
+  }
+
+  getCustomerDebtReportSummaryWithDateRange(
+    status: string,
+    riskLevel: string,
+    fromDate?: string,
+    toDate?: string,
+  ): Observable<CustomerDebtReportSummaryResponse> {
+    let params = new HttpParams();
+
+    if (status) {
+      params = params.set("status", status);
+    }
+
+    if (riskLevel) {
+      params = params.set("riskLevel", riskLevel);
+    }
+
+    if (fromDate) {
+      params = params.set("fromDate", fromDate);
+    }
+
+    if (toDate) {
+      params = params.set("toDate", toDate);
+    }
+
+    return this.http.get<CustomerDebtReportSummaryResponse>(`${this.baseUrl}/reports/customer-debt-summary`, { params });
+  }
+
+  getCustomerDebtReportDetails(query: {
+    search?: string;
+    status: string;
+    riskLevel: string;
+    fromDate?: string;
+    toDate?: string;
+    page: number;
+    pageSize: number;
+    sortBy: string;
+    sortDirection: "asc" | "desc";
+  }): Observable<DebtListResponse> {
+    let params = new HttpParams()
+      .set("page", String(query.page))
+      .set("pageSize", String(query.pageSize))
+      .set("sortBy", query.sortBy)
+      .set("sortDirection", query.sortDirection)
+      .set("status", query.status)
+      .set("riskLevel", query.riskLevel);
+
+    if (query.search?.trim()) {
+      params = params.set("search", query.search.trim());
+    }
+
+    if (query.fromDate) {
+      params = params.set("fromDate", query.fromDate);
+    }
+
+    if (query.toDate) {
+      params = params.set("toDate", query.toDate);
+    }
+
+    return this.http.get<DebtListResponse>(`${this.baseUrl}/reports/customer-debt-details`, { params });
+  }
+
+  exportCustomerDebtReport(query: {
+    search?: string;
+    status: string;
+    riskLevel: string;
+    fromDate?: string;
+    toDate?: string;
+    sortBy: string;
+    sortDirection: "asc" | "desc";
+  }): Observable<HttpResponse<Blob>> {
+    let params = new HttpParams()
+      .set("status", query.status)
+      .set("riskLevel", query.riskLevel)
+      .set("sortBy", query.sortBy)
+      .set("sortDirection", query.sortDirection);
+
+    if (query.search?.trim()) {
+      params = params.set("search", query.search.trim());
+    }
+
+    if (query.fromDate) {
+      params = params.set("fromDate", query.fromDate);
+    }
+
+    if (query.toDate) {
+      params = params.set("toDate", query.toDate);
+    }
+
+    return this.http.get(`${this.baseUrl}/reports/customer-debt-export`, {
+      params,
+      observe: "response",
+      responseType: "blob",
+    });
+  }
+
+  getCustomerDebtReportExportHistory(query: CustomerDebtReportExportHistoryQuery): Observable<CustomerDebtReportExportHistoryResponse> {
+    let params = new HttpParams()
+      .set("page", String(query.page))
+      .set("pageSize", String(query.pageSize))
+      .set("sortBy", query.sortBy)
+      .set("sortDirection", query.sortDirection);
+
+    if (query.search?.trim()) {
+      params = params.set("search", query.search.trim());
+    }
+
+    if (query.exportedBy?.trim()) {
+      params = params.set("exportedBy", query.exportedBy.trim());
+    }
+
+    if (query.fromDate) {
+      params = params.set("fromDate", query.fromDate);
+    }
+
+    if (query.toDate) {
+      params = params.set("toDate", query.toDate);
+    }
+
+    return this.http.get<CustomerDebtReportExportHistoryResponse>(`${this.baseUrl}/reports/customer-debt-export-history`, { params });
+  }
+
+  downloadCustomerDebtReportExportHistory(historyId: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.baseUrl}/reports/customer-debt-export-history/${historyId}/download`, {
+      observe: "response",
+      responseType: "blob",
+    });
   }
 
   getAccountTypes(search = "", includeAll = false, maxItems = 200): Observable<Array<{

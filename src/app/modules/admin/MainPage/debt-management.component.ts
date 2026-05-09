@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
 import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
 import { DialogUtility } from "@syncfusion/ej2-popups";
 import { Observable } from "rxjs";
@@ -107,6 +108,7 @@ export class DebtManagementComponent implements OnInit {
   excelHistoryCustomerId = "";
   excelHistoryFromDate: Date | null = null;
   excelHistoryToDate: Date | null = null;
+  pendingExcelPreviewCustomerId = "";
 
   excelHistoryPager = {
     page: 1,
@@ -236,16 +238,43 @@ export class DebtManagementComponent implements OnInit {
   ];
 
   constructor(
+    private route: ActivatedRoute,
     private customerManagementService: CustomerManagementService,
     private transactionManagementService: TransactionManagementService,
   ) {}
 
   ngOnInit(): void {
+    const routeCustomerId = this.normalizeCustomerId(this.route.snapshot.queryParamMap.get("customerId") || "");
+    const routeTab = (this.route.snapshot.queryParamMap.get("tab") || "").trim().toLowerCase();
+    const openExportHistory = (this.route.snapshot.fragment || "").trim().toLowerCase() === "export-history";
+    const openExcelPreview = (this.route.snapshot.fragment || "").trim().toLowerCase() === "excel-preview";
+
+    if (routeCustomerId || routeTab === "transactions" || openExportHistory || openExcelPreview) {
+      this.activeTab = "transactions";
+      if (routeCustomerId) {
+        this.transactionQuery.customerId = routeCustomerId;
+        this.transactionQuery.search = "";
+        this.transactionQuery.transactionType = "all";
+        this.transactionQuery.page = 1;
+        this.transactionQuery.sortBy = "transactionAt";
+        this.transactionQuery.sortDirection = "desc";
+      }
+    }
+
     this.loadTransactionAccountTypeOptions();
     this.loadCustomerOptions();
     this.loadOverview();
     this.loadDebtList();
     this.loadTransactions();
+
+    if (openExportHistory) {
+      this.excelHistoryCustomerId = routeCustomerId;
+      this.openExcelExportHistory();
+    }
+
+    if (openExcelPreview && routeCustomerId) {
+      this.pendingExcelPreviewCustomerId = routeCustomerId;
+    }
   }
 
   loadTransactionAccountTypeOptions(): void {
@@ -325,6 +354,11 @@ export class DebtManagementComponent implements OnInit {
         this.pager.totalItems = response.totalItems || 0;
         this.pager.totalPages = response.totalPages || 0;
         this.loadTransactionCountsForDebtItems(this.debtItems);
+
+        if (this.pendingExcelPreviewCustomerId) {
+          this.openExcelPreviewByCustomerId(this.pendingExcelPreviewCustomerId);
+          this.pendingExcelPreviewCustomerId = "";
+        }
       },
       error: () => {
         this.debtItems = [];
@@ -746,6 +780,32 @@ export class DebtManagementComponent implements OnInit {
   openCustomerExportHistory(item: DebtItem): void {
     this.selectedExcelDebtItem = item;
     this.openExcelExportHistory();
+  }
+
+  openExcelPreviewByCustomerId(customerId: string): void {
+    const normalizedCustomerId = this.normalizeCustomerId(customerId);
+    if (!normalizedCustomerId) {
+      return;
+    }
+
+    const matchedItem = this.debtItems.find((item) => this.normalizeCustomerId(item?.id) === normalizedCustomerId);
+    if (matchedItem) {
+      this.openExcelView(matchedItem);
+      return;
+    }
+
+    this.openExcelView({
+      id: normalizedCustomerId,
+      code: normalizedCustomerId,
+      name: "Selected customer",
+      status: "active",
+      riskLevel: "normal",
+      debtAmount: 0,
+      creditAmount: 0,
+      netBalance: 0,
+      agingDays: 0,
+      agingBucket: "0-30",
+    });
   }
 
   openLedgerExportHistory(): void {
