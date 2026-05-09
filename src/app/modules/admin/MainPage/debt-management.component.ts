@@ -1133,12 +1133,24 @@ export class DebtManagementComponent implements OnInit {
   }
 
   getExcelLedgerTitle(): string {
-    return this.getExcelAccountCode() === "131"
-      ? "SỔ CHI TIẾT CÔNG NỢ PHẢI THU"
-      : "SỔ CHI TIẾT CÔNG NỢ PHẢI TRẢ";
+    const accountTypeCode = this.getExcelAccountCode();
+    if (accountTypeCode === "131") {
+      return "SỔ CHI TIẾT CÔNG NỢ PHẢI THU";
+    }
+
+    if (accountTypeCode === "331") {
+      return "SỔ CHI TIẾT CÔNG NỢ PHẢI TRẢ";
+    }
+
+    return accountTypeCode ? `SỔ CHI TIẾT CÔNG NỢ TK ${accountTypeCode}` : "SỔ CHI TIẾT CÔNG NỢ";
   }
 
   getExcelAccountCode(): string {
+    const normalizedTransactionAccountType = this.getExcelPrimaryAccountType();
+    if (normalizedTransactionAccountType) {
+      return normalizedTransactionAccountType;
+    }
+
     const selectedId = this.normalizeCustomerId(this.selectedExcelDebtItem?.id);
     const matchedCustomer = this.customerOptions.find((customer) => this.getCustomerOptionId(customer) === selectedId);
     const rawCategory = (matchedCustomer?.category || "").trim();
@@ -1167,10 +1179,8 @@ export class DebtManagementComponent implements OnInit {
     const rows = this.excelTransactions.map((tx, index) => ({
       voucher: String(index),
       date: this.formatSheetEntryDate(tx.transactionAt),
-      description: tx.note || (tx.transactionType === "credit"
-        ? (this.getExcelAccountCode() === "131" ? "THU TIEN CONG NO" : "THANH TOAN CONG NO")
-        : (this.getExcelAccountCode() === "131" ? "PHAT SINH CONG NO PHAI THU" : "PHAT SINH CONG NO PHAI TRA")),
-      account: this.getExcelAccountCode(),
+      description: tx.note || this.getExcelRowDescription(tx),
+      account: this.getExcelTransactionAccountCode(tx),
       debit: this.getExcelDebitAmount(tx) || null,
       credit: this.getExcelCreditAmount(tx) || null,
       note: tx.note || "",
@@ -1205,6 +1215,16 @@ export class DebtManagementComponent implements OnInit {
   getExcelSignatureDate(): string {
     const now = new Date();
     return `HCM, Ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`;
+  }
+
+  getTransactionAccountTypeLabel(value?: string): string {
+    const normalized = (value || "").trim();
+    if (!normalized) {
+      return "-";
+    }
+
+    const matched = this.transactionAccountTypeOptions.find((item) => (item.value || "").trim() === normalized);
+    return matched?.label || normalized;
   }
 
   formatSheetAmount(value: number | null): string {
@@ -1259,6 +1279,39 @@ export class DebtManagementComponent implements OnInit {
 
   getTransactionTypeLabel(value: string): string {
     return value === "credit" ? "Payable / Phải trả" : "Receivable / Phải thu";
+  }
+
+  private getExcelPrimaryAccountType(): string {
+    const transactionAccountType = this.excelTransactions
+      .map((tx) => (tx.accountType || "").trim())
+      .find((value) => !!value);
+
+    if (transactionAccountType) {
+      return transactionAccountType;
+    }
+
+    const selectedItemAccountType = (this.selectedExcelDebtItem as DebtItem & { accountType?: string } | null)?.accountType;
+    return (selectedItemAccountType || "").trim();
+  }
+
+  private getExcelTransactionAccountCode(tx: DebtTransactionItem): string {
+    const transactionAccountType = (tx.accountType || "").trim();
+    if (transactionAccountType) {
+      return transactionAccountType;
+    }
+
+    return this.getExcelAccountCode();
+  }
+
+  private getExcelRowDescription(tx: DebtTransactionItem): string {
+    const accountCode = this.getExcelTransactionAccountCode(tx);
+    if (accountCode && accountCode !== "131" && accountCode !== "331") {
+      return `PHAT SINH TK ${accountCode}`;
+    }
+
+    return tx.transactionType === "credit"
+      ? (accountCode === "131" ? "THU TIEN CONG NO" : "THANH TOAN CONG NO")
+      : (accountCode === "131" ? "PHAT SINH CONG NO PHAI THU" : "PHAT SINH CONG NO PHAI TRA");
   }
 
   setActiveTab(tab: "overview" | "transactions"): void {

@@ -312,7 +312,7 @@
             <td>
               <div class="cell-title">{{ tx.customerCode }} - {{ tx.customerName }}</div>
             </td>
-            <td><span class="ledger-type-chip" [class.payable]="tx.transactionType === 'credit'">{{ getTransactionTypeLabel(tx.transactionType) }}</span></td>
+            <td><span class="ledger-type-chip">{{ getTransactionAccountTypeLabel(tx.accountType) }}</span></td>
             <td class="amount" [ngClass]="tx.transactionType === 'debt' ? 'debt' : 'credit'">{{ formatCurrency(tx.amount) }}</td>
             <td>{{ formatDate(tx.transactionAt) }}</td>
             <td>{{ tx.createdBy || 'system' }}</td>
