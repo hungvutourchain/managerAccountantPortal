@@ -667,8 +667,18 @@ th {
 
 .audit-panel {
   padding-top: 8px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+  height: auto;
+}
+
+::ng-deep .customer-audit-dialog .e-dlg-content {
+  max-height: 75vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block !important;
+  height: auto !important;
 }
 
 .audit-inline-panel {
@@ -732,6 +742,8 @@ th {
   border: 1px solid #dce7f7;
   border-radius: 12px;
   overflow: auto;
+  max-height: 55vh;
+  height: auto;
 }
 
 .audit-error-banner {
@@ -744,20 +756,76 @@ th {
 }
 
 .audit-table {
-  min-width: 980px;
+  width: 100%;
+  min-width: unset;
+  table-layout: fixed;
 }
 
-.audit-table th:first-child,
-.audit-table td:first-child {
-  min-width: 170px;
+.audit-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f3f7ff;
+}
+
+.audit-table th,
+.audit-table td {
+  vertical-align: top;
+  height: auto;
+  padding: 8px 10px;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* When */
+.audit-table th:nth-child(1),
+.audit-table td:nth-child(1) {
+  width: 130px;
   white-space: nowrap;
+  overflow: visible;
+}
+
+/* By */
+.audit-table th:nth-child(2),
+.audit-table td:nth-child(2) {
+  width: 90px;
+}
+
+/* Action */
+.audit-table th:nth-child(3),
+.audit-table td:nth-child(3) {
+  width: 110px;
+}
+
+/* Field */
+.audit-table th:nth-child(4),
+.audit-table td:nth-child(4) {
+  width: auto;
+}
+
+/* From */
+.audit-table th:nth-child(5),
+.audit-table td:nth-child(5) {
+  width: 18%;
+}
+
+/* To */
+.audit-table th:nth-child(6),
+.audit-table td:nth-child(6) {
+  width: 18%;
+}
+
+/* Note */
+.audit-table th:nth-child(7),
+.audit-table td:nth-child(7) {
+  width: 15%;
 }
 
 .audit-value {
-  max-width: 220px;
   color: #3a527e;
   white-space: normal;
   word-break: break-word;
+  max-width: unset;
 }
 
 .audit-value.old {
