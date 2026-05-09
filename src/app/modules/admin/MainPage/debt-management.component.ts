@@ -388,7 +388,7 @@ export class DebtManagementComponent implements OnInit {
     if (existingTransaction) {
       const customerId = this.normalizeCustomerId(existingTransaction.customerId);
       const accountTypeByCustomer = this.getAccountTypeByCustomerId(customerId);
-      const accountType = accountTypeByCustomer || this.getAccountTypeByTransactionType(existingTransaction.transactionType);
+      const accountType = (existingTransaction.accountType || accountTypeByCustomer || this.getAccountTypeByTransactionType(existingTransaction.transactionType)).trim();
       this.editingTransactionId = existingTransaction.id;
       this.transactionForm = {
         customerId,
@@ -450,9 +450,11 @@ export class DebtManagementComponent implements OnInit {
 
     const transactionType = this.getTransactionTypeByAccountType(this.transactionForm.accountType, this.transactionForm.transactionType);
     this.transactionForm.transactionType = transactionType;
+    const accountType = (this.transactionForm.accountType || "").trim() || this.getAccountTypeByTransactionType(transactionType);
 
     const basePayload = {
       customerId,
+      accountType,
       transactionType,
       amount: Number(this.transactionForm.amount),
       transactionAt: this.toApiDateTime(this.transactionForm.transactionAt),
@@ -462,6 +464,7 @@ export class DebtManagementComponent implements OnInit {
 
     const payload: CreateDebtTransactionPayload = {
       customerId,
+      accountType,
       transactionType: basePayload.transactionType,
       amount: basePayload.amount,
       transactionAt: basePayload.transactionAt,

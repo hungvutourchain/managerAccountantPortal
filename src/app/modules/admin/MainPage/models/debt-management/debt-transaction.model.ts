@@ -14,6 +14,7 @@ export interface DebtTransactionItem {
   customerId: string;
   customerCode: string;
   customerName: string;
+  accountType?: string;
   transactionType: "debt" | "credit";
   amount: number;
   transactionAt: string;
@@ -44,6 +45,7 @@ export interface DebtTransactionQueryParams {
 
 export interface CreateDebtTransactionPayload {
   customerId: string;
+  accountType: string;
   transactionType: "debt" | "credit";
   amount: number;
   transactionAt: string;
@@ -53,6 +55,7 @@ export interface CreateDebtTransactionPayload {
 
 export interface UpdateDebtTransactionPayload {
   customerId?: string;
+  accountType: string;
   transactionType: "debt" | "credit";
   amount: number;
   transactionAt: string;
