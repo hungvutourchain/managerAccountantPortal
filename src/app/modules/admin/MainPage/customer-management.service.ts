@@ -113,7 +113,6 @@ export class CustomerManagementService {
         accountName?: string;
         accountNameLocal?: string;
         balanceSide?: string;
-        balanceSide?: string;
         updatedAt?: string;
       }>;
     }>(`${this.baseUrl}/account-types/manage`, { params });
