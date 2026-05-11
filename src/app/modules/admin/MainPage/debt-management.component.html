@@ -752,6 +752,7 @@
       <section class="excel-preview" *ngIf="selectedExcelDebtItem as customer">
         <div class="excel-preview-actions">
           <button class="btn-ghost" (click)="openExcelExportHistory()"><span class="bilingual"><span class="en-text">Export History</span><span class="vi-text">Lịch sử export</span></span></button>
+          <button class="btn-secondary" (click)="exportSelectedPdfCustomer()"><span class="bilingual"><span class="en-text">Export PDF</span><span class="vi-text">Xuất PDF</span></span></button>
           <button class="btn-primary" (click)="exportSelectedExcelCustomer()"><span class="bilingual"><span class="en-text">Export Excel</span><span class="vi-text">Xuất Excel</span></span></button>
           <button class="btn-secondary" (click)="closeExcelView()"><span class="bilingual"><span class="en-text">Close</span><span class="vi-text">Đóng</span></span></button>
         </div>
@@ -771,7 +772,7 @@
             <h3 class="ledger-title">{{ getExcelLedgerTitle() }}</h3>
             <p class="period-text ledger-period">{{ getExcelPeriodRange() }}</p>
             <div class="ledger-company-box">
-              <div class="company-name">CÔNG TY TNHH TM XNK VUI PHAT</div>
+              <div class="company-name">{{ customer.name || '-' }}</div>
               <div class="ledger-company-code">{{ customer.code || '-' }}</div>
             </div>
 

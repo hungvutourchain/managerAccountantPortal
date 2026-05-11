@@ -1338,6 +1338,19 @@ export class DebtManagementComponent implements OnInit {
     this.downloadCustomerExcel(customerId, this.selectedExcelDebtItem.code || "khach-hang");
   }
 
+  exportSelectedPdfCustomer(): void {
+    if (!this.selectedExcelDebtItem) {
+      return;
+    }
+
+    const customerId = this.normalizeCustomerId(this.selectedExcelDebtItem.id);
+    if (!customerId) {
+      return;
+    }
+
+    this.downloadCustomerPdf(customerId, this.selectedExcelDebtItem.code || "khach-hang");
+  }
+
   getTransactionTypeLabel(value: string): string {
     return value === "credit" ? "Payable / Phải trả" : "Receivable / Phải thu";
   }
@@ -1999,6 +2012,26 @@ export class DebtManagementComponent implements OnInit {
 
         const fileName = this.extractFileName(response.headers.get("content-disposition"))
           || `so-chi-tiet-cong-no-${fallbackCode}.xlsx`;
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileName;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      },
+    });
+  }
+
+  private downloadCustomerPdf(customerId: string, fallbackCode: string, transactionIds?: string[]): void {
+    this.transactionManagementService.exportDebtCustomerPdf(customerId, transactionIds).subscribe({
+      next: (response) => {
+        const blob = response.body;
+        if (!blob) {
+          return;
+        }
+
+        const fileName = this.extractFileName(response.headers.get("content-disposition"))
+          || `so-chi-tiet-cong-no-${fallbackCode}.pdf`;
         const url = window.URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;

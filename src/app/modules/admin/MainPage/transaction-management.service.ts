@@ -93,6 +93,19 @@ export class TransactionManagementService {
     });
   }
 
+  exportDebtCustomerPdf(customerId: string, transactionIds?: string[]): Observable<HttpResponse<Blob>> {
+    let params = new HttpParams();
+    if (transactionIds && transactionIds.length > 0) {
+      params = params.set("transactionIds", transactionIds.join(","));
+    }
+
+    return this.http.get(`${this.baseUrl}/customers/${customerId}/export-pdf`, {
+      params,
+      observe: "response",
+      responseType: "blob",
+    });
+  }
+
   getDebtCustomerExcelExportHistory(
     customerId: string,
     query: DebtCustomerExcelExportHistoryQuery,
