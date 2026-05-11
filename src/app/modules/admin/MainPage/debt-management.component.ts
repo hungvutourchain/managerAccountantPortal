@@ -65,6 +65,13 @@ export class DebtManagementComponent implements OnInit {
   excelLoading = false;
   excelHistoryLoading = false;
   aiLoading = false;
+  exportingExcel = false;
+  exportingPdf = false;
+  exportProgressPercent = 0;
+  exportProgressMode: "excel" | "pdf" | null = null;
+  private exportProgressPollTimer: ReturnType<typeof setInterval> | null = null;
+  private exportProgressRequestId = "";
+  private exportProgressCustomerId = "";
   transactionAuditErrorMessage = "";
   excelErrorMessage = "";
   excelHistoryErrorMessage = "";
@@ -838,9 +845,107 @@ export class DebtManagementComponent implements OnInit {
   closeExcelView(): void {
     this.showExcelDialog = false;
     this.excelLoading = false;
+    this.exportingExcel = false;
+    this.exportingPdf = false;
+    this.stopExportProgress();
     this.excelErrorMessage = "";
     this.selectedExcelDebtItem = null;
     this.excelTransactions = [];
+  }
+
+  isExportingExcelOrPdf(): boolean {
+    return this.exportingExcel || this.exportingPdf;
+  }
+
+  getExportProgressMessage(): string {
+    if (this.exportProgressMode === "pdf") {
+      return "Generating PDF... / Đang tạo PDF...";
+    }
+
+    if (this.exportProgressMode === "excel") {
+      return "Generating Excel... / Đang tạo Excel...";
+    }
+
+    return "Processing export... / Đang xử lý xuất file...";
+  }
+
+  private startExportProgress(mode: "excel" | "pdf", customerId: string, requestId: string): void {
+    this.stopExportProgress();
+    this.exportProgressMode = mode;
+    this.exportProgressCustomerId = customerId;
+    this.exportProgressRequestId = requestId;
+    this.exportProgressPercent = 3;
+
+    this.exportProgressPollTimer = setInterval(() => {
+      this.pollExportProgress();
+    }, 500);
+
+    this.pollExportProgress();
+  }
+
+  private finishExportProgress(): void {
+    this.exportProgressPercent = 100;
+    this.stopExportProgress(550);
+  }
+
+  private stopExportProgress(delayMs = 0): void {
+    const clearState = () => {
+      if (this.exportProgressPollTimer) {
+        clearInterval(this.exportProgressPollTimer);
+        this.exportProgressPollTimer = null;
+      }
+      this.exportProgressPercent = 0;
+      this.exportProgressMode = null;
+      this.exportProgressCustomerId = "";
+      this.exportProgressRequestId = "";
+    };
+
+    if (delayMs > 0) {
+      setTimeout(clearState, delayMs);
+      return;
+    }
+
+    clearState();
+  }
+
+  private pollExportProgress(): void {
+    if (!this.exportProgressCustomerId || !this.exportProgressRequestId || !this.exportProgressMode) {
+      return;
+    }
+
+    this.transactionManagementService
+      .getDebtCustomerExportProgress(this.exportProgressCustomerId, this.exportProgressRequestId)
+      .subscribe({
+        next: (progress) => {
+          const normalizedStatus = String(progress?.status || "").trim().toLowerCase();
+          const nextPercent = Number(progress?.progressPercent || 0);
+          this.exportProgressPercent = Math.max(
+            this.exportProgressPercent,
+            Math.min(100, Number.isFinite(nextPercent) ? nextPercent : this.exportProgressPercent),
+          );
+
+          if (normalizedStatus === "completed") {
+            this.finishExportProgress();
+            return;
+          }
+
+          if (normalizedStatus === "failed") {
+            this.excelErrorMessage = progress?.message || "Export failed. / Xuất file thất bại.";
+            this.stopExportProgress();
+          }
+        },
+        error: () => {
+          // Ignore transient polling errors while export request is still processing.
+        },
+      });
+  }
+
+  private createExportRequestId(): string {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID().replace(/-/g, "");
+    }
+
+    return `exp${Date.now()}${Math.random().toString(16).slice(2, 10)}`;
   }
 
   openExcelExportHistory(): void {
@@ -1348,7 +1453,15 @@ export class DebtManagementComponent implements OnInit {
       return;
     }
 
-    this.downloadCustomerPdf(customerId, this.selectedExcelDebtItem.code || "khach-hang");
+    const selectedTransactionIds = this.excelTransactions
+      .map((tx) => this.normalizeTransactionId(tx?.id))
+      .filter(Boolean);
+
+    this.downloadCustomerPdf(
+      customerId,
+      this.selectedExcelDebtItem.code || "khach-hang",
+      selectedTransactionIds.length > 0 ? selectedTransactionIds : undefined,
+    );
   }
 
   getTransactionTypeLabel(value: string): string {
@@ -1729,6 +1842,36 @@ export class DebtManagementComponent implements OnInit {
     return `${fromText} → ${toText}`;
   }
 
+  getExportHistoryFileType(fileName?: string): "pdf" | "excel" | "unknown" {
+    const normalized = String(fileName || "").trim().toLowerCase();
+    if (!normalized) {
+      return "unknown";
+    }
+
+    if (normalized.endsWith(".pdf")) {
+      return "pdf";
+    }
+
+    if (normalized.endsWith(".xlsx") || normalized.endsWith(".xls") || normalized.endsWith(".csv")) {
+      return "excel";
+    }
+
+    return "unknown";
+  }
+
+  getExportHistoryFileTypeLabel(fileName?: string): string {
+    const fileType = this.getExportHistoryFileType(fileName);
+    if (fileType === "pdf") {
+      return "PDF";
+    }
+
+    if (fileType === "excel") {
+      return "XLS";
+    }
+
+    return "FILE";
+  }
+
   formatTransactionAuditAction(action?: string): string {
     const map: Record<string, string> = {
       "transaction-create": "Create (Tạo mới)",
@@ -2003,7 +2146,10 @@ export class DebtManagementComponent implements OnInit {
   }
 
   private downloadCustomerExcel(customerId: string, fallbackCode: string, transactionIds?: string[]): void {
-    this.transactionManagementService.exportDebtCustomerExcel(customerId, transactionIds).subscribe({
+    const exportRequestId = this.createExportRequestId();
+    this.exportingExcel = true;
+    this.startExportProgress("excel", customerId, exportRequestId);
+    this.transactionManagementService.exportDebtCustomerExcel(customerId, transactionIds, exportRequestId).subscribe({
       next: (response) => {
         const blob = response.body;
         if (!blob) {
@@ -2018,12 +2164,27 @@ export class DebtManagementComponent implements OnInit {
         anchor.download = fileName;
         anchor.click();
         window.URL.revokeObjectURL(url);
+        this.finishExportProgress();
+      },
+      error: () => {
+        this.excelErrorMessage = "Failed to export Excel file. / Xuất file Excel thất bại.";
+        this.exportingExcel = false;
+        this.stopExportProgress();
+      },
+      complete: () => {
+        this.exportingExcel = false;
+        if (this.exportProgressMode === "excel" && this.exportProgressPercent < 100) {
+          this.stopExportProgress();
+        }
       },
     });
   }
 
   private downloadCustomerPdf(customerId: string, fallbackCode: string, transactionIds?: string[]): void {
-    this.transactionManagementService.exportDebtCustomerPdf(customerId, transactionIds).subscribe({
+    const exportRequestId = this.createExportRequestId();
+    this.exportingPdf = true;
+    this.startExportProgress("pdf", customerId, exportRequestId);
+    this.transactionManagementService.exportDebtCustomerPdf(customerId, transactionIds, exportRequestId).subscribe({
       next: (response) => {
         const blob = response.body;
         if (!blob) {
@@ -2038,6 +2199,18 @@ export class DebtManagementComponent implements OnInit {
         anchor.download = fileName;
         anchor.click();
         window.URL.revokeObjectURL(url);
+        this.finishExportProgress();
+      },
+      error: () => {
+        this.excelErrorMessage = "Failed to export PDF file. / Xuất file PDF thất bại.";
+        this.exportingPdf = false;
+        this.stopExportProgress();
+      },
+      complete: () => {
+        this.exportingPdf = false;
+        if (this.exportProgressMode === "pdf" && this.exportProgressPercent < 100) {
+          this.stopExportProgress();
+        }
       },
     });
   }

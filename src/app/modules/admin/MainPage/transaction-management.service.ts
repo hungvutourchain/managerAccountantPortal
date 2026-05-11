@@ -10,6 +10,7 @@ import {
   DebtTransactionMutationResponse,
   DebtAiQueryRequest,
   DebtAiQueryResponse,
+  DebtCustomerExportProgressResponse,
   DebtTransactionAuditLogResponse,
   DebtTransactionListResponse,
   DebtTransactionQueryParams,
@@ -80,10 +81,13 @@ export class TransactionManagementService {
     });
   }
 
-  exportDebtCustomerExcel(customerId: string, transactionIds?: string[]): Observable<HttpResponse<Blob>> {
+  exportDebtCustomerExcel(customerId: string, transactionIds?: string[], exportRequestId?: string): Observable<HttpResponse<Blob>> {
     let params = new HttpParams();
     if (transactionIds && transactionIds.length > 0) {
       params = params.set("transactionIds", transactionIds.join(","));
+    }
+    if (exportRequestId) {
+      params = params.set("exportRequestId", exportRequestId);
     }
 
     return this.http.get(`${this.baseUrl}/customers/${customerId}/export-excel`, {
@@ -93,10 +97,13 @@ export class TransactionManagementService {
     });
   }
 
-  exportDebtCustomerPdf(customerId: string, transactionIds?: string[]): Observable<HttpResponse<Blob>> {
+  exportDebtCustomerPdf(customerId: string, transactionIds?: string[], exportRequestId?: string): Observable<HttpResponse<Blob>> {
     let params = new HttpParams();
     if (transactionIds && transactionIds.length > 0) {
       params = params.set("transactionIds", transactionIds.join(","));
+    }
+    if (exportRequestId) {
+      params = params.set("exportRequestId", exportRequestId);
     }
 
     return this.http.get(`${this.baseUrl}/customers/${customerId}/export-pdf`, {
@@ -104,6 +111,10 @@ export class TransactionManagementService {
       observe: "response",
       responseType: "blob",
     });
+  }
+
+  getDebtCustomerExportProgress(customerId: string, requestId: string): Observable<DebtCustomerExportProgressResponse> {
+    return this.http.get<DebtCustomerExportProgressResponse>(`${this.baseUrl}/customers/${customerId}/export-progress/${requestId}`);
   }
 
   getDebtCustomerExcelExportHistory(

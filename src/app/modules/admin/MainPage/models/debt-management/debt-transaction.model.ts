@@ -131,3 +131,14 @@ export interface DebtCustomerExcelExportHistoryQuery {
   sortBy: "exportedAt" | "fileName" | "size" | "exportedBy";
   sortDirection: "asc" | "desc";
 }
+
+export interface DebtCustomerExportProgressResponse {
+  requestId: string;
+  customerId: string;
+  mode: "excel" | "pdf" | string;
+  status: "processing" | "completed" | "failed" | string;
+  progressPercent: number;
+  message?: string;
+  fileName?: string;
+  updatedAt?: string;
+}

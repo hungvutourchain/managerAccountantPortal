@@ -751,10 +751,23 @@
     <ng-template #content>
       <section class="excel-preview" *ngIf="selectedExcelDebtItem as customer">
         <div class="excel-preview-actions">
-          <button class="btn-ghost" (click)="openExcelExportHistory()"><span class="bilingual"><span class="en-text">Export History</span><span class="vi-text">Lịch sử export</span></span></button>
-          <button class="btn-secondary" (click)="exportSelectedPdfCustomer()"><span class="bilingual"><span class="en-text">Export PDF</span><span class="vi-text">Xuất PDF</span></span></button>
-          <button class="btn-primary" (click)="exportSelectedExcelCustomer()"><span class="bilingual"><span class="en-text">Export Excel</span><span class="vi-text">Xuất Excel</span></span></button>
-          <button class="btn-secondary" (click)="closeExcelView()"><span class="bilingual"><span class="en-text">Close</span><span class="vi-text">Đóng</span></span></button>
+          <button class="btn-ghost" [disabled]="isExportingExcelOrPdf()" (click)="openExcelExportHistory()"><span class="bilingual"><span class="en-text">Export History</span><span class="vi-text">Lịch sử export</span></span></button>
+          <button class="btn-secondary" [disabled]="isExportingExcelOrPdf()" (click)="exportSelectedPdfCustomer()"><span class="bilingual"><span class="en-text">{{ exportingPdf ? 'Exporting PDF...' : 'Export PDF' }}</span><span class="vi-text">{{ exportingPdf ? 'Đang xuất PDF...' : 'Xuất PDF' }}</span></span></button>
+          <button class="btn-primary" [disabled]="isExportingExcelOrPdf()" (click)="exportSelectedExcelCustomer()"><span class="bilingual"><span class="en-text">{{ exportingExcel ? 'Exporting Excel...' : 'Export Excel' }}</span><span class="vi-text">{{ exportingExcel ? 'Đang xuất Excel...' : 'Xuất Excel' }}</span></span></button>
+          <button class="btn-secondary" [disabled]="isExportingExcelOrPdf()" (click)="closeExcelView()"><span class="bilingual"><span class="en-text">Close</span><span class="vi-text">Đóng</span></span></button>
+        </div>
+
+        <div class="export-progress" *ngIf="isExportingExcelOrPdf()">
+          <div class="export-progress-header">
+            <span class="loading-dot"></span>
+            <span class="loading-dot"></span>
+            <span class="loading-dot"></span>
+            <span>{{ getExportProgressMessage() }}</span>
+          </div>
+          <div class="export-progress-bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="exportProgressPercent">
+            <div class="export-progress-bar" [style.width.%]="exportProgressPercent"></div>
+          </div>
+          <div class="export-progress-percent">{{ exportProgressPercent }}%</div>
         </div>
 
         <div class="audit-error-banner" *ngIf="excelErrorMessage">
@@ -930,7 +943,19 @@
               <tr *ngFor="let item of excelExportHistoryItems">
                 <td>{{ item.customerCode || selectedExcelDebtItem?.code || '-' }} - {{ item.customerName || selectedExcelDebtItem?.name || '-' }}</td>
                 <td>{{ formatAuditDateTime(item.exportedAt) }}</td>
-                <td class="history-file-name">{{ item.fileName || '-' }}</td>
+                <td class="history-file-name">
+                  <div class="history-file-content">
+                    <span
+                      class="history-file-badge"
+                      [class.is-pdf]="getExportHistoryFileType(item.fileName) === 'pdf'"
+                      [class.is-excel]="getExportHistoryFileType(item.fileName) === 'excel'"
+                      [class.is-unknown]="getExportHistoryFileType(item.fileName) === 'unknown'"
+                    >
+                      {{ getExportHistoryFileTypeLabel(item.fileName) }}
+                    </span>
+                    <span class="history-file-text" [title]="item.fileName || '-'">{{ item.fileName || '-' }}</span>
+                  </div>
+                </td>
                 <td>{{ formatExportPeriod(item.periodFrom, item.periodTo) }}</td>
                 <td>{{ item.transactionCount || 0 }}</td>
                 <td>{{ getReadableFileSize(item.size) }}</td>

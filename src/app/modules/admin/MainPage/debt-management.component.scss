@@ -1212,9 +1212,53 @@ tr.cart-locked {
   color: #1c3966;
   font-weight: 600;
   max-width: 280px;
+}
+
+.history-file-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.history-file-text {
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.history-file-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+  flex: 0 0 auto;
+}
+
+.history-file-badge.is-pdf {
+  color: #b42318;
+  background: #ffe7e4;
+  border-color: #f7b0aa;
+}
+
+.history-file-badge.is-excel {
+  color: #065f46;
+  background: #e8f9f1;
+  border-color: #9de2c4;
+}
+
+.history-file-badge.is-unknown {
+  color: #334155;
+  background: #eef2f7;
+  border-color: #c9d5e6;
 }
 
 .excel-history-pagination {
@@ -1228,6 +1272,50 @@ tr.cart-locked {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.excel-preview-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.export-progress {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 0 6px;
+  color: #355282;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: min(100%, 360px);
+}
+
+.export-progress-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-progress-bar-wrap {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #dce7f7;
+  overflow: hidden;
+}
+
+.export-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4b8cf0 0%, #1f4fa6 100%);
+  border-radius: inherit;
+  transition: width 0.22s ease;
+}
+
+.export-progress-percent {
+  color: #1f4fa6;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .excel-sheet-wrap {
