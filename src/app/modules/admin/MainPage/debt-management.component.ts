@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
 import { DialogUtility } from "@syncfusion/ej2-popups";
-import { Observable, Subject } from "rxjs";
+import { Observable, Subject, Subscription } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 import { CustomerManagementService } from "./customer-management.service";
 import { TransactionManagementService } from "./transaction-management.service";
@@ -53,6 +53,11 @@ interface DebtAiConversationMessage {
 })
 export class DebtManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private overviewRequestSub: Subscription | null = null;
+  private debtListRequestSub: Subscription | null = null;
+  private transactionsRequestSub: Subscription | null = null;
+  private customerOptionsRequestSub: Subscription | null = null;
+  private exportProgressPollingInFlight = false;
 
   activeTab: "overview" | "transactions" = "overview";
   loading = false;
@@ -290,6 +295,11 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Stop export progress polling
     this.stopExportProgress();
+
+    this.overviewRequestSub?.unsubscribe();
+    this.debtListRequestSub?.unsubscribe();
+    this.transactionsRequestSub?.unsubscribe();
+    this.customerOptionsRequestSub?.unsubscribe();
     
     // Complete all subscriptions
     this.destroy$.next();
@@ -336,7 +346,8 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
   }
 
   loadCustomerOptions(): void {
-    this.customerManagementService
+    this.customerOptionsRequestSub?.unsubscribe();
+    this.customerOptionsRequestSub = this.customerManagementService
       .getCustomers({
         search: "",
         status: "all",
@@ -355,7 +366,8 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
 
   loadOverview(): void {
     this.overviewLoading = true;
-    this.customerManagementService.getDebtOverview(this.query.status, this.query.riskLevel).pipe(takeUntil(this.destroy$)).subscribe({
+    this.overviewRequestSub?.unsubscribe();
+    this.overviewRequestSub = this.customerManagementService.getDebtOverview(this.query.status, this.query.riskLevel).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.overview = response;
       },
@@ -368,7 +380,8 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
   loadDebtList(): void {
     this.loading = true;
 
-    this.customerManagementService.getDebtList(this.query).pipe(takeUntil(this.destroy$)).subscribe({
+    this.debtListRequestSub?.unsubscribe();
+    this.debtListRequestSub = this.customerManagementService.getDebtList(this.query).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.debtItems = response.items || [];
         this.pager.totalItems = response.totalItems || 0;
@@ -416,7 +429,8 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
       customerId: this.normalizeCustomerId(this.transactionQuery.customerId),
     };
 
-    this.transactionManagementService.getDebtTransactions(query).subscribe({
+    this.transactionsRequestSub?.unsubscribe();
+    this.transactionsRequestSub = this.transactionManagementService.getDebtTransactions(query).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.transactions = response.items || [];
         this.transactionPager.totalItems = response.totalItems || 0;
@@ -907,6 +921,7 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
         clearInterval(this.exportProgressPollTimer);
         this.exportProgressPollTimer = null;
       }
+      this.exportProgressPollingInFlight = false;
       this.exportProgressPercent = 0;
       this.exportProgressMode = null;
       this.exportProgressCustomerId = "";
@@ -922,12 +937,15 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
   }
 
   private pollExportProgress(): void {
-    if (!this.exportProgressCustomerId || !this.exportProgressRequestId || !this.exportProgressMode) {
+    if (!this.exportProgressCustomerId || !this.exportProgressRequestId || !this.exportProgressMode || this.exportProgressPollingInFlight) {
       return;
     }
 
+    this.exportProgressPollingInFlight = true;
+
     this.transactionManagementService
       .getDebtCustomerExportProgress(this.exportProgressCustomerId, this.exportProgressRequestId)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (progress) => {
           const normalizedStatus = String(progress?.status || "").trim().toLowerCase();
@@ -949,6 +967,10 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
         },
         error: () => {
           // Ignore transient polling errors while export request is still processing.
+          this.exportProgressPollingInFlight = false;
+        },
+        complete: () => {
+          this.exportProgressPollingInFlight = false;
         },
       });
   }

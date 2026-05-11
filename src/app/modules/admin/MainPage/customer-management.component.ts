@@ -1,6 +1,8 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
 import { DialogUtility } from "@syncfusion/ej2-popups";
+import { Subject, Subscription } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 import {
   CustomerAccount,
   CustomerListResponse,
@@ -51,7 +53,12 @@ interface CustomerAiConversationMessage {
   templateUrl: "./customer-management.component.html",
   styleUrls: ["./customer-management.component.scss"],
 })
-export class CustomerManagementComponent implements OnInit {
+export class CustomerManagementComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private summaryRequestSub: Subscription | null = null;
+  private customersRequestSub: Subscription | null = null;
+  private accountTypesRequestSub: Subscription | null = null;
+
   readonly optionFields = { text: "label", value: "value" };
   accountTypeOptions: Array<{
     value: string;
@@ -191,8 +198,17 @@ export class CustomerManagementComponent implements OnInit {
     this.loadCustomers();
   }
 
+  ngOnDestroy(): void {
+    this.summaryRequestSub?.unsubscribe();
+    this.customersRequestSub?.unsubscribe();
+    this.accountTypesRequestSub?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadAccountTypeOptions(): void {
-    this.customerService.getAccountTypes("", true, 500).subscribe({
+    this.accountTypesRequestSub?.unsubscribe();
+    this.accountTypesRequestSub = this.customerService.getAccountTypes("", true, 500).pipe(takeUntil(this.destroy$)).subscribe({
       next: (items) => {
         this.accountTypeOptions = Array.isArray(items) && items.length > 0
           ? items.map((item) => ({
@@ -356,14 +372,16 @@ export class CustomerManagementComponent implements OnInit {
   }
 
   loadSummary(): void {
-    this.customerService.getSummary().subscribe((response) => {
+    this.summaryRequestSub?.unsubscribe();
+    this.summaryRequestSub = this.customerService.getSummary().pipe(takeUntil(this.destroy$)).subscribe((response) => {
       this.summary = response;
     });
   }
 
   loadCustomers(): void {
     this.loading = true;
-    this.customerService.getCustomers(this.query).subscribe({
+    this.customersRequestSub?.unsubscribe();
+    this.customersRequestSub = this.customerService.getCustomers(this.query).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: CustomerListResponse) => {
         this.customers = response.items || [];
         this.pager.totalItems = response.totalItems || 0;
