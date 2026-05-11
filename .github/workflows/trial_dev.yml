@@ -8,7 +8,7 @@ env:
   RESISTRY: ghcr.io
   IMAGE_NAME: hungvutourchain/accountantportal:latest
   GHCR_USERNAME: hungvutourchain
-  IP: 159.89.193.175
+  IP: 128.199.72.245
   # IP: 178.128.86.194
   PAT: ${{secrets.PAT}}
   SSH: ${{ secrets.SSH_PRIVATE_KEY }}
