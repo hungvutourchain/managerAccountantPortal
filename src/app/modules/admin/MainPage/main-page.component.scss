@@ -70,6 +70,12 @@
   gap: 10px;
 }
 
+.menu-item.nav-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .menu-item {
   display: flex;
   flex-direction: column;

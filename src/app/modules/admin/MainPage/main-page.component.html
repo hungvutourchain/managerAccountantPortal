@@ -8,9 +8,11 @@
     <nav class="menu-list">
       <a
         *ngFor="let item of menuItems"
-        [routerLink]="[item.route]"
+        [routerLink]="menuLocked ? null : [item.route]"
         routerLinkActive="active"
         class="menu-item"
+        [class.nav-locked]="menuLocked"
+        [attr.aria-disabled]="menuLocked || null"
       >
         <span class="menu-title bilingual"><span class="en-text">{{ item.enLabel }}</span><span class="vi-text">{{ item.viLabel }}</span></span>
         <span class="menu-description bilingual"><span class="en-text">{{ item.enDescription }}</span><span class="vi-text">{{ item.viDescription }}</span></span>

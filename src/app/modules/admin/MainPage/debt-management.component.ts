@@ -6,6 +6,7 @@ import { Observable, Subject, Subscription } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 import { CustomerManagementService } from "./customer-management.service";
 import { TransactionManagementService } from "./transaction-management.service";
+import { PageLoadingService } from "./page-loading.service";
 import {
   CreateDebtTransactionPayload,
   DebtAiContext,
@@ -60,9 +61,20 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
   private exportProgressPollingInFlight = false;
 
   activeTab: "overview" | "transactions" = "overview";
-  loading = false;
-  overviewLoading = false;
-  transactionLoading = false;
+  private _loading = false;
+  private _overviewLoading = false;
+  private _transactionLoading = false;
+
+  get loading(): boolean { return this._loading; }
+  set loading(v: boolean) { this._loading = v; this._notifyPageLoading(); }
+  get overviewLoading(): boolean { return this._overviewLoading; }
+  set overviewLoading(v: boolean) { this._overviewLoading = v; this._notifyPageLoading(); }
+  get transactionLoading(): boolean { return this._transactionLoading; }
+  set transactionLoading(v: boolean) { this._transactionLoading = v; this._notifyPageLoading(); }
+
+  private _notifyPageLoading(): void {
+    this.pageLoadingService.setLoading(this._loading || this._overviewLoading || this._transactionLoading);
+  }
   savingTransaction = false;
   showTransactionEditor = false;
   showTransactionAuditDialog = false;
@@ -256,6 +268,7 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private customerManagementService: CustomerManagementService,
     private transactionManagementService: TransactionManagementService,
+    private pageLoadingService: PageLoadingService,
   ) {}
 
   ngOnInit(): void {
@@ -300,7 +313,7 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
     this.debtListRequestSub?.unsubscribe();
     this.transactionsRequestSub?.unsubscribe();
     this.customerOptionsRequestSub?.unsubscribe();
-    
+    this.pageLoadingService.setLoading(false);
     // Complete all subscriptions
     this.destroy$.next();
     this.destroy$.complete();
@@ -1537,6 +1550,9 @@ export class DebtManagementComponent implements OnInit, OnDestroy {
   }
 
   setActiveTab(tab: "overview" | "transactions"): void {
+    if (this.loading || this.overviewLoading || this.transactionLoading) {
+      return;
+    }
     this.activeTab = tab;
   }
 

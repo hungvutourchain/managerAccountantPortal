@@ -19,6 +19,7 @@ import {
 } from "./models/debt-management";
 import { CustomerManagementService } from "./customer-management.service";
 import { TransactionManagementService } from "./transaction-management.service";
+import { PageLoadingService } from "./page-loading.service";
 
 type AccountTypeConfigItem = {
   id: string;
@@ -100,7 +101,12 @@ export class CustomerManagementComponent implements OnInit, OnDestroy {
     { label: "Credit (Có)", value: "credit" },
   ];
 
-  loading = false;
+  private _loading = false;
+  get loading(): boolean { return this._loading; }
+  set loading(v: boolean) {
+    this._loading = v;
+    this.pageLoadingService.setLoading(v);
+  }
   saving = false;
   showEditor = false;
   showAuditDialog = false;
@@ -190,6 +196,7 @@ export class CustomerManagementComponent implements OnInit, OnDestroy {
   constructor(
     private customerService: CustomerManagementService,
     private transactionManagementService: TransactionManagementService,
+    private pageLoadingService: PageLoadingService,
   ) {}
 
   ngOnInit(): void {
@@ -202,6 +209,7 @@ export class CustomerManagementComponent implements OnInit, OnDestroy {
     this.summaryRequestSub?.unsubscribe();
     this.customersRequestSub?.unsubscribe();
     this.accountTypesRequestSub?.unsubscribe();
+    this.pageLoadingService.setLoading(false);
     this.destroy$.next();
     this.destroy$.complete();
   }

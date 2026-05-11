@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { forkJoin } from "rxjs";
 import { Subscription } from "rxjs";
 import { CustomerManagementService } from "./customer-management.service";
+import { PageLoadingService } from "./page-loading.service";
 import {
   CustomerDebtReportExportHistoryItem,
   CustomerDebtReportExportHistoryQuery,
@@ -79,7 +80,12 @@ export class ReportCenterComponent implements OnInit, OnDestroy {
     sortDirection: "desc" as "asc" | "desc",
   };
 
-  loading = false;
+  private _loading = false;
+  get loading(): boolean { return this._loading; }
+  set loading(v: boolean) {
+    this._loading = v;
+    this.pageLoadingService.setLoading(v);
+  }
   exporting = false;
   lastRefreshedAt: string | null = null;
   reportMeta: CustomerDebtReportSummaryResponse["filters"] | null = null;
@@ -137,6 +143,7 @@ export class ReportCenterComponent implements OnInit, OnDestroy {
   constructor(
     private customerManagementService: CustomerManagementService,
     private router: Router,
+    private pageLoadingService: PageLoadingService,
   ) {}
 
   ngOnInit(): void {
@@ -145,6 +152,7 @@ export class ReportCenterComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.reportRequestSub?.unsubscribe();
+    this.pageLoadingService.setLoading(false);
   }
 
   runReport(): void {

@@ -1,4 +1,8 @@
 <section class="customer-management-page">
+  <div class="page-loading-overlay" *ngIf="loading" aria-live="polite" aria-label="Loading data">
+    <div class="spinner-ring"></div>
+    <span class="bilingual"><span class="en-text">Loading data...</span><span class="vi-text">Đang tải dữ liệu...</span></span>
+  </div>
   <header class="page-header">
     <div>
       <h2 class="bilingual heading-bilingual"><span class="en-text">Customer Management</span><span class="vi-text">Quản lý khách hàng</span></h2>

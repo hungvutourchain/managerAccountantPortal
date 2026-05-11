@@ -23,6 +23,7 @@ import { DebtManagementComponent } from './debt-management.component';
 import { ReportCenterComponent } from './report-center.component';
 import { CustomerManagementService } from './customer-management.service';
 import { TransactionManagementService } from './transaction-management.service';
+import { PageLoadingService } from './page-loading.service';
 
 @NgModule({
   declarations: [
@@ -53,6 +54,7 @@ import { TransactionManagementService } from './transaction-management.service';
     AppFactory,
     CustomerManagementService,
     TransactionManagementService,
+    PageLoadingService,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,

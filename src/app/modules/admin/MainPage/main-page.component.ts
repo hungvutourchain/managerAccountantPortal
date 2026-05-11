@@ -1,4 +1,6 @@
-import { Component } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
+import { PageLoadingService } from "./page-loading.service";
 
 @Component({
   standalone: false,
@@ -6,7 +8,21 @@ import { Component } from "@angular/core";
   templateUrl: "./main-page.component.html",
   styleUrls: ["./main-page.component.scss"],
 })
-export class MainPageComponent {
+export class MainPageComponent implements OnInit, OnDestroy {
+  private loadingSub: Subscription | null = null;
+  menuLocked = false;
+
+  constructor(private pageLoadingService: PageLoadingService) {}
+
+  ngOnInit(): void {
+    this.loadingSub = this.pageLoadingService.isLoading$.subscribe(v => {
+      this.menuLocked = v;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.loadingSub?.unsubscribe();
+  }
   menuItems = [
     {
       enLabel: "Customer Management",

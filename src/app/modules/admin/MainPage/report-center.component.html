@@ -1,4 +1,8 @@
 <div class="report-center-shell">
+  <div class="page-loading-overlay" *ngIf="loading" aria-live="polite" aria-label="Loading data">
+    <div class="spinner-ring"></div>
+    <span class="bilingual"><span class="en-text">Loading report data...</span><span class="vi-text">Đang tải dữ liệu báo cáo...</span></span>
+  </div>
   <header class="report-hero">
     <div>
       <h2 class="bilingual heading-bilingual"><span class="en-text">Report Center</span><span class="vi-text">Trung tâm báo cáo</span></h2>
@@ -82,10 +86,6 @@
 
   <div class="report-error" *ngIf="errorMessage">
     {{ errorMessage }}
-  </div>
-
-  <div class="report-loading" *ngIf="loading">
-    Loading report data... / Đang tải dữ liệu báo cáo...
   </div>
 
   <section class="summary-grid">

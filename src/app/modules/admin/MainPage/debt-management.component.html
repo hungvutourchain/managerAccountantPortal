@@ -1,4 +1,8 @@
 <section class="debt-management-page">
+  <div class="page-loading-overlay" *ngIf="loading || overviewLoading || transactionLoading" aria-live="polite" aria-label="Loading data">
+    <div class="spinner-ring"></div>
+    <span class="bilingual"><span class="en-text">Loading data...</span><span class="vi-text">Đang tải dữ liệu...</span></span>
+  </div>
   <header class="page-header">
     <div>
       <h2 class="bilingual heading-bilingual"><span class="en-text">Debt Management</span><span class="vi-text">Quản lý công nợ</span></h2>
@@ -12,10 +16,10 @@
   </header>
 
   <nav class="tab-switcher" aria-label="Debt management tabs">
-    <button type="button" class="tab-button" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
+    <button type="button" class="tab-button" [class.active]="activeTab === 'overview'" [disabled]="loading || overviewLoading || transactionLoading" (click)="setActiveTab('overview')">
       <span class="bilingual"><span class="en-text">Debt Overview</span><span class="vi-text">Tổng quan công nợ</span></span>
     </button>
-    <button type="button" class="tab-button" [class.active]="activeTab === 'transactions'" (click)="setActiveTab('transactions')">
+    <button type="button" class="tab-button" [class.active]="activeTab === 'transactions'" [disabled]="loading || overviewLoading || transactionLoading" (click)="setActiveTab('transactions')">
       <span class="bilingual"><span class="en-text">Transaction Ledger</span><span class="vi-text">Sổ giao dịch công nợ</span></span>
     </button>
   </nav>
