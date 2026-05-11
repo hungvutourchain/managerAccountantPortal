@@ -1,8 +1,9 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { FilteringEventArgs } from "@syncfusion/ej2-angular-dropdowns";
 import { DialogUtility } from "@syncfusion/ej2-popups";
-import { Observable } from "rxjs";
+import { Observable, Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 import { CustomerManagementService } from "./customer-management.service";
 import { TransactionManagementService } from "./transaction-management.service";
 import {
@@ -50,7 +51,9 @@ interface DebtAiConversationMessage {
   templateUrl: "./debt-management.component.html",
   styleUrls: ["./debt-management.component.scss"],
 })
-export class DebtManagementComponent implements OnInit {
+export class DebtManagementComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   activeTab: "overview" | "transactions" = "overview";
   loading = false;
   overviewLoading = false;
@@ -284,8 +287,17 @@ export class DebtManagementComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    // Stop export progress polling
+    this.stopExportProgress();
+    
+    // Complete all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadTransactionAccountTypeOptions(): void {
-    this.customerManagementService.getAccountTypes("", true, 500).subscribe({
+    this.customerManagementService.getAccountTypes("", true, 500).pipe(takeUntil(this.destroy$)).subscribe({
       next: (items) => {
         this.transactionAccountTypeOptions = Array.isArray(items) && items.length > 0
           ? items.map((item) => ({
@@ -334,6 +346,7 @@ export class DebtManagementComponent implements OnInit {
         sortBy: "name",
         sortDirection: "asc",
       })
+      .pipe(takeUntil(this.destroy$))
       .subscribe((response) => {
         this.customerOptions = response.items || [];
         this.refreshCustomerDropdownOptions();
@@ -342,7 +355,7 @@ export class DebtManagementComponent implements OnInit {
 
   loadOverview(): void {
     this.overviewLoading = true;
-    this.customerManagementService.getDebtOverview(this.query.status, this.query.riskLevel).subscribe({
+    this.customerManagementService.getDebtOverview(this.query.status, this.query.riskLevel).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.overview = response;
       },
@@ -355,7 +368,7 @@ export class DebtManagementComponent implements OnInit {
   loadDebtList(): void {
     this.loading = true;
 
-    this.customerManagementService.getDebtList(this.query).subscribe({
+    this.customerManagementService.getDebtList(this.query).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.debtItems = response.items || [];
         this.pager.totalItems = response.totalItems || 0;
@@ -520,7 +533,7 @@ export class DebtManagementComponent implements OnInit {
       ? this.transactionManagementService.updateDebtTransaction(this.editingTransactionId, basePayload as UpdateDebtTransactionPayload)
       : this.transactionManagementService.addDebtTransaction(payload);
 
-    request$.subscribe({
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: DebtTransactionMutationResponse) => {
         const transactionId = this.normalizeTransactionId(response?.transaction?.id);
         this.transactionForm.attachments = [...(response?.transaction?.attachments || [])];
@@ -533,7 +546,7 @@ export class DebtManagementComponent implements OnInit {
         }
 
         const pendingFiles = [...this.transactionPendingFiles];
-        this.transactionManagementService.uploadDebtTransactionAttachments(transactionId, pendingFiles).subscribe({
+        this.transactionManagementService.uploadDebtTransactionAttachments(transactionId, pendingFiles).pipe(takeUntil(this.destroy$)).subscribe({
           next: (uploadResponse) => {
             this.transactionForm.attachments = [...(uploadResponse.attachments || [])];
             this.transactionPendingFiles = [];
@@ -604,7 +617,7 @@ export class DebtManagementComponent implements OnInit {
     }
 
     this.transactionDownloadingAttachmentIds = [...this.transactionDownloadingAttachmentIds, attachmentId];
-    this.transactionManagementService.downloadDebtTransactionAttachment(transactionId, attachmentId).subscribe({
+    this.transactionManagementService.downloadDebtTransactionAttachment(transactionId, attachmentId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         const blob = response.body;
         if (!blob) {
@@ -647,7 +660,7 @@ export class DebtManagementComponent implements OnInit {
     }
 
     this.transactionDeletingAttachmentIds = [...this.transactionDeletingAttachmentIds, attachmentId];
-    this.transactionManagementService.deleteDebtTransactionAttachment(transactionId, attachmentId).subscribe({
+    this.transactionManagementService.deleteDebtTransactionAttachment(transactionId, attachmentId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.transactionForm.attachments = [...(response.attachments || [])];
         this.loadTransactions();
@@ -707,7 +720,7 @@ export class DebtManagementComponent implements OnInit {
     }
 
     this.transactionAuditLoading = true;
-    this.transactionManagementService.getDebtTransactionAuditLogs(transactionId, 1, 100).subscribe({
+    this.transactionManagementService.getDebtTransactionAuditLogs(transactionId, 1, 100).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.transactionAuditLogs = response.items || [];
       },
@@ -753,7 +766,7 @@ export class DebtManagementComponent implements OnInit {
     };
 
     this.excelLoading = true;
-    this.transactionManagementService.getDebtTransactions(query).subscribe({
+    this.transactionManagementService.getDebtTransactions(query).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.excelTransactions = response.items || [];
         this.transactionCountByCustomerId[customerId] = response.totalItems || this.excelTransactions.length;
