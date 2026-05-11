@@ -1,6 +1,7 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { forkJoin } from "rxjs";
+import { Subscription } from "rxjs";
 import { CustomerManagementService } from "./customer-management.service";
 import {
   CustomerDebtReportExportHistoryItem,
@@ -16,7 +17,9 @@ import { DebtItem, DebtListResponse, DebtOverviewResponse, DebtTopDebtor } from 
   templateUrl: "./report-center.component.html",
   styleUrls: ["./report-center.component.scss"],
 })
-export class ReportCenterComponent implements OnInit {
+export class ReportCenterComponent implements OnInit, OnDestroy {
+  private reportRequestSub: Subscription | null = null;
+
   readonly optionFields = { text: "text", value: "value" };
   readonly reportDateFormat = "dd/MM/yyyy";
   readonly loadingSkeletonRows = [1, 2, 3];
@@ -140,15 +143,20 @@ export class ReportCenterComponent implements OnInit {
     this.runReport();
   }
 
+  ngOnDestroy(): void {
+    this.reportRequestSub?.unsubscribe();
+  }
+
   runReport(): void {
     if (!this.hasValidDateRange()) {
       return;
     }
 
+    this.reportRequestSub?.unsubscribe();
     this.loading = true;
     this.errorMessage = "";
 
-    forkJoin({
+    this.reportRequestSub = forkJoin({
       summary: this.customerManagementService.getCustomerDebtReportSummaryWithDateRange(
         this.filters.status,
         this.filters.riskLevel,
